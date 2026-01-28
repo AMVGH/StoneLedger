@@ -27,6 +27,5 @@ public class RegisterService {
 
         UserModel savedUser = userRepository.save(user);
         return savedUser;
-
     }
 }
