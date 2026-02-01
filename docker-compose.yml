@@ -1,0 +1,29 @@
+services:
+  backend:
+    image: eclipse-temurin:21-jdk
+    container_name: stoneledger-backend
+    working_dir: /app
+    volumes:
+      - ./server:/app
+      - maven-cache:/root/.m2
+    ports:
+      - "8080:8080"
+    command: ./mvnw spring-boot:run
+    env_file:
+      - .env
+
+  frontend:
+    image: node:18-alpine
+    container_name: stoneledger-frontend
+    working_dir: /app
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    command: sh -c "npm install && npm start"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8080
+
+volumes:
+  maven-cache:

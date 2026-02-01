@@ -1,0 +1,65 @@
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+
+# Build outputs
+**/target/
+**/build/
+**/node_modules/
+**/dist/
+**/*.jar
+**/*.war
+**/*.class
+**/package-lock.json
+**/yarn.lock
+
+# Dependency directories
+.mvn/
+.gradle/
+
+# Environment files (ALL of them - mount these at runtime)
+.env*
+!.env.example  # Keep example files
+
+# Docker files
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Documentation
+README.md
+*.md
+docs/
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Coverage reports
+coverage/
+*.lcov
+
+# Test files
+**/*.test.js
+**/*.spec.js
+__tests__/
+__pycache__/
+*.pyc

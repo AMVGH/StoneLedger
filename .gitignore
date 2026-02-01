@@ -19,6 +19,7 @@ target/
 *.swp
 *.swo
 *.sublime-*
+*.iml
 
 # OS
 .DS_Store
@@ -36,3 +37,8 @@ temp/
 # Coverage
 coverage/
 .nyc_output/
+
+.docker/
+docker-compose.override.yml
+
+.wslconfig
