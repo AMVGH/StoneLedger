@@ -1,0 +1,99 @@
+/* Full page wrapper */
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+
+  /* background image comes from inline style in Welcome.jsx */
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  background-color: #0b0f17;
+}
+
+/* Main content card */
+.card {
+  width: min(960px, 100%);
+  padding: 28px;
+
+  border-radius: 18px;
+  border: 1px solid #23304a;
+
+  /* Dark glass effect so logo stays visible behind */
+  background: rgba(18, 26, 42, 0.92);
+  backdrop-filter: blur(6px);
+}
+
+/* Title text */
+.title {
+  margin: 0 0 12px 0;
+  font-size: 2.2rem;
+  font-weight: 800;
+  text-align: center;
+  color: #f9f9f9;
+}
+
+/* Subtitle text */
+.subtitle {
+  margin: 0 0 24px 0;
+  text-align: center;
+  color: #b8c4dc;
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+/* Login button */
+.button {
+  display: inline-block;
+  padding: 14px 22px;
+
+  border-radius: 14px;
+  border: 1px solid #2a3a58;
+
+  background: #1b2a44;
+  color: #ffffff;
+
+  font-weight: 700;
+  font-size: 1rem;
+  text-align: center;
+  cursor: pointer;
+
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.button:hover {
+  background: #243a5f;
+  transform: translateY(-1px);
+}
+
+/* Center button */
+.actions {
+  display: flex;
+  justify-content: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+  .card {
+    padding: 22px;
+  }
+
+  .title {
+    font-size: 1.9rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+  }
+
+  .page {
+    background-size: 70%;
+  }
+}
+
+@media (max-width: 500px) {
+  .page {
+    background-size: 85%;
+  }
+}

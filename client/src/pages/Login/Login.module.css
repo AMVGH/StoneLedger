@@ -1,0 +1,13 @@
+.page { min-height: 100vh; display: grid; place-items: center; background:#0b0f17; padding:20px; }
+.card { width:min(420px,100%); background:#121a2a; border:1px solid #23304a; border-radius:16px; padding:24px; }
+.logoArea { text-align:center; }
+.title { text-align:center; margin: 8px 0 18px; color: #f9f9f9; }
+.field { margin-bottom: 14px; }
+label { display:block; margin-bottom:6px; font-size:14px; color:#b8c4dc; }
+input { width:100%; padding:10px 12px; border-radius:12px; border:1px solid #2a3a58; background:#0b0f17; color:#e9eef8; }
+.primaryBtn { width:100%; padding:12px; border-radius:12px; border:1px solid #2a3a58; background:#1b2a44; color:#e9eef8; font-weight:700; cursor:pointer; }
+.actions { display:flex; justify-content:space-between; margin-top:14px; }
+.linkBtn { color:#9bb0d1; text-decoration:none; font-size:14px; }
+.linkBtn:hover { text-decoration:underline; }
+.error { color:#ff9aa9; margin: 8px 0 10px; }
+
