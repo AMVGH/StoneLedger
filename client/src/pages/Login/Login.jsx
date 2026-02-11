@@ -1,8 +1,9 @@
-import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Logo from "../../components/Logo";
+import { useState } from "react";
 import styles from "./Login.module.css";
+import heroImg from "../../assets/suit.jpg";
 import { useAuth } from "../../context/AuthContext";
+import sLogo from "../../assets/SmLogo.jpg";
 
 export default function Login() {
   const nav = useNavigate();
@@ -31,30 +32,68 @@ export default function Login() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.card}>
-        <div className={styles.logoArea}><Logo size={90} /></div>
-        <h2 className={styles.title}>Login</h2>
-
-        <form onSubmit={onSubmit}>
-          <div className={styles.field}>
-            <label>Username</label>
-            <input value={username} onChange={(e) => setUsername(e.target.value)} />
+      <div className={styles.shell}>
+        {/* Left (Form) */}
+        <section className={styles.left}>
+          <div className={styles.logoRow}>
+            <img src={sLogo} alt="App Logo"  className={styles.logo} />
           </div>
 
-          <div className={styles.field}>
-            <label>Password</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-          </div>
+          <h1 className={styles.title}>Log in</h1>
 
-          {msg && <div className={styles.error}>{msg}</div>}
+          <form onSubmit={onSubmit} className={styles.form}>
+            <div className={styles.field}>
+              <label className={styles.label}>Username</label>
+              <input
+                className={styles.input}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="  Your Username"
+                autoComplete="username"
+              />
+            </div>
 
-          <button className={styles.primaryBtn} type="submit">Sign In</button>
-        </form>
+            <div className={styles.field}>
+              <label className={styles.label}>Password</label>
+              <input
+                className={styles.input}
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                autoComplete="current-password"
+              />
+            </div>
 
-        <div className={styles.actions}>
-          <Link className={styles.linkBtn} to="/forgot-password">Forgot Password?</Link>
-          <Link className={styles.linkBtn} to="/create-user">Create New User</Link>
-        </div>
+            {msg && <div className={styles.error}>{msg}</div>}
+
+            <button className={styles.primaryBtn} type="submit">
+              Login
+            </button>
+
+            <div className={styles.linksRow}>
+              <Link className={styles.link} to="/forgot-password">
+                Forgot password?
+              </Link>
+            </div>
+
+            <div className={styles.footerRow}>
+              <span className={styles.muted}>Don&apos;t have an account?</span>{" "}
+              <Link className={styles.linkStrong} to="/create-user">
+                Register here
+              </Link>
+            </div>
+          </form>
+        </section>
+
+        {/* Right (Image) */}
+        <section
+          className={styles.right}
+          style={{ backgroundImage: `url(${heroImg})` }}
+          aria-hidden="true"
+        >
+          <div className={styles.rightOverlay} />
+        </section>
       </div>
     </div>
   );

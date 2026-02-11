@@ -1,4 +1,4 @@
-import logo from "../assets/Logo.JPG";
+import logo from "../assets/mountain.png";
 
 
 export default function Logo({ size = 44 }) {
