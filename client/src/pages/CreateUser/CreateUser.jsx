@@ -1,34 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "./CreateUser.module.css";
 import Logo from "../../components/Logo";
-import { generateUsername } from "../../utils/usernameGenerator";
 import { useAuth } from "../../context/AuthContext";
-
-/**
- * Password rules:
- * - minimum 8 characters
- * - must start with a letter
- * - must have a letter, a number, and a special character
- */
-function validatePasswordRules(password) {
-  return {
-    minLength: password.length >= 8,
-    startsWithLetter: /^[A-Za-z]/.test(password),
-    hasLetter: /[A-Za-z]/.test(password),
-    hasNumber: /[0-9]/.test(password),
-    hasSpecial: /[^A-Za-z0-9]/.test(password),
-  };
-}
-
-function Rule({ ok, text }) {
-  return (
-    <div className={ok ? styles.ruleOk : styles.ruleNo}>
-      <span className={styles.ruleIcon}>{ok ? "✓" : "•"}</span>
-      <span>{text}</span>
-    </div>
-  );
-}
 
 export default function CreateUser() {
   const nav = useNavigate();
@@ -36,50 +10,39 @@ export default function CreateUser() {
 
   const [first, setFirst] = useState("");
   const [last, setLast] = useState("");
-  const [role, setRole] = useState("ACCOUNTANT");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [address, setAddress] = useState("");
+  const [dob, setDob] = useState("");
+  const [email, setEmail] = useState("");
   const [msg, setMsg] = useState("");
-
-  useEffect(() => {
-    setUsername(generateUsername(first, last));
-  }, [first, last]);
-
-  const rules = useMemo(() => validatePasswordRules(password), [password]);
-  const passwordOk = useMemo(() => Object.values(rules).every(Boolean), [rules]);
 
   function onSubmit(e) {
     e.preventDefault();
     setMsg("");
 
-    if (!first.trim() || !last.trim()) {
-      setMsg("Please enter first and last name.");
+    if (!first.trim() || !last.trim() || !address.trim() || !dob || !email.trim()) {
+      setMsg("Please complete first name, last name, address, DOB, and email.");
       return;
     }
 
-    if (!username) {
-      setMsg("Username could not be generated. Check names and try again.");
-      return;
-    }
-
-    if (!passwordOk) {
-      setMsg("Password does not meet the required guidelines.");
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+    if (!emailOk) {
+      setMsg("Please enter a valid email address.");
       return;
     }
 
     try {
-      auth.signup({
+      auth.requestAccess({
         firstName: first.trim(),
         lastName: last.trim(),
-        username,
-        role,
-        password,
+        address: address.trim(),
+        dob,
+        email: email.trim(),
       });
 
-      setMsg("User created. You can now log in.");
-      setTimeout(() => nav("/login"), 400);
+      setMsg("Access request submitted. An administrator will review your request and email you the login link if approved.");
+      setTimeout(() => nav("/login"), 1200);
     } catch (err) {
-      setMsg(err?.message || "Could not create user.");
+      setMsg(err?.message || "Could not submit request.");
     }
   }
 
@@ -90,58 +53,58 @@ export default function CreateUser() {
           <Logo size={60} />
         </div>
 
-        <h2 className={styles.title}>Create New User</h2>
+        <h2 className={styles.title}>Request Access</h2>
 
         <form onSubmit={onSubmit}>
           <div className={styles.row}>
             <div>
-              <label>First Name</label>
-              <input value={first} onChange={(e) => setFirst(e.target.value)} />
+              <label className={styles.label}>First Name</label>
+              <input
+                className={styles.input}
+                value={first}
+                onChange={(e) => setFirst(e.target.value)}
+              />
             </div>
 
             <div>
-              <label>Last Name</label>
-              <input value={last} onChange={(e) => setLast(e.target.value)} />
+              <label className={styles.label}>Last Name</label>
+              <input
+                className={styles.input}
+                value={last}
+                onChange={(e) => setLast(e.target.value)}
+              />
             </div>
           </div>
 
-          <label>Role</label>
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            className={styles.select}
-          >
-            <option value="ADMIN">Administrator</option>
-            <option value="MANAGER">Manager</option>
-            <option value="ACCOUNTANT">Regular User (Accountant)</option>
-          </select>
-
-          <label>Username (auto-generated)</label>
-          <input value={username} readOnly />
-
-          <label>Password</label>
+          <label className={styles.label}>Address</label>
           <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter a strong password"
-            aria-describedby="passwordRules"
+            className={styles.input}
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            placeholder="Street, city, state"
           />
 
-          {/* Live password rules helper box */}
-          <div id="passwordRules" className={styles.passwordRules}>
-            <div className={styles.rulesTitle}>Password must:</div>
-            <Rule ok={rules.minLength} text="Be at least 8 characters" />
-            <Rule ok={rules.startsWithLetter} text="Start with a letter" />
-            <Rule ok={rules.hasLetter} text="Contain a letter" />
-            <Rule ok={rules.hasNumber} text="Contain a number" />
-            <Rule ok={rules.hasSpecial} text="Contain a special character" />
-          </div>
+          <label className={styles.label}>Date of Birth</label>
+          <input
+            className={styles.input}
+            type="date"
+            value={dob}
+            onChange={(e) => setDob(e.target.value)}
+          />
+
+          <label className={styles.label}>Email</label>
+          <input
+            className={styles.input}
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+          />
 
           {msg && <div className={styles.msg}>{msg}</div>}
 
-          <button className={styles.primaryBtn} type="submit" disabled={!passwordOk}>
-            Create Account
+          <button className={styles.primaryBtn} type="submit">
+            Submit Access Request
           </button>
         </form>
 

@@ -3,7 +3,7 @@
   display: grid;
   place-items: center;
   padding: 28px;
-  background: #161616;
+  background: #0b0f17;
 }
 
 /* White form card like Login left panel */
@@ -42,7 +42,7 @@
 }
 
 /* Labels EXACTLY like Login */
-label {
+.label {
   display: block;
   margin: 14px 0 6px;
   font-size: 11px;
@@ -52,11 +52,11 @@ label {
 }
 
 /* Inputs EXACTLY like Login (underline + comfortable padding) */
-input {
+.input {
   width: 100%;
   border: none;
   outline: none;
-  background: transparent;
+  background: #ffffff;
 
   /* matches Login spacing so cursor/text isn't cramped */
   padding: 10px 6px 12px;
@@ -66,20 +66,20 @@ input {
   border-bottom: 1px solid #cbd5e1;
 }
 
-input::placeholder {
+.input::placeholder {
   color: #9ca3af;
 }
 
-input:focus {
+.input:focus {
   border-bottom: 2px solid #111827;
 }
 
-input:disabled {
+.input:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-input[readonly] {
+.input[readonly] {
   opacity: 0.75;
   cursor: default;
 }
