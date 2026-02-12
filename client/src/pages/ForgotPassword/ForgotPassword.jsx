@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Logo from "../../components/Logo";
 import styles from "./ForgotPassword.module.css";
 import { useAuth } from "../../context/AuthContext";
-import { validatePassword } from "../../utils/validators";
+import { validatePassword, PASSWORD_POLICY_MESSAGE } from "../../utils/validators";
 
 export default function ForgotPassword() {
   const nav = useNavigate();
@@ -78,7 +78,7 @@ export default function ForgotPassword() {
 
     const { ok } = validatePassword(newPassword);
     if (!ok) {
-      setMsg("Password must be 12+ chars and include upper, lower, number, and symbol.");
+      setMsg(PASSWORD_POLICY_MESSAGE);
       return;
     }
 

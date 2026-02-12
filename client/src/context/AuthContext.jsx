@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo, useState } from "react";
 import { generateUsername } from "../utils/usernameGenerator";
+import { validatePassword, PASSWORD_POLICY_MESSAGE } from "../utils/validators";
 
 const AuthCtx = createContext(null);
 
@@ -105,10 +106,16 @@ export function AuthProvider({ children }) {
     user,
     isAuthed: !!user,
 
-    requestAccess({ firstName, lastName, address, dob, email }) {
+    requestAccess({ firstName, lastName, address, dob, email, password }) {
       const requests = loadRequests();
       const users = loadUsers();
       const normalizedEmail = String(email || "").trim().toLowerCase();
+      const providedPassword = String(password || "");
+
+      const { ok: passwordOk } = validatePassword(providedPassword);
+      if (!passwordOk) {
+        throw new Error(PASSWORD_POLICY_MESSAGE);
+      }
 
       const duplicatePending = requests.some(
         (r) => r.email === normalizedEmail && r.status === "PENDING"
@@ -131,6 +138,7 @@ export function AuthProvider({ children }) {
         address: address.trim(),
         dob,
         email: normalizedEmail,
+        password: providedPassword,
         status: "PENDING",
         createdAt: new Date().toISOString(),
       };
@@ -295,14 +303,16 @@ export function AuthProvider({ children }) {
 
       const base = generateUsername(req.firstName, req.lastName);
       const username = ensureUniqueUsername(base, users);
-      const tempPassword = createTemporaryPassword();
+      const requestedPassword = String(req.password || "");
+      const hasRequestedPassword = requestedPassword.length > 0;
+      const initialPassword = hasRequestedPassword ? requestedPassword : createTemporaryPassword();
 
       users.push({
         firstName: req.firstName,
         lastName: req.lastName,
         username,
         role: "ACCOUNTANT",
-        password: tempPassword,
+        password: initialPassword,
         suspended: false,
         email: req.email,
         address: req.address,
@@ -331,7 +341,9 @@ export function AuthProvider({ children }) {
       queueEmail({
         to: req.email,
         subject: "StoneLedger access approved",
-        body: `Your access request has been approved. Login link: /login\nUsername: ${username}\nTemporary password: ${tempPassword}`,
+        body: hasRequestedPassword
+          ? `Your access request has been approved. Login link: /login\nUsername: ${username}`
+          : `Your access request has been approved. Login link: /login\nUsername: ${username}\nTemporary password: ${initialPassword}`,
       });
     },
 
