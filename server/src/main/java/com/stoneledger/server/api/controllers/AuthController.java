@@ -1,60 +1,53 @@
 package com.stoneledger.server.api.controllers;
 
+import com.stoneledger.server.api.dtos.requests.LoginRequestDTO;
 import com.stoneledger.server.api.dtos.ApiResponseDTO;
-import com.stoneledger.server.api.dtos.RegistrationRequestDTO;
-import com.stoneledger.server.api.enums.ResponseStatus;
-import com.stoneledger.server.api.models.UserModel;
+import com.stoneledger.server.api.dtos.requests.RegistrationRequestDTO;
+import com.stoneledger.server.api.exeptions.InvalidPasswordException;
+import com.stoneledger.server.api.repositories.ErrorMessageRepository;
+import com.stoneledger.server.services.LoginService;
 import com.stoneledger.server.services.RegisterService;
+import com.stoneledger.server.utils.ValidationUtil;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.text.MessageFormat;
+import java.security.GeneralSecurityException;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
     @Autowired
-    public RegisterService registerService;
+    private RegisterService registerService;
+    @Autowired
+    private LoginService loginService;
+    @Autowired
+    private ValidationUtil validationUtil;
+    @Autowired
+    private ErrorMessageRepository errorMessageRepository;
 
-    @PostMapping("/register")
-    public ResponseEntity<ApiResponseDTO<Void>> registerUser(@RequestBody RegistrationRequestDTO request) {
-        //Parse incoming information and ensure that its valid
-        //Step into the registration service and write a new user into the table
-        //Use a ResponseEntity to send the API response indicating a success or fail for registration
-        try {
-            registerService.registerUser(request);
-
-            return ResponseEntity.status(HttpStatus.ACCEPTED)
-                .body(ApiResponseDTO.of(ResponseStatus.SUCCESS));
-
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(ApiResponseDTO.of(
-                    ResponseStatus.FAIL,
-                    e.getMessage(),
-                    null
-                ));
-        } catch (Exception e) {
-            System.err.println("Error: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponseDTO.of(
-                    ResponseStatus.FAIL,
-                    "Internal error durin registration: " + e.getMessage(),
-                    null
-                ));
-        }
+    /**
+     * Endpoint designed to register new users with the service, initially parses the incoming information to
+     * ensure that it is valid and meets business rules. If the incoming request is valid, writes a new inactive user
+     * to the table. This user will remain in an inactive state until an administrator approves the registration
+     * request.
+     * */
+    @PostMapping("/request-access")
+    public ResponseEntity<ApiResponseDTO<?>> registerUser(@RequestBody RegistrationRequestDTO request) throws MessagingException {
+        validationUtil.isValidRegistrationRequest(request);
+        registerService.registerUser(request);
+        return ResponseEntity.ok(ApiResponseDTO.success(null));
     }
 
-    //Login that returns a JWT
+    /**
+     * Endpoint designed to allow an already approved user into the system, the user status must be active and the suspension status
+     * must be false, moreover the unencrypted password must match the password passed in the request.
+     * */
     @PostMapping("/login")
-    public ResponseEntity<ApiResponseDTO<String>> loginUser (@RequestBody RegistrationRequestDTO request){
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(ApiResponseDTO.of(
-            ResponseStatus.FAIL,
-            "Login endpoint not implemented yet.",
-            null
-        ));
+    public ResponseEntity<ApiResponseDTO<?>> loginUser (@RequestBody LoginRequestDTO request) throws InvalidPasswordException, GeneralSecurityException {
+        validationUtil.isValidLoginRequest(request);
+        String instanceJsonWebToken = loginService.loginUser(request);
+        return ResponseEntity.ok(ApiResponseDTO.success(instanceJsonWebToken));
     }
 }
