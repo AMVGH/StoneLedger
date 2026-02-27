@@ -2,11 +2,15 @@ package com.stoneledger.server.utils;
 
 import com.stoneledger.server.api.dtos.requests.LoginRequestDTO;
 import com.stoneledger.server.api.dtos.requests.RegistrationRequestDTO;
+import com.stoneledger.server.api.exeptions.InvalidIdException;
+import com.stoneledger.server.api.exeptions.InvalidJwtException;
 import com.stoneledger.server.api.models.ErrorMessageModel;
 import com.stoneledger.server.api.repositories.ErrorMessageRepository;
 import com.stoneledger.server.api.repositories.UserRepository;
 import com.stoneledger.server.api.exeptions.InvalidRequestException;
 import com.stoneledger.server.services.ErrorMessageService;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +25,7 @@ public class ValidationUtil {
     private ErrorMessageService errorMessageService;
 
     public boolean isValidRegistrationRequest(RegistrationRequestDTO request) throws InvalidRequestException {
-        //Checks that all fields contain content and are not empty coming in from the client
+        // Checks that all fields contain content and are not empty coming in from the client
         if (request.getFirstName() == null || request.getFirstName().isBlank()
             || request.getLastName() == null || request.getLastName().isBlank()
             || request.getEmail() == null || request.getEmail().isBlank()
@@ -32,21 +36,35 @@ public class ValidationUtil {
             throw new InvalidRequestException(errorMessageService.getError(100));
         }
 
-        //Checks that the email is unique and there is not an account already associated with the email
+        // Checks that the email is unique and there is not an account already associated with the email
         else if (userRepository.existsByEmail(request.getEmail())) {
             throw new InvalidRequestException(errorMessageService.getError(101));
         }
-
         return true;
     }
 
     public boolean isValidLoginRequest(LoginRequestDTO request) throws InvalidRequestException {
-        //Checks that all fields contain content and are not empty coming in from the client
+        // Checks that all fields contain content and are not empty coming in from the client
         if (request.getUsername() == null || request.getUsername().isBlank()
             || request.getPassword() == null || request.getPassword().isBlank()) {
             throw new InvalidRequestException(errorMessageService.getError(100));
         } else if (!userRepository.existsByUsername(request.getUsername())) {
             throw new InvalidRequestException(errorMessageService.getError(107));
+        }
+        return true;
+    }
+
+    public boolean isValidUserId(long id) throws InvalidIdException {
+        // Ensures the user ID exists in the table
+        if (!userRepository.existsById(id)) {
+            throw new InvalidIdException(errorMessageService.getError(111));
+        }
+        return true;
+    }
+
+    public boolean isValidJwt(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new InvalidJwtException(errorMessageService.getError(106));
         }
         return true;
     }
