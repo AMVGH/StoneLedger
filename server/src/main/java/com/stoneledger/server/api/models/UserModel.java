@@ -47,10 +47,10 @@ public class UserModel {
     private LocalDateTime accountCreationDate;
     @Column(name="is_active", nullable = false)
     private boolean active;
-    @Column(name="active_from")
-    private LocalDateTime activeStartDate;
-    @Column(name="active_to")
-    private LocalDateTime activeEndDate;
+    @Column(name="activity_start_date")
+    private LocalDateTime activityStartDate;
+    @Column(name="activity_end_date")
+    private LocalDateTime activityEndDate;
     @Column(name="is_suspended", nullable = false)
     private boolean suspended;
     @Column(name="suspended_from")

@@ -3,6 +3,7 @@ package com.stoneledger.server.services;
 import com.stoneledger.server.api.enums.UserRole;
 import com.stoneledger.server.api.models.UserModel;
 import com.stoneledger.server.api.repositories.UserRepository;
+import com.stoneledger.server.utils.EncryptionUtil;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,16 +12,17 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.security.GeneralSecurityException;
 import java.util.List;
 
 @Service
 public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
-
     @Autowired
     private UserRepository userRepository;
-
+    @Autowired
+    private EncryptionUtil encryptionUtil;
     @Value("${spring.mail.username}")
     private String fromEmail;
 
@@ -41,7 +43,7 @@ public class EmailService {
         mailSender.send(message);
     }
 
-    public void sendApprovalNotification(UserModel user) throws MessagingException {
+    public void sendApprovalNotification(UserModel user) throws MessagingException, GeneralSecurityException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
@@ -78,13 +80,16 @@ public class EmailService {
             "<a href='" + loginUrl + "' style='padding:10px 20px; background:blue; color:white; text-decoration:none;'> Login to StoneLedger </a>";
     }
 
-    private String buildApprovalEmailBody(UserModel user) {
+    private String buildApprovalEmailBody(UserModel user) throws GeneralSecurityException {
+        // We provide the user's pass in the approval email since it is the valid email associated with the account and created users are issued the pass by admin.
+        String userPassword = encryptionUtil.decrypt(user.getPassword());
         return "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;'>" +
             "<h2>Welcome to StoneLedger, " + user.getFirstName() + "!</h2>" +
             "<p>Congratulations! Your registration request has been approved. You can now access the StoneLedger platform.</p>" +
             "<p>Your login credential:</p>" +
             "<ul>" +
             "<li><strong>Username:</strong> <strong>" + user.getUsername() + "</strong></li>" +
+            "<li><strong>Password:</strong> <strong>" + userPassword + "</strong></li>" +
             "</ul>" +
             "<p>Click the button below to log in:</p>" +
             "<a href='" + loginUrl + "' style='display:inline-block; padding:10px 20px; background-color:#1a73e8; color:white; text-decoration:none; border-radius:4px;'>Login to StoneLedger</a>" +

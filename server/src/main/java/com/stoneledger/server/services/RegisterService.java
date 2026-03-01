@@ -10,9 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.security.GeneralSecurityException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Service
 public class RegisterService {
@@ -36,14 +34,14 @@ public class RegisterService {
             String baseUsername = userFirstName.charAt(0) + userLastName + month + year;
             String finalUsername;
 
-            int overLapValue = 2;
+            int overlapValue = 2;
             if (!userRepository.existsByUsername(baseUsername)) {
                 finalUsername = baseUsername;
             } else {
-                while (userRepository.existsByUsername(baseUsername + overLapValue)) {
-                    overLapValue++;
+                while (userRepository.existsByUsername(baseUsername + overlapValue)) {
+                    overlapValue++;
                 }
-                finalUsername = baseUsername + overLapValue;
+                finalUsername = baseUsername + overlapValue;
             }
 
             String encryptedPassword;
@@ -64,10 +62,10 @@ public class RegisterService {
                 .dateOfBirth(request.getDateOfBirth())
                 .profilePictureUrl(null)
                 .userRole(request.getUserRole())
-                .accountCreationDate(LocalDateTime.now())
+                .accountCreationDate(accountCreationDate)
                 .active(false)
-                .activeStartDate(null)
-                .activeEndDate(null)
+                .activityStartDate(null)
+                .activityEndDate(null)
                 .suspended(false)
                 .suspendStartDate(null)
                 .suspendEndDate(null)
