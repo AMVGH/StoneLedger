@@ -81,15 +81,7 @@ public class RegisterService {
             .securityAnswer(null)
             .build();
 
-        PasswordModel passwordHistoryInstance = PasswordModel.builder()
-            .user(newUser)
-            .password(encryptedPassword)
-            .validFrom(accountCreationDate)
-            .validTo(passwordExpiryDate)
-            .build();
-
         userRepository.save(newUser);
-        passwordRepository.save(passwordHistoryInstance);
         emailService.sendAdminApprovalRequest(newUser);
     }
 }
