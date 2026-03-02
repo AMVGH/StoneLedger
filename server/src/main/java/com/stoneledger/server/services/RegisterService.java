@@ -2,7 +2,9 @@ package com.stoneledger.server.services;
 
 import com.stoneledger.server.api.dtos.requests.RegistrationRequestDTO;
 import com.stoneledger.server.api.exeptions.EncryptionException;
+import com.stoneledger.server.api.models.PasswordModel;
 import com.stoneledger.server.api.models.UserModel;
+import com.stoneledger.server.api.repositories.PasswordRepository;
 import com.stoneledger.server.utils.EncryptionUtil;
 import com.stoneledger.server.api.repositories.UserRepository;
 import jakarta.mail.MessagingException;
@@ -16,6 +18,9 @@ import java.time.LocalDateTime;
 public class RegisterService {
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private PasswordRepository passwordRepository;
     @Autowired
     private EncryptionUtil encryptionUtil;
     @Autowired
@@ -24,57 +29,67 @@ public class RegisterService {
     private ErrorMessageService errorMessageService;
 
     public void registerUser(RegistrationRequestDTO request) throws MessagingException {
-            String userFirstName = request.getFirstName();
-            String userLastName = request.getLastName();
-            LocalDateTime accountCreationDate = LocalDateTime.now();
+        String userFirstName = request.getFirstName();
+        String userLastName = request.getLastName();
+        LocalDateTime accountCreationDate = LocalDateTime.now();
+        LocalDateTime passwordExpiryDate = accountCreationDate.plusDays(90);
 
-            String month = String.format("%02d", accountCreationDate.getMonthValue());
-            String year = String.valueOf(accountCreationDate.getYear()).substring(2);
+        String month = String.format("%02d", accountCreationDate.getMonthValue());
+        String year = String.valueOf(accountCreationDate.getYear()).substring(2);
 
-            String baseUsername = userFirstName.charAt(0) + userLastName + month + year;
-            String finalUsername;
+        String baseUsername = userFirstName.charAt(0) + userLastName + month + year;
+        String finalUsername;
 
-            int overlapValue = 2;
-            if (!userRepository.existsByUsername(baseUsername)) {
-                finalUsername = baseUsername;
-            } else {
-                while (userRepository.existsByUsername(baseUsername + overlapValue)) {
-                    overlapValue++;
-                }
-                finalUsername = baseUsername + overlapValue;
+        int overlapValue = 2;
+        if (!userRepository.existsByUsername(baseUsername)) {
+            finalUsername = baseUsername;
+        } else {
+            while (userRepository.existsByUsername(baseUsername + overlapValue)) {
+                overlapValue++;
             }
+            finalUsername = baseUsername + overlapValue;
+        }
 
-            String encryptedPassword;
-            try {
-                 encryptedPassword = encryptionUtil.encrypt(request.getPassword());
-            } catch (GeneralSecurityException e) {
-                throw new EncryptionException(errorMessageService.getError(103));
-            }
+        String encryptedPassword;
+        try {
+            encryptedPassword = encryptionUtil.encrypt(request.getPassword());
+        } catch (GeneralSecurityException e) {
+            throw new EncryptionException(errorMessageService.getError(103));
+        }
 
-            UserModel newUser = new UserModel().builder()
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .username(finalUsername)
-                .email(request.getEmail())
-                .password(encryptedPassword)
-                .passwordExpirationDate(LocalDateTime.now().plusDays(90))
-                .userAddress(request.getUserAddress())
-                .dateOfBirth(request.getDateOfBirth())
-                .profilePictureUrl(null)
-                .userRole(request.getUserRole())
-                .accountCreationDate(accountCreationDate)
-                .active(false)
-                .activityStartDate(null)
-                .activityEndDate(null)
-                .suspended(false)
-                .suspendStartDate(null)
-                .suspendEndDate(null)
-                .lastLogin(null)
-                .failedLoginAttempts(0)
-                .securityQuestion(null)
-                .securityAnswer(null)
-                .build();
-            userRepository.save(newUser);
-            emailService.sendAdminApprovalRequest(newUser);
+        UserModel newUser = new UserModel().builder()
+            .firstName(request.getFirstName())
+            .lastName(request.getLastName())
+            .username(finalUsername)
+            .email(request.getEmail())
+            .password(encryptedPassword)
+            .passwordExpirationDate(LocalDateTime.now().plusDays(90))
+            .userAddress(request.getUserAddress())
+            .dateOfBirth(request.getDateOfBirth())
+            .profilePictureUrl(null)
+            .userRole(request.getUserRole())
+            .accountCreationDate(accountCreationDate)
+            .active(false)
+            .activityStartDate(null)
+            .activityEndDate(null)
+            .suspended(false)
+            .suspendStartDate(null)
+            .suspendEndDate(null)
+            .lastLogin(null)
+            .failedLoginAttempts(0)
+            .securityQuestion(null)
+            .securityAnswer(null)
+            .build();
+
+        PasswordModel passwordHistoryInstance = PasswordModel.builder()
+            .user(newUser)
+            .password(encryptedPassword)
+            .validFrom(accountCreationDate)
+            .validTo(passwordExpiryDate)
+            .build();
+
+        userRepository.save(newUser);
+        passwordRepository.save(passwordHistoryInstance);
+        emailService.sendAdminApprovalRequest(newUser);
     }
 }

@@ -37,6 +37,7 @@ public class UserService {
         String userFirstName = request.getFirstName();
         String userLastName = request.getLastName();
         LocalDateTime accountCreationDate = LocalDateTime.now();
+        LocalDateTime passwordExpiryDate = accountCreationDate.plusDays(90);
 
         String month = String.format("%02d", accountCreationDate.getMonthValue());
         String year = String.valueOf(accountCreationDate.getYear()).substring(2);
@@ -67,7 +68,7 @@ public class UserService {
             .username(finalUsername)
             .email(request.getEmail())
             .password(encryptedPassword)
-            .passwordExpirationDate(accountCreationDate.plusDays(90))
+            .passwordExpirationDate(passwordExpiryDate)
             .userAddress(request.getUserAddress())
             .dateOfBirth(request.getDateOfBirth())
             .profilePictureUrl(null)
@@ -84,13 +85,22 @@ public class UserService {
             .securityQuestion(null)
             .securityAnswer(null)
             .build();
+
+        PasswordModel passwordHistoryInstance = PasswordModel.builder()
+            .user(newUser)
+            .password(encryptedPassword)
+            .validFrom(accountCreationDate)
+            .validTo(passwordExpiryDate)
+            .build();
+
         userRepository.save(newUser);
+        passwordRepository.save(passwordHistoryInstance);
         emailService.sendApprovalNotification(newUser);
 
         return "User ID: " + newUser.getId() +
-            "\nEmail: " + newUser.getEmail() +
-            "\nActivity Status: " + newUser.isActive() +
-            "\nCreation Status: Successful";
+            " Email: " + newUser.getEmail() +
+            " Activity Status: " + newUser.isActive() +
+            " Creation Status: Successful";
     }
     public void approveUserById (Long id, LocalDateTime activityEndDate) throws MessagingException, MessagingLookupException, GeneralSecurityException {
         LocalDateTime currentDateTime = LocalDateTime.now();
@@ -122,8 +132,6 @@ public class UserService {
     }
 
     public List<UserInformationDTO> getSystemUsers() {
-
-
         return userRepository.findAll().stream()
             .map(systemUserFromTable -> {
                 UserInformationDTO systemUserDTO = new UserInformationDTO();
@@ -188,9 +196,9 @@ public class UserService {
         String userActivityStatus = (request.getActivityStatus() == true) ? "Active" : "Inactive";
 
         return "User ID: " + user.getId() +
-            "\nActivity Status: " + userActivityStatus +
-            "\nFrom: " + startDateString +
-            "\nTo: " + endDateString;
+            " Activity Status: " + userActivityStatus +
+            " From: " + startDateString +
+            " To: " + endDateString;
     }
 
     public String suspendUser (UserSuspensionDTO request) throws InvalidIdException {
@@ -203,9 +211,9 @@ public class UserService {
 
         userRepository.save(user);
         return "User ID: " + user.getId() +
-            "\nSuspension Status: Suspended " +
-            "\nFrom: " + request.getSuspensionStartDate() +
-            "\nTo: " + request.getSuspensionEndDate();
+            " Suspension Status: Suspended " +
+            " From: " + request.getSuspensionStartDate() +
+            " To: " + request.getSuspensionEndDate();
     }
 
     public String revokeSuspension (Long id) throws InvalidIdException {
@@ -218,7 +226,7 @@ public class UserService {
 
         userRepository.save(user);
         return "User ID: " + user.getId() +
-            "\nSuspension Status: Revoked";
+            " Suspension Status: Revoked";
     }
 
     public String updateUserRole(UpdateUserRoleDTO request) throws InvalidIdException {
@@ -230,8 +238,8 @@ public class UserService {
 
         userRepository.save(user);
         return "User ID: " + user.getId() + "" +
-            "\nPrevious Role: " + previousUserRole +
-            "\nUpdated Role: " + String.valueOf(request.getUserRole());
+            " Previous Role: " + previousUserRole +
+            " Updated Role: " + String.valueOf(request.getUserRole());
     }
 
     public String resetAttemptsAndRestoreSystemAccess(Long id) {
@@ -245,8 +253,8 @@ public class UserService {
 
         String suspensionString  = (user.isSuspended()) ? "Suspended" : "Not Suspended";
         return "User ID: " + user.getId() +
-            "\nFailed Login Attempts: " + 0 +
-            "\nSuspension Status: " + suspensionString;
+            " Failed Login Attempts: " + 0 +
+            " Suspension Status: " + suspensionString;
     }
 
 
@@ -275,8 +283,8 @@ public class UserService {
         emailService.sendPasswordAdminUpdateNotification(user);
 
         return "User ID: " + user.getId() +
-            "\nActivity Status: " + user.isActive() +
-            "\nPassword Update Status: Successful";
+            " Activity Status: " + user.isActive() +
+            " Password Update Status: Successful";
     }
 
     public String issueEmailToUser(IssueEmailDTO request) throws MessagingException {
@@ -286,7 +294,7 @@ public class UserService {
         String messageContent = request.getEmailBody();
         emailService.sendEmailToUser(user, messageContent);
         return "User ID: " + user.getId() +
-            "\nMessaging Status: Email Issuance Successful";
+            " Messaging Status: Email Issuance Successful";
     }
 
     public String updateUserInformation(UpdateUserInformationDTO request) {

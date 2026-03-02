@@ -106,7 +106,7 @@ public class ValidationUtil {
             .orElseThrow(() -> new InvalidIdException(errorMessageService.getError(112)));
 
         // Ensures that the suspension start date is not before today's date
-        if (request.getSuspensionStartDate().isBefore(LocalDateTime.now())) {
+        if (request.getSuspensionStartDate().isBefore(LocalDateTime.now().minusMinutes(5))) {
             throw new InvalidLocalDateTimeException(errorMessageService.getError(114));
         }
 
@@ -163,7 +163,7 @@ public class ValidationUtil {
             throw new InvalidRequestException(errorMessageService.getError(100));
         }
 
-        if (request.getActivityStartDate().isBefore(LocalDateTime.now())) {
+        if (request.getActivityStartDate().isBefore(LocalDateTime.now().minusMinutes(5))) {
             throw new InvalidLocalDateTimeException(errorMessageService.getError(114));
         }
 

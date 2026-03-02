@@ -11,6 +11,8 @@ services:
     command: ./mvnw spring-boot:run
     env_file:
       - .env
+    environment:
+      - TZ=America/New_York
 
   frontend:
     image: node:18-alpine
