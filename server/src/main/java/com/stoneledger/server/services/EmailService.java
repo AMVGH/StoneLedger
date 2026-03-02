@@ -134,7 +134,7 @@ public class EmailService {
         return "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;'>" +
             "<h2>Welcome to StoneLedger, " + user.getFirstName() + "!</h2>" +
             "<p>Congratulations! Your registration request has been approved. You can now access the StoneLedger platform.</p>" +
-            "<p>Your login credential:</p>" +
+            "<p>Your login credentials:</p>" +
             "<ul>" +
             "<li><strong>Username:</strong> <strong>" + user.getUsername() + "</strong></li>" +
             "<li><strong>Password:</strong> <strong>" + userPassword + "</strong></li>" +
