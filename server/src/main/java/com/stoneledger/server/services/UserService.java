@@ -278,4 +278,38 @@ public class UserService {
             "\nActivity Status: " + user.isActive() +
             "\nPassword Update Status: Successful";
     }
+
+    public String issueEmailToUser(IssueEmailDTO request) throws MessagingException {
+        UserModel user = userRepository.findByEmail(request.getTargetEmail())
+            .orElseThrow(() -> new InvalidEmailException(errorMessageService.getError(111)));
+
+        String messageContent = request.getEmailBody();
+        emailService.sendEmailToUser(user, messageContent);
+        return "User ID: " + user.getId() +
+            "\nMessaging Status: Email Issuance Successful";
+    }
+
+    public String updateUserInformation(UpdateUserInformationDTO request) {
+        UserModel user = userRepository.findById(request.getId())
+            .orElseThrow(() -> new InvalidIdException(errorMessageService.getError(112)));
+
+        if (request.getFirstName() != null && !request.getFirstName().isBlank()) {
+            user.setFirstName(request.getFirstName());
+        }
+        if (request.getLastName() != null && !request.getLastName().isBlank()) {
+            user.setLastName(request.getLastName());
+        }
+        if (request.getEmail() != null && !request.getEmail().isBlank()) {
+            user.setEmail(request.getEmail());
+        }
+        if (request.getUserAddress() != null && !request.getUserAddress().isBlank()) {
+            user.setUserAddress(request.getUserAddress());
+        }
+        if (request.getDateOfBirth() != null) {
+            user.setDateOfBirth(request.getDateOfBirth());
+        }
+
+        userRepository.save(user);
+        return "User ID: " + user.getId() + " information updated successfully.";
+    }
 }

@@ -125,6 +125,9 @@ public class ValidationUtil {
     }
 
     public boolean isValidSuspensionRevocationRequest(Long id) throws InvalidIdException, UserSuspensionException {
+        if (id == null) {
+            throw new InvalidRequestException(errorMessageService.getError(100));
+        }
         isValidUserId(id);
         UserModel user = userRepository.findById(id)
             .orElseThrow(() -> new InvalidIdException(errorMessageService.getError(112)));
@@ -135,6 +138,9 @@ public class ValidationUtil {
     }
 
     public boolean isValidRoleUpdateRequest(UpdateUserRoleDTO request) throws InvalidIdException, InvalidRequestException {
+        if (request.getId() == null || request.getUserRole() == null) {
+            throw new InvalidRequestException(errorMessageService.getError(100));
+        }
         isValidUserId(request.getId());
         UserModel user = userRepository.findById(request.getId())
             .orElseThrow(() -> new InvalidIdException(errorMessageService.getError(112)));
@@ -191,6 +197,29 @@ public class ValidationUtil {
 
         if (passwordPreviouslyUsed) {
             throw new InvalidRequestException(errorMessageService.getError(118));
+        }
+
+        return true;
+    }
+
+    public boolean isValidUpdateInformationRequest(UpdateUserInformationDTO request) {
+        if (request.getId() == null) {
+            throw new InvalidRequestException(errorMessageService.getError(100));
+        }
+        isValidUserId(request.getId());
+        return true;
+    }
+
+    public boolean isValidEmailIssuance(IssueEmailDTO request) {
+        // Ensures all fields have content
+        if (request.getTargetEmail() == null || request.getTargetEmail().isBlank()
+        || request.getEmailBody() == null || request.getEmailBody().isBlank()) {
+            throw new InvalidRequestException(errorMessageService.getError(100));
+        }
+
+        // Ensures the target email exists
+        if (!userRepository.existsByEmail(request.getTargetEmail())) {
+            throw new InvalidEmailException(errorMessageService.getError(111));
         }
 
         return true;

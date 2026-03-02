@@ -103,6 +103,18 @@ public class EmailService {
         mailSender.send(message);
     }
 
+    public void sendEmailToUser(UserModel user, String messageContent) throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+        helper.setFrom(fromEmail);
+        helper.setTo(user.getEmail());
+        helper.setSubject("An Administrator Has Sent You A Message.");
+        helper.setText(buildIssueEmailToUserBody(user, messageContent), true);
+
+        mailSender.send(message);
+    }
+
     // TODO: Redirect to application and have the approval facilitated within the application. Can still be tested using the endpoint itself.
     private String buildAdminEmailBody(UserModel user) {
         return "<h3>New Registration Request</h3>" +
@@ -153,5 +165,10 @@ public class EmailService {
         String userPassword = encryptionUtil.decrypt(user.getPassword());
         return "<h3>Hello, " + user.getFirstName() + "</h3>" +
             "<p>Your New StoneLedger Password: " + userPassword + "</p>";
+    }
+
+    private String buildIssueEmailToUserBody(UserModel user, String messageContent) {
+        return "<h3>Hello, " + user.getFirstName() + "</h3>" +
+            "<p>An Administrator Has Sent You A Message: " + messageContent + "</p>";
     }
 }

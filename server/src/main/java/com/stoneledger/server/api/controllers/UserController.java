@@ -27,7 +27,7 @@ public class UserController {
     private ValidationUtil validationUtil;
 
     /*
-     TODO: Implement Endpoint for: 1) Updating User Information 2) Setting Security Questions and Answers
+     TODO: Implement Endpoint for: 1) Setting Security Questions and Answers
      */
 
 
@@ -83,6 +83,16 @@ public class UserController {
         validationUtil.isValidUserId(id);
         userService.rejectUserById(id);
         return ResponseEntity.ok(ApiResponseDTO.success("User rejected successfully."));
+    }
+
+    /**
+     * Designed to update user personal information, does not deal with information concerning user management such as Role, Suspension, etc.
+     * */
+    @PostMapping("/update-information")
+    public ResponseEntity<ApiResponseDTO<?>> updateUserInformation(@RequestBody UpdateUserInformationDTO request) {
+        validationUtil.isValidUpdateInformationRequest(request);
+        String updateInformationResponse = userService.updateUserInformation(request);
+        return ResponseEntity.ok(ApiResponseDTO.success(updateInformationResponse));
     }
 
     /**
@@ -145,5 +155,12 @@ public class UserController {
         validationUtil.isValidPasswordUpdateRequest(request);
         String resetRestoreAndIssuanceResponse = userService.resetPasswordExpirationAndRestoreSystemAccess(request);
         return ResponseEntity.ok(ApiResponseDTO.success(resetRestoreAndIssuanceResponse));
+    }
+
+    @PostMapping("/issue-email")
+    public ResponseEntity<ApiResponseDTO<?>> issueEmailToUser(@RequestBody IssueEmailDTO request) throws MessagingException {
+        validationUtil.isValidEmailIssuance(request);
+        String issueEmailToUserResponse = userService.issueEmailToUser(request);
+        return ResponseEntity.ok(ApiResponseDTO.success(issueEmailToUserResponse));
     }
 }

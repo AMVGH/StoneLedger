@@ -5,6 +5,6 @@ import lombok.Data;
 
 @Data
 public class UpdateUserRoleDTO {
-    private long id;
+    private Long id;
     private UserRole userRole;
 }
