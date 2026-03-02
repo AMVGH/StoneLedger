@@ -1,13 +1,12 @@
 package com.stoneledger.server.services;
 
-import com.stoneledger.server.api.dtos.requests.CreateUserDTO;
-import com.stoneledger.server.api.dtos.requests.UpdateUserRoleDTO;
-import com.stoneledger.server.api.dtos.requests.UserActivityDTO;
-import com.stoneledger.server.api.dtos.requests.UserSuspensionDTO;
+import com.stoneledger.server.api.dtos.requests.*;
 import com.stoneledger.server.api.dtos.responses.PersonalUserInformationDTO;
 import com.stoneledger.server.api.dtos.responses.UserInformationDTO;
 import com.stoneledger.server.api.exeptions.*;
+import com.stoneledger.server.api.models.PasswordModel;
 import com.stoneledger.server.api.models.UserModel;
+import com.stoneledger.server.api.repositories.PasswordRepository;
 import com.stoneledger.server.api.repositories.UserRepository;
 import com.stoneledger.server.utils.EncryptionUtil;
 import com.stoneledger.server.utils.JwtUtil;
@@ -26,10 +25,11 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
     @Autowired
+    private PasswordRepository passwordRepository;
+    @Autowired
     private EmailService emailService;
     @Autowired
     private ErrorMessageService errorMessageService;
-
     @Autowired
     private EncryptionUtil encryptionUtil;
 
@@ -93,11 +93,22 @@ public class UserService {
             "\nCreation Status: Successful";
     }
     public void approveUserById (Long id, LocalDateTime activityEndDate) throws MessagingException, MessagingLookupException, GeneralSecurityException {
+        LocalDateTime currentDateTime = LocalDateTime.now();
         UserModel approvedUser = userRepository.findById(id)
             .orElseThrow(() -> new MessagingLookupException(errorMessageService.getError(105)));
-        approvedUser.setActivityStartDate(LocalDateTime.now());
+        approvedUser.setActivityStartDate(currentDateTime);
         approvedUser.setActivityEndDate(activityEndDate);
         approvedUser.setActive(true);
+
+        PasswordModel passwordHistoryInstance =  PasswordModel.builder()
+            .user(approvedUser)
+            // This pass is already encrypted because we are building from the information from the table
+            .password(approvedUser.getPassword())
+            .validFrom(currentDateTime)
+            .validTo(approvedUser.getPasswordExpirationDate())
+            .build();
+
+        passwordRepository.save(passwordHistoryInstance);
         userRepository.save(approvedUser);
         emailService.sendApprovalNotification(approvedUser);
     }
@@ -111,6 +122,8 @@ public class UserService {
     }
 
     public List<UserInformationDTO> getSystemUsers() {
+
+
         return userRepository.findAll().stream()
             .map(systemUserFromTable -> {
                 UserInformationDTO systemUserDTO = new UserInformationDTO();
@@ -234,5 +247,35 @@ public class UserService {
         return "User ID: " + user.getId() +
             "\nFailed Login Attempts: " + 0 +
             "\nSuspension Status: " + suspensionString;
+    }
+
+
+    // TODO: Endpoint for expired pass access restoration - (i.e. An administrator has updated your password, your new StoneLedger Password is: )
+    public String resetPasswordExpirationAndRestoreSystemAccess(PasswordUpdateRequestDTO request) throws GeneralSecurityException, MessagingException{
+        UserModel user = userRepository.findById(request.getId())
+            .orElseThrow(() -> new InvalidIdException(errorMessageService.getError(112)));
+
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        LocalDateTime expiryDateTime = currentDateTime.plusDays(90);
+        String encryptedPassword = encryptionUtil.encrypt(request.getUpdatedPassword());
+
+        user.setPassword(encryptedPassword);
+        user.setPasswordExpirationDate(expiryDateTime);
+        user.setActive(true);
+
+        PasswordModel passwordHistoryInstance = PasswordModel.builder()
+            .user(user)
+            .password(encryptedPassword)
+            .validFrom(currentDateTime)
+            .validTo(expiryDateTime)
+            .build();
+
+        userRepository.save(user);
+        passwordRepository.save(passwordHistoryInstance);
+        emailService.sendPasswordAdminUpdateNotification(user);
+
+        return "User ID: " + user.getId() +
+            "\nActivity Status: " + user.isActive() +
+            "\nPassword Update Status: Successful";
     }
 }

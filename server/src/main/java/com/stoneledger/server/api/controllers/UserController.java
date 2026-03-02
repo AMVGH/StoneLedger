@@ -1,10 +1,7 @@
 package com.stoneledger.server.api.controllers;
 
 import com.stoneledger.server.api.dtos.ApiResponseDTO;
-import com.stoneledger.server.api.dtos.requests.CreateUserDTO;
-import com.stoneledger.server.api.dtos.requests.UpdateUserRoleDTO;
-import com.stoneledger.server.api.dtos.requests.UserActivityDTO;
-import com.stoneledger.server.api.dtos.requests.UserSuspensionDTO;
+import com.stoneledger.server.api.dtos.requests.*;
 import com.stoneledger.server.api.dtos.responses.PersonalUserInformationDTO;
 import com.stoneledger.server.api.dtos.responses.UserInformationDTO;
 import com.stoneledger.server.api.exeptions.MessagingLookupException;
@@ -136,5 +133,17 @@ public class UserController {
         validationUtil.isValidUserId(id);
         String resetAndRestorationResponse = userService.resetAttemptsAndRestoreSystemAccess(id);
         return ResponseEntity.ok(ApiResponseDTO.success(resetAndRestorationResponse));
+    }
+
+    /**
+     * Designed to allow an admin to restore an individual's access to the system after a lapse in pass expiration.
+     * Admin provides a new password and an email notifies the user of their restored access and new password. Server
+     * manages things like pass history as well as active state and user pass expiry in tables.
+     * */
+    @PostMapping("/admin-restore")
+    public ResponseEntity<ApiResponseDTO<?>> resetPassExpirationAndIssueNewPassword(@RequestBody PasswordUpdateRequestDTO request) throws MessagingException, GeneralSecurityException {
+        validationUtil.isValidPasswordUpdateRequest(request);
+        String resetRestoreAndIssuanceResponse = userService.resetPasswordExpirationAndRestoreSystemAccess(request);
+        return ResponseEntity.ok(ApiResponseDTO.success(resetRestoreAndIssuanceResponse));
     }
 }

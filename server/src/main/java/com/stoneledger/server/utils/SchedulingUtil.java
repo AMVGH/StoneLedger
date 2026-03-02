@@ -1,7 +1,10 @@
 package com.stoneledger.server.utils;
 
 import com.stoneledger.server.api.models.UserModel;
+import com.stoneledger.server.api.repositories.PasswordRepository;
 import com.stoneledger.server.api.repositories.UserRepository;
+import com.stoneledger.server.services.EmailService;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -13,6 +16,10 @@ import java.util.List;
 public class SchedulingUtil {
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private PasswordRepository passwordRepository;
+    @Autowired
+    private EmailService emailService;
 
     /**
      * This is a polling service which checks for suspension and activity end times each hour.
@@ -48,5 +55,38 @@ public class SchedulingUtil {
      * server, an email is issued to the user that their password is about to expire.
      * */
     @Scheduled(cron = "0 0 * * * *")
-    public void passwordNotificationPolling() {}
+    public void passwordNotificationPolling()  throws MessagingException {
+        LocalDateTime currentDateTime = LocalDateTime.now();
+
+        // Three Day Window - If we only do within the next three days it will fire every day at midnight issuing the notification.
+        List<UserModel> usersAboutToExpire = userRepository.findByPasswordExpirationDateBetween(
+            currentDateTime.plusDays(3),
+            currentDateTime.plusDays(3).withHour(23).withMinute(59).withSecond(59)
+        );
+
+        // Issues emails for users whose password are about to expire
+        for (UserModel user: usersAboutToExpire) {
+            emailService.sendPasswordExpirationNotification(user);
+        }
+    }
+
+    /**
+     * This is a polling service which checks for password expiration end times each day.
+     * If the LocalDateTime end date for the password is after the current LocalDateTime recorded on the
+     * server, the user is set to inactive and an email is issued notifying the user that they must contact administration.
+     * */
+    @Scheduled(cron = "0 0 0 * * *")
+    public void passwordExpirationPolling() throws MessagingException {
+        LocalDateTime currentDateTime = LocalDateTime.now();
+
+        // Finds all active users whose passwords have expired
+        List<UserModel> expiredPasswordUsers = userRepository.findByPasswordExpirationDateBeforeAndActiveTrue(currentDateTime);
+
+        // Iterates over the users and sets their activity status to false; issues a notification via email
+        for (UserModel user : expiredPasswordUsers) {
+            user.setActive(false);
+            emailService.sendPasswordExpiredNotification(user);
+        }
+        userRepository.saveAll(expiredPasswordUsers);
+    }
 }

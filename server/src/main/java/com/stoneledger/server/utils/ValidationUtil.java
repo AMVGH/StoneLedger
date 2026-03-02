@@ -2,20 +2,29 @@ package com.stoneledger.server.utils;
 
 import com.stoneledger.server.api.dtos.requests.*;
 import com.stoneledger.server.api.exeptions.*;
+import com.stoneledger.server.api.models.PasswordModel;
 import com.stoneledger.server.api.models.UserModel;
+import com.stoneledger.server.api.repositories.PasswordRepository;
 import com.stoneledger.server.api.repositories.UserRepository;
 import com.stoneledger.server.services.ErrorMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.security.GeneralSecurityException;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class ValidationUtil {
     @Autowired
     private UserRepository userRepository;
     @Autowired
+    private PasswordRepository passwordRepository;
+    @Autowired
+    private EncryptionUtil encryptionUtil;
+    @Autowired
     private ErrorMessageService errorMessageService;
+
 
     public boolean isValidRegistrationRequest(RegistrationRequestDTO request) throws InvalidRequestException {
         // Checks that all fields contain content and are not empty coming in from the client
@@ -158,6 +167,30 @@ public class ValidationUtil {
 
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new InvalidRequestException(errorMessageService.getError(101));
+        }
+
+        return true;
+    }
+
+    public boolean isValidPasswordUpdateRequest(PasswordUpdateRequestDTO request) throws GeneralSecurityException {
+        if (request.getId() == null || request.getUpdatedPassword() == null || request.getUpdatedPassword().isBlank()) {
+            throw new InvalidRequestException(errorMessageService.getError(100));
+        }
+
+        isValidUserId(request.getId());
+
+        List<PasswordModel> passwordHistory = passwordRepository.findByUser_Id(request.getId());
+        boolean passwordPreviouslyUsed = passwordHistory.stream()
+            .anyMatch(p -> {
+                try {
+                    return p.getPassword().equals(encryptionUtil.encrypt(request.getUpdatedPassword()));
+                } catch (GeneralSecurityException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
+        if (passwordPreviouslyUsed) {
+            throw new InvalidRequestException(errorMessageService.getError(118));
         }
 
         return true;

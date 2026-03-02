@@ -67,6 +67,42 @@ public class EmailService {
         mailSender.send(message);
     }
 
+    public void sendPasswordExpirationNotification(UserModel user) throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+        helper.setFrom(fromEmail);
+        helper.setTo(user.getEmail());
+        helper.setSubject("Your StoneLedger Password Is About To Expire.");
+        helper.setText(buildPassExpirationNotificationBody(user), true);
+
+        mailSender.send(message);
+    }
+
+    public void sendPasswordExpiredNotification(UserModel user) throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+        helper.setFrom(fromEmail);
+        helper.setTo(user.getEmail());
+        helper.setSubject("Your StoneLedger Password Has Expired.");
+        helper.setText(buildPassExpirationEmailBody(user), true);
+
+        mailSender.send(message);
+    }
+
+    public void sendPasswordAdminUpdateNotification(UserModel user) throws MessagingException, GeneralSecurityException{
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+        helper.setFrom(fromEmail);
+        helper.setTo(user.getEmail());
+        helper.setSubject("An Administrator Has Restored Your StoneLedger Access.");
+        helper.setText(buildPassAdminUpdateEmailBody(user), true);
+
+        mailSender.send(message);
+    }
+
     // TODO: Redirect to application and have the approval facilitated within the application. Can still be tested using the endpoint itself.
     private String buildAdminEmailBody(UserModel user) {
         return "<h3>New Registration Request</h3>" +
@@ -100,5 +136,22 @@ public class EmailService {
     private String buildRejectionEmailBody(UserModel user) {
         return "<h3>Hello, " + user.getFirstName() + "</h3>" +
             "<p>We regret to inform you that your registration request for StoneLedger has been rejected.</p>";
+    }
+
+    private String buildPassExpirationNotificationBody(UserModel user) {
+        return "<h3>Hello, " + user.getFirstName() + "</h3>" +
+            "<p>Your password is due to expire in three days. Please login to StoneLedger to update your password.</p>";
+    }
+
+    private String buildPassExpirationEmailBody(UserModel user) {
+        return "<h3>Hello, " + user.getFirstName() + "</h3>" +
+            "<p>Your password has expired and access to the StoneLedger platform has been revoked. Please contact a system administrator for assistance.</p>";
+    }
+
+    private String buildPassAdminUpdateEmailBody(UserModel user) throws GeneralSecurityException{
+        // Decrypted Password since this pass was set by an administrator.
+        String userPassword = encryptionUtil.decrypt(user.getPassword());
+        return "<h3>Hello, " + user.getFirstName() + "</h3>" +
+            "<p>Your New StoneLedger Password: " + userPassword + "</p>";
     }
 }
