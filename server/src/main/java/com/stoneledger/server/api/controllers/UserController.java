@@ -157,6 +157,10 @@ public class UserController {
         return ResponseEntity.ok(ApiResponseDTO.success(resetRestoreAndIssuanceResponse));
     }
 
+    /**
+     * Designed to issue an email to a user, takes a userID and a message body string and utilizes the email service to issue an
+     * email to the target.
+     * */
     @PostMapping("/issue-email")
     public ResponseEntity<ApiResponseDTO<?>> issueEmailToUser(@RequestBody IssueEmailDTO request) throws MessagingException {
         validationUtil.isValidEmailIssuance(request);
