@@ -3,6 +3,7 @@ package com.stoneledger.server.api.controllers;
 import com.stoneledger.server.api.dtos.requests.LoginRequestDTO;
 import com.stoneledger.server.api.dtos.ApiResponseDTO;
 import com.stoneledger.server.api.dtos.requests.RegistrationRequestDTO;
+import com.stoneledger.server.api.dtos.responses.LoginResponseDTO;
 import com.stoneledger.server.api.exeptions.InvalidPasswordException;
 import com.stoneledger.server.api.repositories.ErrorMessageRepository;
 import com.stoneledger.server.services.LoginService;
@@ -47,7 +48,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<ApiResponseDTO<?>> loginUser (@RequestBody LoginRequestDTO request) throws InvalidPasswordException, GeneralSecurityException {
         validationUtil.isValidLoginRequest(request);
-        String instanceJsonWebToken = loginService.loginUser(request);
+        LoginResponseDTO instanceJsonWebToken = loginService.loginUser(request);
         return ResponseEntity.ok(ApiResponseDTO.success(instanceJsonWebToken));
     }
 }

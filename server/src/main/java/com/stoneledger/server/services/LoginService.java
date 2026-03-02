@@ -1,6 +1,7 @@
 package com.stoneledger.server.services;
 
 import com.stoneledger.server.api.dtos.requests.LoginRequestDTO;
+import com.stoneledger.server.api.dtos.responses.LoginResponseDTO;
 import com.stoneledger.server.api.exeptions.AccountInactiveException;
 import com.stoneledger.server.api.exeptions.AccountSuspendedException;
 import com.stoneledger.server.api.exeptions.InvalidPasswordException;
@@ -31,7 +32,7 @@ public class LoginService {
 
 
     // TODO: Make sure that all business rules associated with account login are met.
-    public String loginUser (LoginRequestDTO request) throws AccountInactiveException, AccountSuspendedException,
+    public LoginResponseDTO loginUser (LoginRequestDTO request) throws AccountInactiveException, AccountSuspendedException,
         InvalidRequestException, InvalidPasswordException, GeneralSecurityException {
         UserModel user = userRepository.findByUsername(request.getUsername())
             .orElseThrow(() -> new InvalidRequestException(errorMessageService.getError(107)));
@@ -62,9 +63,18 @@ public class LoginService {
             user.setFailedLoginAttempts(0);
             userRepository.save(user);
 
-            return JwtUtil.createJwt(
-                user.getId(),
-                user.getUsername()
+            String UserJwt = JwtUtil.createJwt(
+                    user.getId(),
+                    user.getUsername()
+            );
+
+            return new LoginResponseDTO(
+                    UserJwt,
+                    user.getFirstName(),
+                    user.getLastName(),
+                    user.getUsername(),
+                    user.getEmail(),
+                    user.getUserRole()
             );
         } else {
             int loginAttempts = user.getFailedLoginAttempts();
