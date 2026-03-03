@@ -42,12 +42,21 @@ public class UserController {
     }
 
     /**
-     * Returns all users associated with the platform. Excludes sensitive information such as password, security question and answer.
+     * Returns all users associated with the platform; includes pending users. Excludes sensitive information such as password, security question and answer.
      * */
     @GetMapping("/get-users")
     public ResponseEntity<ApiResponseDTO<?>> getAllUsers() {
         List<UserInformationDTO> systemUsers = userService.getSystemUsers();
         return ResponseEntity.ok(ApiResponseDTO.success(systemUsers));
+    }
+
+    /**
+     * Returns all pending users associated with the platform. Excludes sensitive information such as password, security question and answer.
+     * */
+    @GetMapping("/get-pending-users")
+    public ResponseEntity<ApiResponseDTO<?>> getPendingUsers() {
+        List<UserInformationDTO> pendingUsers = userService.getPendingUsers();
+        return ResponseEntity.ok(ApiResponseDTO.success(pendingUsers));
     }
 
     /**

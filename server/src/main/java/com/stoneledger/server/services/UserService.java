@@ -159,6 +159,34 @@ public class UserService {
             .collect(Collectors.toList());
     }
 
+    public List<UserInformationDTO> getPendingUsers() {
+        return userRepository.findByActiveFalseAndLastLoginIsNull().stream()
+                .map(user -> {
+                    UserInformationDTO dto = new UserInformationDTO();
+                    dto.setId(user.getId());
+                    dto.setFirstName(user.getFirstName());
+                    dto.setLastName(user.getLastName());
+                    dto.setUsername(user.getUsername());
+                    dto.setEmail(user.getEmail());
+                    dto.setPasswordExpirationDate(user.getPasswordExpirationDate());
+                    dto.setUserAddress(user.getUserAddress());
+                    dto.setDateOfBirth(user.getDateOfBirth());
+                    dto.setProfilePictureUrl(user.getProfilePictureUrl());
+                    dto.setUserRole(user.getUserRole());
+                    dto.setAccountCreationDate(user.getAccountCreationDate());
+                    dto.setActive(user.isActive());
+                    dto.setActivityStartDate(user.getActivityStartDate());
+                    dto.setActivityEndDate(user.getActivityEndDate());
+                    dto.setSuspended(user.isSuspended());
+                    dto.setSuspendStartDate(user.getSuspendStartDate());
+                    dto.setSuspendEndDate(user.getSuspendEndDate());
+                    dto.setLastLogin(user.getLastLogin());
+                    dto.setFailedLoginAttempts(user.getFailedLoginAttempts());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
     public PersonalUserInformationDTO retrieveUserInformation (String authHeader) throws UserRepositoryLookupException {
         String jwtToken = authHeader.substring(7);
         Claims claims = JwtUtil.decodeJwt(jwtToken);

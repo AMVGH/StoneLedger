@@ -19,6 +19,7 @@ public interface UserRepository extends JpaRepository<UserModel, Long> {
     List<UserModel> findByPasswordExpirationDateBetween(LocalDateTime start, LocalDateTime end);
     List<UserModel> findByPasswordExpirationDateBefore(LocalDateTime now);
     List<UserModel> findByPasswordExpirationDateBeforeAndActiveTrue(LocalDateTime now);
+    List<UserModel> findByActiveFalseAndLastLoginIsNull();
     Optional<Boolean> findActiveById(Long id);
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
