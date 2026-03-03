@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import styles from "./Welcome.module.css";
-import heroImg from "../../assets/suit.jpg"; // you can change this later
-import sLogo from "../../assets/SmLogo.jpg"; // your small logo
+import heroImg from "../../assets/High_Definition_Mountains.png";
+import sLogo from "../../assets/mountain.png";
 
 export default function Welcome() {
   return (
@@ -16,29 +16,29 @@ export default function Welcome() {
           <h1 className={styles.title}>Welcome to StoneLedger</h1>
 
           <p className={styles.subtitle}>
-            A web-based accounting system with role-based access for{" "}
-            <b>Administrators</b>, <b>Managers</b>, and <b>Accountants</b>.
+            A web-based accounting system designed for financial {" "}
+            <b>Administrators</b>, <b>Managers</b>, and <b>Accountants</b> alike.
           </p>
 
           <div className={styles.features}>
             <div className={styles.featureItem}>
-              <div className={styles.featureTitle}>Role-based dashboards</div>
+              <div className={styles.featureTitle}>Tailored Dashboards</div>
               <div className={styles.featureText}>
-                Each user type sees the tools they need.
+                Only the tools you need, right when you need them.
               </div>
             </div>
 
             <div className={styles.featureItem}>
-              <div className={styles.featureTitle}>Web + responsive</div>
+              <div className={styles.featureTitle}>Multi Platform</div>
               <div className={styles.featureText}>
-                Works on computers, tablets, and mobile.
+                Your data, anywhere you are.
               </div>
             </div>
 
             <div className={styles.featureItem}>
-              <div className={styles.featureTitle}>Guided setup</div>
+              <div className={styles.featureTitle}>Modern Setup</div>
               <div className={styles.featureText}>
-                Create users and enforce password rules.
+                Simple setup, powerful results.
               </div>
             </div>
           </div>

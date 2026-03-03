@@ -102,10 +102,13 @@
   font-weight: 900;
   text-decoration: none;
   flex: 1;
+  transition: all 0.2s ease; /* Smooth transition for hover effects */
 }
 
 .primaryBtn:hover {
   background: #111827;
+  transform: translateY(-2px); /* Slight lift upward */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Subtle shadow */
 }
 
 .secondaryBtn {

@@ -3,7 +3,7 @@
   display: grid;
   place-items: center;
   padding: 28px;
-  background: #0a0a0a;
+  background: #212122;
 }
 
 /* The big rounded card */
@@ -101,21 +101,32 @@
   border-bottom: 2px solid #000000;
 }
 
-
-
 .primaryBtn {
-  margin-top: 6px;
-  height: 44px;
-  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  min-height: 40px; /* Force minimum height */
+  padding: 0 24px;
   border-radius: 10px;
   background: #0b0f17;
   color: #ffffff;
-  font-weight: 800;
+  font-weight: 700;
+  font-size: 14px; /* Explicit font size */
+  line-height: 1; /* Prevent text from affecting height */
+  text-decoration: none;
+  border: none; /* Remove any default border */
   cursor: pointer;
+  width: auto;
+  min-width: 200px;
+  transition: all 0.2s ease;
+  box-sizing: border-box; /* Ensure padding doesn't add to height */
 }
 
 .primaryBtn:hover {
   background: #111827;
+  transform: translateY(-2px); /* Slight lift upward */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Subtle shadow */
 }
 
 .linksRow {

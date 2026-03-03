@@ -13,6 +13,21 @@ function Rule({ ok, text }) {
   );
 }
 
+function Toast({ message, onClose }) {
+  return (
+    <div className={styles.toastOverlay}>
+      <div className={styles.toast}>
+        <div className={styles.toastIcon}>✓</div>
+        <div className={styles.toastContent}>
+          <div className={styles.toastTitle}>Request Submitted!</div>
+          <div className={styles.toastMessage}>{message}</div>
+        </div>
+        <button className={styles.toastClose} onClick={onClose}>×</button>
+      </div>
+    </div>
+  );
+}
+
 export default function CreateUser() {
   const nav = useNavigate();
 
@@ -23,9 +38,28 @@ export default function CreateUser() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState("USER");
   const [msg, setMsg] = useState("");
+  const [showToast, setShowToast] = useState(false);
 
   const { rules: passwordRules } = validatePassword(password);
+
+  const handleClearAll = () => {
+    setFirst("");
+    setLast("");
+    setAddress("");
+    setDob("");
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setRole("USER");
+    setMsg("");
+  };
+
+  function handleToastClose() {
+    setShowToast(false);
+    nav("/login");
+  }
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -54,7 +88,7 @@ export default function CreateUser() {
     }
 
     try {
-      const response = await fetch("http://localhost:8080/api/auth/register", {
+      const response = await fetch("http://localhost:8080/api/auth/request-access", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -64,6 +98,7 @@ export default function CreateUser() {
           dateOfBirth: dob,
           email: email.trim(),
           password,
+          userRole: role,
         }),
       });
 
@@ -74,8 +109,11 @@ export default function CreateUser() {
         return;
       }
 
-      setMsg("Access request submitted. An administrator will review your request and email you the login link if approved.");
-      setTimeout(() => nav("/login"), 1200);
+      setShowToast(true);
+      setTimeout(() => {
+        setShowToast(false);
+        nav("/login");
+      }, 5000);
     } catch (err) {
       setMsg("Something went wrong. Please try again.");
     }
@@ -83,6 +121,13 @@ export default function CreateUser() {
 
   return (
     <div className={styles.page}>
+      {showToast && (
+        <Toast
+          message="Your access request has been received. An administrator will review it and email you if approved."
+          onClose={handleToastClose}
+        />
+      )}
+
       <div className={styles.card}>
         <div className={styles.logoRow}>
           <Logo size={60} />
@@ -156,6 +201,17 @@ export default function CreateUser() {
             autoComplete="new-password"
           />
 
+          <label className={styles.label}>Request Role</label>
+          <select
+            className={styles.select}
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+          >
+            <option value="USER">User</option>
+            <option value="MANAGER">Manager</option>
+            <option value="ADMINISTRATOR">Administrator</option>
+          </select>
+
           <div className={styles.passwordRules}>
             <div className={styles.rulesTitle}>Password must:</div>
             <Rule ok={passwordRules.minLen} text="Be at least 8 characters" />
@@ -167,9 +223,14 @@ export default function CreateUser() {
 
           {msg && <div className={styles.msg}>{msg}</div>}
 
-          <button className={styles.primaryBtn} type="submit">
-            Submit Access Request
-          </button>
+          <div className={styles.buttonGroup}>
+          <button className={styles.secondaryBtn} type="button" onClick={handleClearAll}>
+               Clear All Fields
+            </button>
+            <button className={styles.primaryBtn} type="submit">
+              Submit Access Request
+            </button>
+          </div>
         </form>
 
         <div className={styles.actions}>

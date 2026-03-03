@@ -1,8 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import styles from "./Login.module.css";
-import heroImg from "../../assets/suit.jpg";
-import sLogo from "../../assets/SmLogo.jpg";
+import heroImg from "../../assets/High_Definition_Hero.png";
+import sLogo from "../../assets/mountain.png";
 
 export default function Login() {
   const nav = useNavigate();
@@ -75,7 +75,7 @@ export default function Login() {
                 className={styles.input}
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="  Your Username"
+                placeholder="Username"
                 autoComplete="username"
               />
             </div>
@@ -87,7 +87,7 @@ export default function Login() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
+                placeholder="Password"
                 autoComplete="current-password"
               />
             </div>

@@ -3,7 +3,7 @@
   display: grid;
   place-items: center;
   padding: 28px;
-  background: #0b0f17;
+  background: #212122;
 }
 
 /* White form card like Login left panel */
@@ -157,26 +157,68 @@
   font-size: 13px;
 }
 
-/* Button like Login */
-.primaryBtn {
+.buttonGroup {
+  display: flex;
+  justify-content: space-between; /* Pushes buttons to left and right */
+  gap: 16px; /* Space between buttons */
+  margin-top: 24px; /* Space above the button group */
   width: 100%;
+}
+
+.primaryBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   height: 44px;
-  margin-top: 18px;
-  border: none;
+  padding: 0 24px;
   border-radius: 10px;
   background: #0b0f17;
   color: #ffffff;
-  font-weight: 800;
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  border: none;
   cursor: pointer;
+  flex: 1; /* Both buttons will take equal width */
+  max-width: 200px; /* Optional: limit maximum width */
+  transition: all 0.2s ease;
 }
 
 .primaryBtn:hover {
   background: #111827;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .primaryBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.secondaryBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px; /* Same height as primary button */
+  padding: 0 24px; /* Same padding as primary button */
+  border-radius: 10px; /* Same radius as primary button */
+  background: #f3f4f6;
+  color: #4b5563;
+  font-weight: 600;
+  font-size: 16px; /* Same font size as primary button */
+  text-decoration: none;
+  border: 1px solid #d1d5db;
+  cursor: pointer;
+  flex: 1; /* Both buttons will take equal width */
+  max-width: 200px; /* Optional: limit maximum width */
+  transition: all 0.2s ease;
+}
+
+.secondaryBtn:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+  transform: translateY(-2px); /* Same lift as primary button */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .actions {
