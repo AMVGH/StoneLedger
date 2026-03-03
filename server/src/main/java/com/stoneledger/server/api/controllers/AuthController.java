@@ -48,7 +48,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<ApiResponseDTO<?>> loginUser (@RequestBody LoginRequestDTO request) throws InvalidPasswordException, GeneralSecurityException {
         validationUtil.isValidLoginRequest(request);
-        LoginResponseDTO instanceJsonWebToken = loginService.loginUser(request);
-        return ResponseEntity.ok(ApiResponseDTO.success(instanceJsonWebToken));
+        LoginResponseDTO loginResponseInformation = loginService.loginUser(request);
+        return ResponseEntity.ok(ApiResponseDTO.success(loginResponseInformation));
     }
 }
