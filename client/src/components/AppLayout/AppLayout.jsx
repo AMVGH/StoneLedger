@@ -1,10 +1,16 @@
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 import Logo from "../Logo";
 import styles from "./AppLayout.module.css";
-import { useAuth } from "../../context/AuthContext";
 
 export default function AppLayout() {
-  const { user, logout } = useAuth();
+  const nav = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+  function logout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    nav("/login");
+  }
 
   return (
     <div className={styles.shell}>
@@ -14,7 +20,7 @@ export default function AppLayout() {
           <div>
             <div className={styles.title}>StoneLedger</div>
             <div className={styles.sub}>
-              {user?.username} · {user?.role}
+              {user?.username} · {user?.userRole}
             </div>
           </div>
         </div>

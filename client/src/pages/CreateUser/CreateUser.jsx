@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "./CreateUser.module.css";
 import Logo from "../../components/Logo";
-import { useAuth } from "../../context/AuthContext";
 import { validatePassword, PASSWORD_POLICY_MESSAGE } from "../../utils/validators";
 
 function Rule({ ok, text }) {
@@ -16,7 +15,6 @@ function Rule({ ok, text }) {
 
 export default function CreateUser() {
   const nav = useNavigate();
-  const auth = useAuth();
 
   const [first, setFirst] = useState("");
   const [last, setLast] = useState("");
@@ -29,7 +27,7 @@ export default function CreateUser() {
 
   const { rules: passwordRules } = validatePassword(password);
 
-  function onSubmit(e) {
+  async function onSubmit(e) {
     e.preventDefault();
     setMsg("");
 
@@ -56,19 +54,30 @@ export default function CreateUser() {
     }
 
     try {
-      auth.requestAccess({
-        firstName: first.trim(),
-        lastName: last.trim(),
-        address: address.trim(),
-        dob,
-        email: email.trim(),
-        password,
+      const response = await fetch("http://localhost:8080/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: first.trim(),
+          lastName: last.trim(),
+          userAddress: address.trim(),
+          dateOfBirth: dob,
+          email: email.trim(),
+          password,
+        }),
       });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setMsg(data?.message || "Could not submit request.");
+        return;
+      }
 
       setMsg("Access request submitted. An administrator will review your request and email you the login link if approved.");
       setTimeout(() => nav("/login"), 1200);
     } catch (err) {
-      setMsg(err?.message || "Could not submit request.");
+      setMsg("Something went wrong. Please try again.");
     }
   }
 
@@ -170,5 +179,3 @@ export default function CreateUser() {
     </div>
   );
 }
-
-

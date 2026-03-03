@@ -2,23 +2,19 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Logo from "../../components/Logo";
 import styles from "./ForgotPassword.module.css";
-import { useAuth } from "../../context/AuthContext";
 import { validatePassword, PASSWORD_POLICY_MESSAGE } from "../../utils/validators";
 
 export default function ForgotPassword() {
   const nav = useNavigate();
-  const auth = useAuth();
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
-  const [questions, setQuestions] = useState([]);
-  const [answers, setAnswers] = useState({});
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [stage, setStage] = useState("identify");
   const [msg, setMsg] = useState("");
 
-  function submitIdentify(e) {
+  async function submitIdentify(e) {
     e.preventDefault();
     setMsg("");
 
@@ -28,41 +24,26 @@ export default function ForgotPassword() {
     }
 
     try {
-      const q = auth.getSecurityQuestionsForReset({
-        username: username.trim(),
-        email: email.trim(),
+      const response = await fetch("http://localhost:8080/api/auth/forgot-password/identify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: username.trim(), email: email.trim() }),
       });
-      setQuestions(q);
-      setAnswers(q.reduce((acc, item) => ({ ...acc, [item.id]: "" }), {}));
-      setStage("verify");
-    } catch (err) {
-      setMsg(err?.message || "Could not start password reset.");
-    }
-  }
 
-  function submitVerify(e) {
-    e.preventDefault();
-    setMsg("");
+      const data = await response.json();
 
-    const allAnswered = questions.every((q) => String(answers[q.id] || "").trim());
-    if (!allAnswered) {
-      setMsg("Please answer all security questions.");
-      return;
-    }
+      if (!response.ok) {
+        setMsg(data?.message || "Could not start password reset.");
+        return;
+      }
 
-    try {
-      auth.verifySecurityAnswers({
-        username: username.trim(),
-        email: email.trim(),
-        answers,
-      });
       setStage("reset");
     } catch (err) {
-      setMsg(err?.message || "Could not verify security answers.");
+      setMsg("Something went wrong. Please try again.");
     }
   }
 
-  function submitReset(e) {
+  async function submitReset(e) {
     e.preventDefault();
     setMsg("");
 
@@ -83,17 +64,24 @@ export default function ForgotPassword() {
     }
 
     try {
-      auth.resetPasswordBySecurity({
-        username: username.trim(),
-        email: email.trim(),
-        answers,
-        newPassword,
+      const response = await fetch("http://localhost:8080/api/auth/forgot-password/reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: username.trim(), email: email.trim(), newPassword }),
       });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setMsg(data?.message || "Could not reset password.");
+        return;
+      }
+
       setStage("done");
       setMsg("Password changed successfully. Redirecting to login...");
       setTimeout(() => nav("/login"), 900);
     } catch (err) {
-      setMsg(err?.message || "Could not reset password.");
+      setMsg("Something went wrong. Please try again.");
     }
   }
 
@@ -124,24 +112,6 @@ export default function ForgotPassword() {
 
             {msg && <div className={styles.msg}>{msg}</div>}
             <button className={styles.primaryBtn} type="submit">Continue</button>
-          </form>
-        )}
-
-        {stage === "verify" && (
-          <form onSubmit={submitVerify}>
-            {questions.map((q) => (
-              <div key={q.id} className={styles.group}>
-                <label className={styles.label}>{q.question}</label>
-                <input
-                  className={styles.input}
-                  value={answers[q.id] || ""}
-                  onChange={(e) => setAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))}
-                />
-              </div>
-            ))}
-
-            {msg && <div className={styles.msg}>{msg}</div>}
-            <button className={styles.primaryBtn} type="submit">Verify Answers</button>
           </form>
         )}
 
