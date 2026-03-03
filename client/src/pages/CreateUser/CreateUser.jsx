@@ -161,7 +161,7 @@ export default function CreateUser() {
             className={styles.input}
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            placeholder="Street, city, state"
+            placeholder="Street, City, State"
           />
 
           <label className={styles.label}>Date of Birth</label>
@@ -178,7 +178,7 @@ export default function CreateUser() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
+            placeholder="example@email.com"
           />
 
           <label className={styles.label}>Password</label>
@@ -187,7 +187,7 @@ export default function CreateUser() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Create a strong password"
+            placeholder="Create A Strong Password"
             autoComplete="new-password"
           />
 
@@ -197,7 +197,7 @@ export default function CreateUser() {
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Re-enter your password"
+            placeholder="Re-Enter Your Password"
             autoComplete="new-password"
           />
 
