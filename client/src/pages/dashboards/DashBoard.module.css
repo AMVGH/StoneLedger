@@ -31,6 +31,18 @@
   gap: 8px;
 }
 
+.navSpacer {
+  flex: 1;
+}
+
+.navBottom {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding-top: 12px;
+}
+
 .navItem {
   background: transparent;
   border: none;
@@ -81,15 +93,41 @@
   gap: 12px;
 }
 
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.username {
+  font-weight: 600;
+  font-size: 14px;
+  color: #222;
+}
+
+.userRole {
+  font-size: 12px;
+  color: #666;
+}
+
 .avatar {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #eef3fb;
+  border: 2px solid #0f1724;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .name {
@@ -98,4 +136,156 @@
 
 .content {
   padding: 24px;
+}
+
+.notification {
+  margin: 16px 24px 0;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  animation: slideIn 0.3s ease;
+}
+
+.notification.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.notification.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.resetContainer {
+  max-width: 600px;
+}
+
+.stepIndicator {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.step {
+  flex: 1;
+  padding: 12px 16px;
+  background: #e0e0e0;
+  color: #666;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.step.active {
+  background: #0f1724;
+  color: #fff;
+}
+
+.resetCard {
+  background: #fff;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.resetCard h3 {
+  margin: 0 0 8px;
+  color: #333;
+}
+
+.resetCard p {
+  margin: 0 0 20px;
+  color: #666;
+  font-size: 14px;
+}
+
+.resetFormGroup {
+  margin-bottom: 16px;
+}
+
+.resetFormGroup label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #555;
+}
+
+.resetFormGroup input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.resetFormGroup input:focus {
+  outline: none;
+  border-color: #0f1724;
+}
+
+.resetActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.primaryBtn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+  background: #0f1724;
+  color: #fff;
+}
+
+.primaryBtn:hover {
+  background: #1a2533;
+}
+
+.secondaryBtn {
+  padding: 10px 16px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+  background: #fff;
+  color: #333;
+}
+
+.secondaryBtn:hover {
+  background: #f5f5f5;
+}
+
+.cancelResetBtn {
+  margin-top: 16px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: #dc3545;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.cancelResetBtn:hover {
+  text-decoration: underline;
 }
