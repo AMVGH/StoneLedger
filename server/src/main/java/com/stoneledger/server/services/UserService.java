@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.security.GeneralSecurityException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -102,12 +103,17 @@ public class UserService {
             " Activity Status: " + newUser.isActive() +
             " Creation Status: Successful";
     }
-    public void approveUserById (Long id, LocalDateTime activityEndDate) throws MessagingException, MessagingLookupException, GeneralSecurityException {
+    public void approveUserById (Long id, LocalDate activityEndDate) throws MessagingException, MessagingLookupException, GeneralSecurityException {
         LocalDateTime currentDateTime = LocalDateTime.now();
+
+        //TODO: Fix this datetime bug
+
+        LocalDateTime activityEndDateTime = activityEndDate.atStartOfDay();
+
         UserModel approvedUser = userRepository.findById(id)
             .orElseThrow(() -> new MessagingLookupException(errorMessageService.getError(105)));
         approvedUser.setActivityStartDate(currentDateTime);
-        approvedUser.setActivityEndDate(activityEndDate);
+        approvedUser.setActivityEndDate(activityEndDateTime);
         approvedUser.setActive(true);
 
         PasswordModel passwordHistoryInstance =  PasswordModel.builder()
@@ -127,8 +133,19 @@ public class UserService {
     public void rejectUserById (Long id) throws MessagingException, MessagingLookupException {
         UserModel rejectedUser = userRepository.findById(id)
             .orElseThrow(() -> new MessagingLookupException(errorMessageService.getError(105)));
+
         userRepository.deleteById(id);
         emailService.sendRejectionNotification(rejectedUser);
+    }
+
+    public void purgeUser (Long id) {
+        UserModel purgedUser = userRepository.findById(id)
+                .orElseThrow(() -> new MessagingLookupException(errorMessageService.getError(105)));
+
+        List<PasswordModel> associatedPasswords = passwordRepository.findByUser_Id(id);
+        passwordRepository.deleteAll(associatedPasswords);
+
+        userRepository.deleteById(id);
     }
 
     public List<UserInformationDTO> getSystemUsers() {

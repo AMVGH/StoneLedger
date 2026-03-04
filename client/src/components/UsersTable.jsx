@@ -460,7 +460,6 @@ export default function UsersTable() {
                       >
                         <option value="USER">USER</option>
                         <option value="MANAGER">MANAGER</option>
-                        <option value="ACCOUNTANT">ACCOUNTANT</option>
                         <option value="ADMIN">ADMIN</option>
                       </select>
                     </div>

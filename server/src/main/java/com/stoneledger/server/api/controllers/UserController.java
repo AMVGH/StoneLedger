@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.GeneralSecurityException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -77,7 +78,7 @@ public class UserController {
      * */
     @PostMapping("/approve/{id}")
     public ResponseEntity<ApiResponseDTO<?>> approveUser(@PathVariable Long id,
-                                                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime activityEndDate)
+                                                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate activityEndDate)
         throws MessagingException, MessagingLookupException, GeneralSecurityException {
         validationUtil.isValidUserId(id);
         userService.approveUserById(id, activityEndDate);
@@ -93,6 +94,13 @@ public class UserController {
         validationUtil.isValidUserId(id);
         userService.rejectUserById(id);
         return ResponseEntity.ok(ApiResponseDTO.success("User rejected successfully."));
+    }
+
+    @PostMapping("/purge/{id}")
+    public ResponseEntity<ApiResponseDTO<?>> purgeUser(@PathVariable Long id) {
+        validationUtil.isValidUserId(id);
+        userService.purgeUser(id);
+        return ResponseEntity.ok(ApiResponseDTO.success("User purged successfully."));
     }
 
     /**
