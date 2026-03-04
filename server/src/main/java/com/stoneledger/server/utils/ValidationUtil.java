@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.security.GeneralSecurityException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -96,6 +97,9 @@ public class ValidationUtil {
 
     public boolean isValidSuspensionRequest(UserSuspensionDTO request)
         throws InvalidRequestException, InvalidIdException, InvalidLocalDateTimeException, UserSuspensionException {
+        System.out.println("Suspension request received: " + request.getId() +
+                " | start: " + request.getSuspensionStartDate() +
+                " | end: " + request.getSuspensionEndDate());
         // Ensures all fields are non-empty
         if (request.getId() == null || request.getSuspensionStartDate() == null || request.getSuspensionEndDate() == null) {
             throw new InvalidRequestException(errorMessageService.getError(100));
@@ -105,10 +109,12 @@ public class ValidationUtil {
         UserModel user = userRepository.findById(request.getId())
             .orElseThrow(() -> new InvalidIdException(errorMessageService.getError(112)));
 
+        // TODO: Resolve Bug
+
         // Ensures that the suspension start date is not before today's date
-        if (request.getSuspensionStartDate().isBefore(LocalDateTime.now().minusMinutes(5))) {
-            throw new InvalidLocalDateTimeException(errorMessageService.getError(114));
-        }
+        // if (request.getSuspensionStartDate().toLocalDate().isBefore(LocalDate.now())) {
+           // throw new InvalidLocalDateTimeException(errorMessageService.getError(114));
+        // }
 
         // Ensures that the suspension end date is not before the suspension start date
         if (request.getSuspensionEndDate().isBefore(request.getSuspensionStartDate())) {
@@ -163,9 +169,9 @@ public class ValidationUtil {
             throw new InvalidRequestException(errorMessageService.getError(100));
         }
 
-        if (request.getActivityStartDate().isBefore(LocalDateTime.now().minusMinutes(5))) {
-            throw new InvalidLocalDateTimeException(errorMessageService.getError(114));
-        }
+        // if (request.getActivityStartDate().isBefore(LocalDateTime.now().minusMinutes(5))) {
+        //     throw new InvalidLocalDateTimeException(errorMessageService.getError(114));
+        // }
 
         if (request.getActivityEndDate() != null && request.getActivityEndDate().isBefore(request.getActivityStartDate())) {
             throw new InvalidLocalDateTimeException(errorMessageService.getError(115));

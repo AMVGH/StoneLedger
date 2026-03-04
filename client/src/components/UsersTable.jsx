@@ -3,110 +3,205 @@ import styles from "./UsersTable.module.css";
 import useUserContext from "../API/UserContext";
 
 export default function UsersTable() {
-  const { 
-    allUsers, 
-    getAllUsers, 
-    updateUserInformation, 
-    updateUserRole, 
+  const {
+    allUsers,
+    getAllUsers,
+    updateUserInformation,
+    updateUserRole,
+    updateUserActivity,
     suspendUser: apiSuspendUser,
+    revokeSuspension: apiRevokeSuspension,
     issueEmailToUser,
-    loading, 
-    error 
+    loading,
+    error,
   } = useUserContext();
-  
+
   const [users, setUsers] = useState([]);
   const [editingUser, setEditingUser] = useState(null);
-  const [formData, setFormData] = useState({
+  
+  // Form states for different sections
+  const [infoFormData, setInfoFormData] = useState({
     firstName: "",
     lastName: "",
+    email: "",
     userAddress: "",
     dateOfBirth: "",
-    email: "",
-    password: "",
+  });
+  
+  const [roleFormData, setRoleFormData] = useState({
     userRole: "",
   });
+  
+  const [activityFormData, setActivityFormData] = useState({
+    activityStatus: true,
+    activityEndDate: "",
+  });
+
   const [emailUser, setEmailUser] = useState(null);
   const [emailData, setEmailData] = useState({ subject: "", message: "" });
   const [suspendUserData, setSuspendUserData] = useState(null);
-  const [suspendData, setSuspendData] = useState({ startDate: "", expiryDate: "", reason: "" });
+  const [suspendData, setSuspendData] = useState({
+    startDate: "",
+    expiryDate: "",
+    reason: "",
+  });
 
-  // Fetch users on component mount
+  const [activeQuadrant, setActiveQuadrant] = useState(null); // 'info', 'role', 'activity', 'suspend'
+
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    getAllUsers(token).catch(err => {
+    const token = localStorage.getItem("authToken");
+    getAllUsers(token).catch((err) => {
       console.error("Failed to fetch users:", err);
     });
   }, [getAllUsers]);
 
-  // Update local users state when allUsers changes
   useEffect(() => {
     if (allUsers && allUsers.length > 0) {
-      // Filter out pending users (inactive users without activity dates)
-      const activeUsers = allUsers.filter(user => user.active || user.activityStartDate);
+      const activeUsers = allUsers.filter(
+        (user) => user.active || user.activityStartDate
+      );
       setUsers(activeUsers);
     }
   }, [allUsers]);
 
+  const getStatusLabel = (user) => {
+    if (user.suspended) return "Suspended";
+    if (user.active) return "Active";
+    return "Inactive";
+  };
+
+  const getStatusClass = (user) => {
+    if (user.suspended) return styles.statusSuspended;
+    if (user.active) return styles.statusActive;
+    return styles.statusInactive;
+  };
+
   const handleRowClick = (user) => {
     setEditingUser(user);
-    setFormData({
-      firstName: user.firstName,
-      lastName: user.lastName,
-      userAddress: user.userAddress,
-      dateOfBirth: user.dateOfBirth ? user.dateOfBirth.split('T')[0] : "",
-      email: user.email,
-      password: "",
-      userRole: user.userRole,
+    setInfoFormData({
+      firstName: user.firstName || "",
+      lastName: user.lastName || "",
+      email: user.email || "",
+      userAddress: user.userAddress || "",
+      dateOfBirth: user.dateOfBirth ? user.dateOfBirth.split("T")[0] : "",
     });
+    setRoleFormData({
+      userRole: user.userRole || "USER",
+    });
+    setActivityFormData({
+      activityStatus: user.active || false,
+      activityEndDate: user.activityEndDate ? user.activityEndDate.split("T")[0] : "",
+    });
+    setActiveQuadrant(null); // Reset active quadrant
   };
 
-  const handleChange = (e) => {
+  // Info section handlers
+  const handleInfoChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setInfoFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = async () => {
+  const handleUpdateInfo = async () => {
     try {
-      const token = localStorage.getItem('authToken');
-      
-      // Update user information
-      await updateUserInformation({
-        userId: editingUser.id,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        userAddress: formData.userAddress,
-      }, token);
-      
-      // Update role if changed
-      if (formData.userRole !== editingUser.userRole) {
-        await updateUserRole({
-          userId: editingUser.id,
-          newRole: formData.userRole
-        }, token);
-      }
-      
-      // Refresh users list
+      const token = localStorage.getItem("authToken");
+      await updateUserInformation(
+        {
+          id: editingUser.id,
+          firstName: infoFormData.firstName,
+          lastName: infoFormData.lastName,
+          email: infoFormData.email,
+          userAddress: infoFormData.userAddress,
+          dateOfBirth: infoFormData.dateOfBirth || null,
+        },
+        token
+      );
       await getAllUsers(token);
-      setEditingUser(null);
+      setActiveQuadrant(null);
+      alert("User information updated successfully.");
     } catch (err) {
-      console.error("Failed to update user:", err);
-      alert("Failed to update user. Please try again.");
+      console.error("Failed to update user info:", err);
+      alert("Failed to update user information. Please try again.");
     }
   };
 
-  const handleCancel = () => {
-    setEditingUser(null);
+  // Role section handlers
+  const handleRoleChange = (e) => {
+    const { name, value } = e.target;
+    setRoleFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleUpdateRole = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      await updateUserRole(
+        {
+          id: editingUser.id,
+          userRole: roleFormData.userRole,
+        },
+        token
+      );
+      await getAllUsers(token);
+      setActiveQuadrant(null);
+      alert("Role updated successfully.");
+    } catch (err) {
+      console.error("Failed to update role:", err);
+      alert("Failed to update role. Please try again.");
+    }
+  };
+
+  // Activity section handlers
+  const handleActivityChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setActivityFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const handleUpdateActivity = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      await updateUserActivity(
+        {
+          id: editingUser.id,
+          activityStatus: activityFormData.activityStatus,
+          activityEndDate: activityFormData.activityEndDate 
+            ? new Date(activityFormData.activityEndDate).toISOString()
+            : null,
+        },
+        token
+      );
+      await getAllUsers(token);
+      setActiveQuadrant(null);
+      alert("Activity status updated successfully.");
+    } catch (err) {
+      console.error("Failed to update activity:", err);
+      alert("Failed to update activity status. Please try again.");
+    }
+  };
+
+  // Suspend section handlers
   const handleSuspendUser = () => {
     setSuspendUserData(editingUser);
     setSuspendData({
-      startDate: new Date().toISOString().split('T')[0],
+      startDate: new Date().toISOString().split("T")[0],
       expiryDate: "",
       reason: "",
     });
     setEditingUser(null);
+  };
+
+  const handleRevokeSuspension = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      await apiRevokeSuspension(editingUser.id, token);
+      await getAllUsers(token);
+      setEditingUser(null);
+      alert("Suspension revoked successfully.");
+    } catch (err) {
+      console.error("Failed to revoke suspension:", err);
+      alert("Failed to revoke suspension. Please try again.");
+    }
   };
 
   const handleSuspendChange = (e) => {
@@ -116,14 +211,15 @@ export default function UsersTable() {
 
   const confirmSuspend = async () => {
     try {
-      const token = localStorage.getItem('authToken');
-      await apiSuspendUser({
-        userId: suspendUserData.id,
-        suspensionStartDate: suspendData.startDate,
-        suspensionEndDate: suspendData.expiryDate
-      }, token);
-      
-      // Refresh users list
+      const token = localStorage.getItem("authToken");
+      await apiSuspendUser(
+        {
+          id: suspendUserData.id,
+          suspensionStartDate: suspendData.startDate ? `${suspendData.startDate}T00:00:00` : null,
+          suspensionEndDate: suspendData.expiryDate ? `${suspendData.expiryDate}T00:00:00` : null,
+        },
+        token
+      );
       await getAllUsers(token);
       setSuspendUserData(null);
       setSuspendData({ startDate: "", expiryDate: "", reason: "" });
@@ -138,6 +234,7 @@ export default function UsersTable() {
     setSuspendData({ startDate: "", expiryDate: "", reason: "" });
   };
 
+  // Email handlers
   const handleEmailClick = (e, user) => {
     e.stopPropagation();
     setEmailUser(user);
@@ -151,13 +248,14 @@ export default function UsersTable() {
 
   const handleSendEmail = async () => {
     try {
-      const token = localStorage.getItem('authToken');
-      await issueEmailToUser({
-        userId: emailUser.id,
-        subject: emailData.subject,
-        message: emailData.message
-      }, token);
-      
+      const token = localStorage.getItem("authToken");
+      await issueEmailToUser(
+        {
+          targetEmail: emailUser.email,
+          emailBody: emailData.message,
+        },
+        token
+      );
       alert(`Email sent to ${emailUser.email}!`);
       setEmailUser(null);
       setEmailData({ subject: "", message: "" });
@@ -172,12 +270,25 @@ export default function UsersTable() {
     setEmailData({ subject: "", message: "" });
   };
 
+  const handleCancel = () => {
+    setEditingUser(null);
+    setActiveQuadrant(null);
+  };
+
   if (loading && users.length === 0) {
-    return <div className={styles.container}><p>Loading users...</p></div>;
+    return (
+      <div className={styles.container}>
+        <p>Loading users...</p>
+      </div>
+    );
   }
 
   if (error && users.length === 0) {
-    return <div className={styles.container}><p>Error loading users: {error}</p></div>;
+    return (
+      <div className={styles.container}>
+        <p>Error loading users: {error}</p>
+      </div>
+    );
   }
 
   return (
@@ -189,6 +300,7 @@ export default function UsersTable() {
             <th>Name</th>
             <th>Email</th>
             <th>Role</th>
+            <th>Status</th>
             <th>Date of Birth</th>
             <th>Address</th>
             <th>Actions</th>
@@ -202,17 +314,18 @@ export default function UsersTable() {
               onClick={() => handleRowClick(user)}
             >
               <td>{user.id}</td>
-              <td>{user.firstName} {user.lastName}</td>
-              <td>{user.email}</td>
               <td>
-                {user.suspended ? (
-                  <span className={styles.suspendedBadge}>Suspended</span>
-                ) : (
-                  user.userRole
-                )}
+                {user.firstName} {user.lastName}
               </td>
-              <td>{user.dateOfBirth}</td>
-              <td>{user.userAddress}</td>
+              <td>{user.email}</td>
+              <td>{user.userRole}</td>
+              <td>
+                <span className={`${styles.statusBadge} ${getStatusClass(user)}`}>
+                  {getStatusLabel(user)}
+                </span>
+              </td>
+              <td>{user.dateOfBirth ? user.dateOfBirth.split("T")[0] : "—"}</td>
+              <td>{user.userAddress || "—"}</td>
               <td>
                 <button
                   className={styles.emailBtn}
@@ -226,99 +339,259 @@ export default function UsersTable() {
         </tbody>
       </table>
 
+      {/* Edit User Modal - Quadrant Layout */}
       {editingUser && (
-        <div className={styles.modal}>
-          <div className={styles.modalContent}>
-            <h3>Edit User</h3>
-            <div className={styles.formRow}>
-              <div className={styles.formGroup}>
-                <label>First Name</label>
-                <input
-                  type="text"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                />
+        <div className={styles.modal} onClick={handleCancel}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <h3>
+              Manage User: {editingUser.firstName} {editingUser.lastName}
+            </h3>
+
+            {/* Four Quadrant Grid */}
+            <div className={styles.quadrantGrid}>
+              {/* Quadrant 1: Update Information */}
+              <div className={`${styles.quadrant} ${activeQuadrant === 'info' ? styles.activeQuadrant : ''}`}>
+                <div className={styles.quadrantHeader}>
+                  <h4>Update Information</h4>
+                  {activeQuadrant !== 'info' && (
+                    <button 
+                      className={styles.quadrantEditBtn}
+                      onClick={() => setActiveQuadrant('info')}
+                    >
+                      Edit
+                    </button>
+                  )}
+                </div>
+                
+                {activeQuadrant === 'info' ? (
+                  <div className={styles.quadrantForm}>
+                    <div className={styles.formGroup}>
+                      <label>First Name</label>
+                      <input
+                        type="text"
+                        name="firstName"
+                        value={infoFormData.firstName}
+                        onChange={handleInfoChange}
+                      />
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label>Last Name</label>
+                      <input
+                        type="text"
+                        name="lastName"
+                        value={infoFormData.lastName}
+                        onChange={handleInfoChange}
+                      />
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label>Email</label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={infoFormData.email}
+                        onChange={handleInfoChange}
+                      />
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label>Address</label>
+                      <input
+                        type="text"
+                        name="userAddress"
+                        value={infoFormData.userAddress}
+                        onChange={handleInfoChange}
+                      />
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label>Date of Birth</label>
+                      <input
+                        type="date"
+                        name="dateOfBirth"
+                        value={infoFormData.dateOfBirth}
+                        onChange={handleInfoChange}
+                      />
+                    </div>
+                    <div className={styles.quadrantActions}>
+                      <button 
+                        className={styles.saveBtn} 
+                        onClick={handleUpdateInfo}
+                      >
+                        Save Changes
+                      </button>
+                      <button 
+                        className={styles.cancelBtn} 
+                        onClick={() => setActiveQuadrant(null)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className={styles.quadrantPreview}>
+                    <p><strong>Name:</strong> {infoFormData.firstName} {infoFormData.lastName}</p>
+                    <p><strong>Email:</strong> {infoFormData.email}</p>
+                    <p><strong>Address:</strong> {infoFormData.userAddress || "—"}</p>
+                    <p><strong>DOB:</strong> {infoFormData.dateOfBirth || "—"}</p>
+                  </div>
+                )}
               </div>
-              <div className={styles.formGroup}>
-                <label>Last Name</label>
-                <input
-                  type="text"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                />
+
+              {/* Quadrant 2: Update Role */}
+              <div className={`${styles.quadrant} ${activeQuadrant === 'role' ? styles.activeQuadrant : ''}`}>
+                <div className={styles.quadrantHeader}>
+                  <h4>Update Role</h4>
+                  {activeQuadrant !== 'role' && (
+                    <button 
+                      className={styles.quadrantEditBtn}
+                      onClick={() => setActiveQuadrant('role')}
+                    >
+                      Edit
+                    </button>
+                  )}
+                </div>
+                
+                {activeQuadrant === 'role' ? (
+                  <div className={styles.quadrantForm}>
+                    <div className={styles.formGroup}>
+                      <label>User Role</label>
+                      <select
+                        name="userRole"
+                        value={roleFormData.userRole}
+                        onChange={handleRoleChange}
+                      >
+                        <option value="USER">USER</option>
+                        <option value="MANAGER">MANAGER</option>
+                        <option value="ACCOUNTANT">ACCOUNTANT</option>
+                        <option value="ADMIN">ADMIN</option>
+                      </select>
+                    </div>
+                    <div className={styles.quadrantActions}>
+                      <button 
+                        className={styles.saveBtn} 
+                        onClick={handleUpdateRole}
+                      >
+                        Update Role
+                      </button>
+                      <button 
+                        className={styles.cancelBtn} 
+                        onClick={() => setActiveQuadrant(null)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className={styles.quadrantPreview}>
+                    <p><strong>Current Role:</strong> {roleFormData.userRole}</p>
+                  </div>
+                )}
               </div>
-            </div>
-            <div className={styles.formGroup}>
-              <label>Email</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label>Password</label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Enter new password to change"
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label>Address</label>
-              <input
-                type="text"
-                name="userAddress"
-                value={formData.userAddress}
-                onChange={handleChange}
-              />
-            </div>
-            <div className={styles.formRow}>
-              <div className={styles.formGroup}>
-                <label>Date of Birth</label>
-                <input
-                  type="date"
-                  name="dateOfBirth"
-                  value={formData.dateOfBirth}
-                  onChange={handleChange}
-                />
+
+              {/* Quadrant 3: Update Activity */}
+              <div className={`${styles.quadrant} ${activeQuadrant === 'activity' ? styles.activeQuadrant : ''}`}>
+                <div className={styles.quadrantHeader}>
+                  <h4>Update Activity</h4>
+                  {activeQuadrant !== 'activity' && (
+                    <button 
+                      className={styles.quadrantEditBtn}
+                      onClick={() => setActiveQuadrant('activity')}
+                    >
+                      Edit
+                    </button>
+                  )}
+                </div>
+                
+                {activeQuadrant === 'activity' ? (
+                  <div className={styles.quadrantForm}>
+                    <div className={styles.checkboxGroup}>
+                      <label className={styles.checkboxLabel}>
+                        <input
+                          type="checkbox"
+                          name="activityStatus"
+                          checked={activityFormData.activityStatus}
+                          onChange={handleActivityChange}
+                        />
+                        Active User
+                      </label>
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label>Activity End Date (Optional)</label>
+                      <input
+                        type="date"
+                        name="activityEndDate"
+                        value={activityFormData.activityEndDate}
+                        onChange={handleActivityChange}
+                      />
+                      <small className={styles.helpText}>Leave empty for indefinite activity</small>
+                    </div>
+                    <div className={styles.quadrantActions}>
+                      <button 
+                        className={styles.saveBtn} 
+                        onClick={handleUpdateActivity}
+                      >
+                        Update Activity
+                      </button>
+                      <button 
+                        className={styles.cancelBtn} 
+                        onClick={() => setActiveQuadrant(null)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className={styles.quadrantPreview}>
+                    <p>
+                      <strong>Status:</strong>{" "}
+                      <span className={activityFormData.activityStatus ? styles.statusActive : styles.statusInactive}>
+                        {activityFormData.activityStatus ? "Active" : "Inactive"}
+                      </span>
+                    </p>
+                    <p><strong>End Date:</strong> {activityFormData.activityEndDate || "Indefinite"}</p>
+                  </div>
+                )}
               </div>
-              <div className={styles.formGroup}>
-                <label>Role</label>
-                <select name="userRole" value={formData.userRole} onChange={handleChange}>
-                  <option value="Admin">Admin</option>
-                  <option value="Manager">Manager</option>
-                  <option value="Accountant">Accountant</option>
-                  <option value="User">User</option>
-                </select>
+
+              {/* Quadrant 4: Suspend Management */}
+              <div className={`${styles.quadrant} ${styles.suspendQuadrant}`}>
+                <div className={styles.quadrantHeader}>
+                  <h4>Suspension Management</h4>
+                </div>
+                
+                <div className={styles.suspendActions}>
+                  <button 
+                    className={styles.suspendBtn}
+                    onClick={handleSuspendUser}
+                  >
+                    Suspend User
+                  </button>
+                  <button 
+                    className={styles.revokeBtn}
+                    onClick={handleRevokeSuspension}
+                  >
+                    Revoke Suspension
+                  </button>
+                </div>
+                
+                {editingUser.suspended && (
+                  <div className={styles.suspendedInfo}>
+                    <p className={styles.suspendedWarning}>
+                      ⚠️ User is currently suspended
+                    </p>
+                  </div>
+                )}
               </div>
-            </div>
-            <div className={styles.actions}>
-              <button className={styles.saveBtn} onClick={handleSave}>
-                Save
-              </button>
-              <button className={styles.cancelBtn} onClick={handleCancel}>
-                Cancel
-              </button>
-            </div>
-            <div className={styles.suspendSection}>
-              <button className={styles.suspendBtn} onClick={handleSuspendUser}>
-                Suspend User
-              </button>
             </div>
           </div>
         </div>
       )}
 
+      {/* Send Email Modal */}
       {emailUser && (
-        <div className={styles.modal}>
-          <div className={styles.modalContent}>
-            <h3>Send Email to {emailUser.firstName} {emailUser.lastName}</h3>
+        <div className={styles.modal} onClick={() => setEmailUser(null)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <h3>
+              Send Email to {emailUser.firstName} {emailUser.lastName}
+            </h3>
             <p className={styles.emailTo}>To: {emailUser.email}</p>
             <div className={styles.formGroup}>
               <label>Subject</label>
@@ -353,12 +626,16 @@ export default function UsersTable() {
         </div>
       )}
 
+      {/* Suspend User Modal */}
       {suspendUserData && (
-        <div className={styles.modal}>
-          <div className={styles.modalContent}>
+        <div className={styles.modal} onClick={() => setSuspendUserData(null)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <h3>Suspend User</h3>
             <p className={styles.suspendInfo}>
-              Suspending: <strong>{suspendUserData.firstName} {suspendUserData.lastName}</strong>
+              Suspending:{" "}
+              <strong>
+                {suspendUserData.firstName} {suspendUserData.lastName}
+              </strong>
             </p>
             <div className={styles.formRow}>
               <div className={styles.formGroup}>

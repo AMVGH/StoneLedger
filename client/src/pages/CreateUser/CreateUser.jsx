@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "./CreateUser.module.css";
-import Logo from "../../components/Logo";
+import Logo from "../../assets/mountain.png";
 import { validatePassword, PASSWORD_POLICY_MESSAGE } from "../../utils/validators";
 
 function Rule({ ok, text }) {
@@ -130,7 +130,7 @@ export default function CreateUser() {
 
       <div className={styles.card}>
         <div className={styles.logoRow}>
-          <Logo size={60} />
+          <img src={Logo} alt="App Logo" className={styles.logo} style={{ width: 40, height: 40 }} />
         </div>
 
         <h2 className={styles.title}>Request Access</h2>

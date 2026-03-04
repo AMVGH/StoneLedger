@@ -54,9 +54,8 @@ const useUserContext = create((set) => ({
         set({ loading: true, error: null });
         try {
             const response = await api.post('/users/issue-email', {
-                userId: emailData.userId,
-                subject: emailData.subject,
-                message: emailData.message
+                targetEmail: emailData.targetEmail,
+                emailBody: emailData.emailBody
             }, {
                 headers: token ? { Authorization: token } : {}
             });
@@ -104,7 +103,7 @@ const useUserContext = create((set) => ({
     },
 
     // Create a new user
-    createUser: async (userData) => {
+    createUser: async (userData, token = null) => {
         set({ loading: true, error: null });
         try {
             const response = await api.post('/users/create', {
@@ -114,10 +113,12 @@ const useUserContext = create((set) => ({
                 password: userData.password,
                 userAddress: userData.userAddress,
                 dateOfBirth: userData.dateOfBirth,
-                userRole: userData.userRole || 'USER',
+                userRole: userData.userRole,
                 active: userData.active || false,
                 activityStartDate: userData.activityStartDate,
                 activityEndDate: userData.activityEndDate
+            }, {
+                headers: token ? { Authorization: token } : {}
             });
             set({ loading: false });
             return response.data.data;
@@ -214,9 +215,9 @@ const useUserContext = create((set) => ({
         set({ loading: true, error: null });
         try {
             const response = await api.post('/users/suspend-user', {
-                userId: suspensionData.userId,
+                id: suspensionData.id,
                 suspensionStartDate: suspensionData.suspensionStartDate,
-                suspensionEndDate: suspensionData.suspensionEndDate
+                suspensionEndDate: suspensionData.suspensionEndDate,
             }, {
                 headers: token ? { Authorization: token } : {}
             });
@@ -224,7 +225,6 @@ const useUserContext = create((set) => ({
             return response.data.data;
         } catch (error) {
             const errorMsg = error.response?.data?.message || error.message || 'Failed to suspend user';
-            console.error('Error suspending user:', errorMsg);
             set({ error: errorMsg, loading: false });
             throw error;
         }

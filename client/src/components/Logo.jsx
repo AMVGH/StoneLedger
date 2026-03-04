@@ -1,7 +1,7 @@
-import logo from "../assets/mountain.png";
+import logo from "../assets/StoneLedgerLogo-removebg-preview (1).png";
 
 
-export default function Logo({ size = 44 }) {
+export default function Logo({ size = 40 }) {
   return (
     <img
       src={logo}

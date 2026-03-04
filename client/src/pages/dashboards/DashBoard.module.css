@@ -7,7 +7,7 @@
 
 .sidebar {
   width: 220px;
-  background: #0f1724;
+  background: #000000;
   color: #e6eef8;
   padding: 20px;
   display: flex;
@@ -48,13 +48,16 @@
   border: none;
   color: inherit;
   text-align: left;
+  font-weight: 500;
   padding: 10px 12px;
   border-radius: 6px;
   cursor: pointer;
+  transition: transform 0.3s ease, background 0.3s ease;
 }
 
 .navItem:hover {
-  background: rgba(255,255,255,0.04);
+  background: rgba(218, 217, 217, 0.15);
+  transform: translateY(-1px);
 }
 
 .main {
@@ -64,14 +67,31 @@
   background: #f6f8fb;
 }
 
+/* Updated topbar styles */
 .topbar {
   height: 72px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 0 20px;
   border-bottom: 1px solid #e1e8f0;
   background: white;
+}
+
+.topbarContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .searchWrap {
@@ -87,10 +107,70 @@
   background: #fbfdff;
 }
 
+/* Settings styles */
+.settingsWrap {
+  position: relative;
+}
+
+.iconBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.iconBtn:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #333;
+}
+
+.settingsDropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: white;
+  border: 1px solid #e1e8f0;
+  border-radius: 8px;
+  min-width: 160px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+}
+
+.settingsItem {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #333;
+  text-align: left;
+  padding: 10px 16px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.settingsItem:hover {
+  background: #f5f5f5;
+}
+
+/* Profile styles */
 .profile {
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 4px 8px;
+  border-radius: 40px;
+  transition: background 0.15s ease;
+}
+
+.profile:hover {
+  background: #f5f5f5;
 }
 
 .userInfo {
@@ -112,16 +192,16 @@
 }
 
 .avatar {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #eef3fb;
-  border: 2px solid #0f1724;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .avatarImg {
@@ -288,4 +368,65 @@
 
 .cancelResetBtn:hover {
   text-decoration: underline;
+}
+
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.resetModal {
+  background: #ececec;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 32px;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.resetModalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.resetModalHeader h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.modalCloseBtn {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  opacity: 0.6;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.modalCloseBtn:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.875rem;
 }

@@ -1,16 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import styles from "./DashBoard.module.css";
 import Logo from "../../components/Logo";
 import UsersTable from "../../components/UsersTable";
 import PendingTable from "../../components/PendingTable";
 import ExpiredPasswords from "../../components/ExpiredPasswords";
+import CreateUserPage from "../../components/CreateUserPage";
 import useUserContext from "../../API/UserContext";
 import usePasswordContext from "../../API/Passwords";
+import { useNavigate } from "react-router-dom";
 
 export default function DashBoard() {
   const [nav, setNav] = useState("User Management");
   const [notification, setNotification] = useState(null);
   const [resetStep, setResetStep] = useState(1);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
   const [resetData, setResetData] = useState({
     email: "",
     userId: "",
@@ -20,72 +24,68 @@ export default function DashBoard() {
     confirmPassword: "",
   });
 
-  // Get user context for logged-in user info
-  const { user, getLoggedInUserInfo, loading: userLoading } = useUserContext();
+  const { logout } = useUserContext();
   const { updatePassword } = usePasswordContext();
+  const navigate = useNavigate();
 
-  // Fetch logged-in user info on mount
-  useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      getLoggedInUserInfo(token).catch(err => {
-        console.error("Failed to fetch user info:", err);
-      });
+  const storedUser = (() => {
+    try {
+      return JSON.parse(localStorage.getItem("user")) || null;
+    } catch {
+      return null;
     }
-  }, [getLoggedInUserInfo]);
+  })();
 
-  // Mock security questions (will be replaced when security questions endpoint is implemented)
-  const securityQuestions = {
-    question1: "What is your mother's maiden name?",
-    question2: "What was the name of your first pet?",
+  const loggedInUser = storedUser
+    ? {
+        username: storedUser.username,
+        name: `${storedUser.firstName} ${storedUser.lastName}`,
+        role: storedUser.userRole,
+        email: storedUser.email,
+        profilePicture:
+          storedUser.profilePictureUrl ||
+          "https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTAxL3JtNjA5LXNvbGlkaWNvbi13LTAwMi1wLnBuZw.png",
+      }
+    : {
+        username: "—",
+        name: "—",
+        role: "—",
+        email: "",
+        profilePicture:
+          "https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTAxL3JtNjA5LXNvbGlkaWNvbi13LTAwMi1wLnBuZw.png",
+      };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    logout();
+    navigate("/");
   };
 
-  // Use actual user data or default values if still loading
-  const loggedInUser = user ? {
-    username: user.username,
-    name: `${user.firstName} ${user.lastName}`,
-    role: user.userRole,
-    email: user.email,
-    profilePicture: user.profilePictureUrl || "https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTAxL3JtNjA5LXNvbGlkaWNvbi13LTAwMi1wLnBuZw.png",
-  } : {
-    username: "Loading...",
-    name: "Loading...",
-    role: "...",
-    email: "",
-    profilePicture: "https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTAxL3JtNjA5LXNvbGlkaWNvbi13LTAwMi1wLnBuZw.png",
+  const notify = (type, message) => {
+    setNotification({ type, message });
+    setTimeout(() => setNotification(null), 4000);
   };
 
   const handleApprove = (user) => {
-    setNotification({
-      type: "success",
-      message: `${user.name} has been approved and added to the user table.`,
-    });
-    setTimeout(() => setNotification(null), 4000);
+    notify("success", `${user.name} has been approved and added to the user table.`);
   };
 
   const handleDeny = (user) => {
-    setNotification({
-      type: "error",
-      message: `${user.name}'s request has been denied and deleted.`,
-    });
-    setTimeout(() => setNotification(null), 4000);
+    notify("error", `${user.name}'s request has been denied and deleted.`);
   };
 
+  // ── Reset Password ──
   const handleResetChange = (e) => {
     const { name, value } = e.target;
     setResetData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleVerifyIdentity = () => {
-    // Mock validation - just check fields are filled
     if (resetData.email && resetData.userId) {
       setResetStep(2);
     } else {
-      setNotification({
-        type: "error",
-        message: "Please enter both email and user ID.",
-      });
-      setTimeout(() => setNotification(null), 4000);
+      notify("error", "Please enter both email and user ID.");
     }
   };
 
@@ -93,55 +93,26 @@ export default function DashBoard() {
     if (resetData.securityAnswer1 && resetData.securityAnswer2) {
       setResetStep(3);
     } else {
-      setNotification({
-        type: "error",
-        message: "Please answer both security questions.",
-      });
-      setTimeout(() => setNotification(null), 4000);
+      notify("error", "Please answer both security questions.");
     }
   };
 
   const handleResetPassword = async () => {
     if (!resetData.newPassword || !resetData.confirmPassword) {
-      setNotification({
-        type: "error",
-        message: "Please fill in both password fields.",
-      });
-      setTimeout(() => setNotification(null), 4000);
+      notify("error", "Please fill in both password fields.");
       return;
     }
     if (resetData.newPassword !== resetData.confirmPassword) {
-      setNotification({
-        type: "error",
-        message: "Passwords do not match.",
-      });
-      setTimeout(() => setNotification(null), 4000);
+      notify("error", "Passwords do not match.");
       return;
     }
-    
     try {
-      const token = localStorage.getItem('authToken');
+      const token = localStorage.getItem("authToken");
       await updatePassword(resetData.userId, resetData.newPassword, token);
-      setNotification({
-        type: "success",
-        message: "Password has been reset successfully!",
-      });
-      setTimeout(() => setNotification(null), 4000);
-      setResetStep(1);
-      setResetData({
-        email: "",
-        userId: "",
-        securityAnswer1: "",
-        securityAnswer2: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
+      notify("success", "Password has been reset successfully!");
+      handleCancelReset();
     } catch (error) {
-      setNotification({
-        type: "error",
-        message: error.response?.data?.message || "Failed to reset password.",
-      });
-      setTimeout(() => setNotification(null), 4000);
+      notify("error", error.response?.data?.message || "Failed to reset password.");
     }
   };
 
@@ -157,42 +128,117 @@ export default function DashBoard() {
     });
   };
 
+  const securityQuestions = {
+    question1: "What is your mother's maiden name?",
+    question2: "What was the name of your first pet?",
+  };
+
+  const handleUserCreated = () => {
+    notify("success", "User created successfully!");
+    // Optionally switch to User Management tab to see the new user
+    // setNav("User Management");
+  };
+
   return (
     <div className={styles.page}>
       <aside className={styles.sidebar}>
         <div className={styles.brand}>
-          <Logo size={40} />
-          <span className={styles.brandText}>StoneLedger</span>
+          <Logo size={225} />
         </div>
 
         <nav className={styles.nav}>
-          <button className={styles.navItem} onClick={() => setNav("User Management")}>User Management</button>
-          <button className={styles.navItem} onClick={() => setNav("Pending")}>Pending</button>
-          <button className={styles.navItem} onClick={() => setNav("Expired Passwords")}>Expired Passwords</button>
+          <button
+            className={`${styles.navItem} ${nav === "User Management" ? styles.activeNav : ""}`}
+            onClick={() => setNav("User Management")}
+          >
+            User Management
+          </button>
+          <button
+            className={`${styles.navItem} ${nav === "Create User" ? styles.activeNav : ""}`}
+            onClick={() => setNav("Create User")}
+          >
+            Create User
+          </button>
+          <button
+            className={`${styles.navItem} ${nav === "Pending" ? styles.activeNav : ""}`}
+            onClick={() => setNav("Pending")}
+          >
+            Pending
+          </button>
+          <button
+            className={`${styles.navItem} ${nav === "Expired Passwords" ? styles.activeNav : ""}`}
+            onClick={() => setNav("Expired Passwords")}
+          >
+            Expired Passwords
+          </button>
         </nav>
+
         <div className={styles.navSpacer}></div>
+
         <nav className={styles.navBottom}>
-          <button className={styles.navItem} onClick={() => { setNav("Reset Password"); setResetStep(1); }}>Reset Password</button>
+          <button className={styles.navItem} onClick={handleLogout}>
+            Logout
+          </button>
         </nav>
       </aside>
 
       <main className={styles.main}>
         <header className={styles.topbar}>
-          <div className={styles.searchWrap}>
-            <input className={styles.search} placeholder="Search users, requests..." />
-          </div>
+          <div className={styles.topbarContent}>
+            <div className={styles.spacer}></div>
 
-          <div className={styles.profile}>
-            <div className={styles.userInfo}>
-              <span className={styles.username}>{loggedInUser.username}</span>
-              <span className={styles.userRole}>{loggedInUser.role}</span>
-            </div>
-            <div className={styles.avatar}>
-              <img 
-                src={loggedInUser.profilePicture} 
-                alt={loggedInUser.name}
-                className={styles.avatarImg}
-              />
+            <div className={styles.rightSection}>
+              <div className={styles.settingsWrap}>
+                <button
+                  className={styles.iconBtn}
+                  title="Settings"
+                  onClick={() => setShowSettings((prev) => !prev)}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                  </svg>
+                </button>
+
+                {showSettings && (
+                  <div className={styles.settingsDropdown}>
+                    <button
+                      className={styles.settingsItem}
+                      onClick={() => {
+                        setShowResetModal(true);
+                        setResetStep(1);
+                        setShowSettings(false);
+                      }}
+                    >
+                      Reset Password
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className={styles.profile}>
+                <div className={styles.userInfo}>
+                  <span className={styles.username}>{loggedInUser.username}</span>
+                  <span className={styles.userRole}>{loggedInUser.role}</span>
+                </div>
+                <div className={styles.avatar}>
+                  <img
+                    src={loggedInUser.profilePicture}
+                    alt={loggedInUser.name}
+                    className={styles.avatarImg}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </header>
@@ -208,6 +254,15 @@ export default function DashBoard() {
             <h2>User Management</h2>
             <p>Manage users, roles, and permissions.</p>
             <UsersTable />
+          </section>
+        )}
+
+        {nav === "Create User" && (
+          <section className={styles.content}>
+            <CreateUserPage
+              onUserCreated={handleUserCreated}
+              standalone={true}
+            />
           </section>
         )}
 
@@ -227,16 +282,31 @@ export default function DashBoard() {
           </section>
         )}
 
-        {nav === "Reset Password" && (
-          <section className={styles.content}>
-            <h2>Reset User Password</h2>
-            <p>Help users reset their password by verifying their identity.</p>
-            
-            <div className={styles.resetContainer}>
+        {/* Reset Password Modal */}
+        {showResetModal && (
+          <div className={styles.modalOverlay} onClick={() => { setShowResetModal(false); handleCancelReset(); }}>
+            <div className={styles.resetModal} onClick={(e) => e.stopPropagation()}>
+              <div className={styles.resetModalHeader}>
+                <h2>Reset User Password</h2>
+                <button
+                  className={styles.modalCloseBtn}
+                  onClick={() => { setShowResetModal(false); handleCancelReset(); }}
+                >
+                  ✕
+                </button>
+              </div>
+              <p>Help users reset their password by verifying their identity.</p>
+
               <div className={styles.stepIndicator}>
-                <div className={`${styles.step} ${resetStep >= 1 ? styles.active : ""}`}>1. Verify Identity</div>
-                <div className={`${styles.step} ${resetStep >= 2 ? styles.active : ""}`}>2. Security Questions</div>
-                <div className={`${styles.step} ${resetStep >= 3 ? styles.active : ""}`}>3. New Password</div>
+                <div className={`${styles.step} ${resetStep >= 1 ? styles.active : ""}`}>
+                  1. Verify Identity
+                </div>
+                <div className={`${styles.step} ${resetStep >= 2 ? styles.active : ""}`}>
+                  2. Security Questions
+                </div>
+                <div className={`${styles.step} ${resetStep >= 3 ? styles.active : ""}`}>
+                  3. New Password
+                </div>
               </div>
 
               {resetStep === 1 && (
@@ -296,12 +366,8 @@ export default function DashBoard() {
                     />
                   </div>
                   <div className={styles.resetActions}>
-                    <button className={styles.secondaryBtn} onClick={() => setResetStep(1)}>
-                      Back
-                    </button>
-                    <button className={styles.primaryBtn} onClick={handleVerifySecurityQuestions}>
-                      Continue
-                    </button>
+                    <button className={styles.secondaryBtn} onClick={() => setResetStep(1)}>Back</button>
+                    <button className={styles.primaryBtn} onClick={handleVerifySecurityQuestions}>Continue</button>
                   </div>
                 </div>
               )}
@@ -331,12 +397,8 @@ export default function DashBoard() {
                     />
                   </div>
                   <div className={styles.resetActions}>
-                    <button className={styles.secondaryBtn} onClick={() => setResetStep(2)}>
-                      Back
-                    </button>
-                    <button className={styles.primaryBtn} onClick={handleResetPassword}>
-                      Reset Password
-                    </button>
+                    <button className={styles.secondaryBtn} onClick={() => setResetStep(2)}>Back</button>
+                    <button className={styles.primaryBtn} onClick={handleResetPassword}>Reset Password</button>
                   </div>
                 </div>
               )}
@@ -347,10 +409,9 @@ export default function DashBoard() {
                 </button>
               )}
             </div>
-          </section>
+          </div>
         )}
       </main>
     </div>
   );
 }
-

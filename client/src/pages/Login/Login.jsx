@@ -47,7 +47,7 @@ export default function Login() {
 
       const loginData = data.data;
       console.log("Login data:", loginData);
-      localStorage.setItem("token", loginData.jsonWebToken);
+      localStorage.setItem("authToken", loginData.jsonWebToken);
       localStorage.setItem("user", JSON.stringify(loginData));
 
       nav("/dashboard");

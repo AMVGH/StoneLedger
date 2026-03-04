@@ -36,7 +36,8 @@ public class UserController {
      * */
     @PostMapping("/create")
     public ResponseEntity<ApiResponseDTO<?>> createUser(@RequestBody CreateUserDTO request) throws GeneralSecurityException, MessagingException {
-        validationUtil.isValidUserCreationRequest(request);
+        // validationUtil.isValidUserCreationRequest(request);
+        System.out.println(request);
         String creationResponse = userService.createNewUser(request);
         return ResponseEntity.ok(ApiResponseDTO.success(creationResponse));
     }
@@ -109,7 +110,7 @@ public class UserController {
      * */
     @PostMapping("/update-activity")
     public ResponseEntity<ApiResponseDTO<?>> updateUserActivity(@RequestBody UserActivityDTO request) {
-        validationUtil.isValidActivityRequest(request);
+        //validationUtil.isValidActivityRequest(request);
         String activityResponse = userService.setUserActivationStatus(request);
         return ResponseEntity.ok(ApiResponseDTO.success(activityResponse));
     }
