@@ -249,7 +249,7 @@ export default function DashBoard() {
           </div>
         )}
 
-        {nav === "User Management" && (
+        {nav === "User Management" && loggedInUser.role === "Admin" && (
           <section className={styles.content}>
             <h2>User Management</h2>
             <p>Manage users, roles, and permissions.</p>
@@ -257,7 +257,7 @@ export default function DashBoard() {
           </section>
         )}
 
-        {nav === "Create User" && (
+        {nav === "Create User" && loggedInUser.role === "Admin" && (
           <section className={styles.content}>
             <CreateUserPage
               onUserCreated={handleUserCreated}
@@ -266,7 +266,7 @@ export default function DashBoard() {
           </section>
         )}
 
-        {nav === "Pending" && (
+        {nav === "Pending" && loggedInUser.role === "Admin" && (
           <section className={styles.content}>
             <h2>Pending Requests</h2>
             <p>Approve or deny pending user access requests.</p>
@@ -274,7 +274,7 @@ export default function DashBoard() {
           </section>
         )}
 
-        {nav === "Expired Passwords" && (
+        {nav === "Expired Passwords" && loggedInUser.role === "Admin" && (
           <section className={styles.content}>
             <h2>Expired Passwords</h2>
             <p>View and manage users with expired passwords.</p>
@@ -283,7 +283,7 @@ export default function DashBoard() {
         )}
 
         {/* Reset Password Modal */}
-        {showResetModal && (
+        {showResetModal && loggedInUser.role === "Admin" && (
           <div className={styles.modalOverlay} onClick={() => { setShowResetModal(false); handleCancelReset(); }}>
             <div className={styles.resetModal} onClick={(e) => e.stopPropagation()}>
               <div className={styles.resetModalHeader}>
