@@ -36,7 +36,7 @@ public class UserModel {
     private LocalDateTime passwordExpirationDate;
     @Column(name="user_address", nullable = false)
     private String userAddress;
-    @Column(name="date_of_birth", nullable = false, updatable = false)
+    @Column(name="date_of_birth", nullable = false, updatable = true)
     private LocalDate dateOfBirth;
     @Column(name="profile_picture_url")
     private String profilePictureUrl;

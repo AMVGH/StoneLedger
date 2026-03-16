@@ -173,9 +173,8 @@ const useUserContext = create((set) => ({
         set({ loading: true, error: null });
         try {
             const response = await api.post('/users/update-activity', {
-                userId: activityData.userId,
-                active: activityData.active,
-                activityStartDate: activityData.activityStartDate,
+                id: activityData.id,
+                activityStatus: activityData.activityStatus,
                 activityEndDate: activityData.activityEndDate
             }, {
                 headers: token ? { Authorization: token } : {}
@@ -191,14 +190,12 @@ const useUserContext = create((set) => ({
     },
 
     // Update user role (admin only)
-    updateUserRole: async (roleData, token = null) => {
+    updateUserRole: async (roleData) => {
         set({ loading: true, error: null });
         try {
             const response = await api.post('/users/update-role', {
-                userId: roleData.userId,
-                newRole: roleData.newRole
-            }, {
-                headers: token ? { Authorization: token } : {}
+                id: roleData.userId,
+                userRole: roleData.newRole
             });
             set({ loading: false });
             return response.data.data;

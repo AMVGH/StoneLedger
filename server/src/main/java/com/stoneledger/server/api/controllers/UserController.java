@@ -108,6 +108,12 @@ public class UserController {
      * */
     @PostMapping("/update-information")
     public ResponseEntity<ApiResponseDTO<?>> updateUserInformation(@RequestBody UpdateUserInformationDTO request) {
+        System.out.println("Received new update information request. ID: " + request.getId()
+                + " First Name: " + request.getFirstName()
+                + " Last Name: " + request.getLastName()
+                + " Email: " + request.getEmail()
+                + " Address: " + request.getUserAddress()
+                + " Date of Birth: " + request.getDateOfBirth());
         validationUtil.isValidUpdateInformationRequest(request);
         String updateInformationResponse = userService.updateUserInformation(request);
         return ResponseEntity.ok(ApiResponseDTO.success(updateInformationResponse));
@@ -118,7 +124,10 @@ public class UserController {
      * */
     @PostMapping("/update-activity")
     public ResponseEntity<ApiResponseDTO<?>> updateUserActivity(@RequestBody UserActivityDTO request) {
-        //validationUtil.isValidActivityRequest(request);
+        System.out.println("Received new update activity request. ID: " + request.getId()
+                + " Activity Status: " + request.getActivityStatus()
+                + " Activity End Date: " + request.getActivityEndDate());
+        validationUtil.isValidActivityRequest(request);
         String activityResponse = userService.setUserActivationStatus(request);
         return ResponseEntity.ok(ApiResponseDTO.success(activityResponse));
     }
@@ -128,6 +137,8 @@ public class UserController {
      * */
     @PostMapping("/update-role")
     public ResponseEntity<ApiResponseDTO<?>> updateUserRole(@RequestBody UpdateUserRoleDTO request) {
+        System.out.println("Received new role update request. ID: " + request.getId()
+                + " ROLE: " + request.getUserRole());
         validationUtil.isValidRoleUpdateRequest(request);
         String roleAssignmentResponse = userService.updateUserRole(request);
         return ResponseEntity.ok(ApiResponseDTO.success(roleAssignmentResponse));

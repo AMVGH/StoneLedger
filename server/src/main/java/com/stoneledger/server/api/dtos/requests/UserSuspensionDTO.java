@@ -8,8 +8,6 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 @Data
 public class UserSuspensionDTO {
     private Long id;
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime suspensionStartDate;
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime suspensionEndDate;
 }

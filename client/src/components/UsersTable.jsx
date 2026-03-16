@@ -132,15 +132,11 @@ export default function UsersTable() {
 
   const handleUpdateRole = async () => {
     try {
-      const token = localStorage.getItem("authToken");
-      await updateUserRole(
-        {
-          id: editingUser.id,
-          userRole: roleFormData.userRole,
-        },
-        token
-      );
-      await getAllUsers(token);
+      await updateUserRole({
+        userId: editingUser.id,
+        newRole: roleFormData.userRole,
+      });
+      await getAllUsers();
       setActiveQuadrant(null);
       alert("Role updated successfully.");
     } catch (err) {
@@ -460,7 +456,7 @@ export default function UsersTable() {
                       >
                         <option value="USER">USER</option>
                         <option value="MANAGER">MANAGER</option>
-                        <option value="ADMIN">ADMIN</option>
+                        <option value="ADMINISTRATOR">ADMINISTRATOR</option>
                       </select>
                     </div>
                     <div className={styles.quadrantActions}>
