@@ -1,0 +1,507 @@
+.container {
+  padding: 1rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.table th,
+.table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.table th {
+  background: #f5f5f5;
+  font-weight: 600;
+  color: #333;
+}
+
+.row {
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.row:hover {
+  background: #f0f7ff;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: #fff;
+  padding: 24px;
+  border-radius: 8px;
+  min-width: 480px;
+  max-width: 560px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.modalContent h3 {
+  margin: 0 0 16px;
+  color: #333;
+}
+
+.formRow {
+  display: flex;
+  gap: 16px;
+}
+
+.formRow .formGroup {
+  flex: 1;
+}
+
+.formGroup {
+  margin-bottom: 16px;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #555;
+}
+
+.formGroup input,
+.formGroup select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.formGroup input:focus,
+.formGroup select:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.saveBtn,
+.cancelBtn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.saveBtn {
+  background: #007bff;
+  color: #fff;
+}
+
+.saveBtn:hover {
+  background: #0056b3;
+}
+
+.cancelBtn {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.cancelBtn:hover {
+  background: #ccc;
+}
+
+.emailBtn {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  background: #17a2b8;
+  color: #fff;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.emailBtn:hover {
+  background: #138496;
+  transform: translateY(-1px);
+}
+
+.emailTo {
+  color: #666;
+  font-size: 14px;
+  margin: 0 0 16px;
+}
+
+.textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: #17a2b8;
+}
+
+.sendBtn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+  background: #17a2b8;
+  color: #fff;
+}
+
+.sendBtn:hover {
+  background: #138496;
+}
+
+.suspendSection {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #eee;
+}
+
+.suspendBtn {
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+  background: #dc3545;
+  color: #fff;
+}
+
+.suspendBtn:hover {
+  background: #c82333;
+}
+
+.suspendedBadge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.suspendInfo {
+  color: #555;
+  margin: 0 0 16px;
+}
+
+.confirmSuspendBtn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+  background: #dc3545;
+  color: #fff;
+}
+
+.confirmSuspendBtn:hover {
+  background: #c82333;
+}
+
+
+/* Status badge styles - Alternative color scheme */
+.statusBadge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+  min-width: 70px;
+}
+
+.statusActive {
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.statusInactive {
+  background-color: #fef9c3;
+  color: #854d0e;
+  border: 1px solid #fde047;
+}
+
+.statusSuspended {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+/* Quadrant Grid Layout - ONLY for the popup modal */
+.quadrantGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.quadrant {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  transition: all 0.2s ease;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+}
+
+.quadrant:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.activeQuadrant {
+  border: 2px solid #007bff;
+  background: #ffffff;
+}
+
+.quadrantHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.quadrantHeader h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.quadrantEditBtn {
+  padding: 4px 10px;
+  background: #e5e7eb;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.quadrantEditBtn:hover {
+  background: #d1d5db;
+}
+
+.quadrantPreview {
+  flex: 1;
+}
+
+.quadrantPreview p {
+  margin: 6px 0;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.quadrantPreview p strong {
+  color: #333;
+  font-weight: 600;
+  min-width: 70px;
+  display: inline-block;
+}
+
+.quadrantForm {
+  flex: 1;
+}
+
+.quadrantForm .formGroup {
+  margin-bottom: 10px;
+}
+
+.quadrantForm .formGroup label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 2px;
+}
+
+.quadrantForm .formGroup input,
+.quadrantForm .formGroup select {
+  padding: 6px 8px;
+  font-size: 0.85rem;
+}
+
+.quadrantActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.quadrantActions .saveBtn,
+.quadrantActions .cancelBtn {
+  flex: 1;
+  padding: 6px 10px;
+  font-size: 0.75rem;
+}
+
+/* Suspend quadrant specific styles */
+.suspendQuadrant {
+  background: #fff5f5;
+  border-color: #fcc;
+}
+
+.suspendQuadrant .quadrantHeader h4 {
+  color: #c00;
+}
+
+.suspendActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.suspendActions .suspendBtn,
+.suspendActions .revokeBtn {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.suspendActions .suspendBtn {
+  background: #dc3545;
+  color: white;
+}
+
+.suspendActions .suspendBtn:hover {
+  background: #c82333;
+}
+
+.suspendActions .revokeBtn {
+  background: #ffc107;
+  color: #333;
+}
+
+.suspendActions .revokeBtn:hover {
+  background: #e0a800;
+}
+
+.suspendedInfo {
+  margin-top: 12px;
+  padding: 8px;
+  background: #f8d7da;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.suspendedWarning {
+  color: #721c24;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+.restoreBtn {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  background: #28a745;
+  color: white;
+}
+
+.restoreBtn:hover {
+  background: #218838;
+}
+
+/* Checkbox styles */
+.checkboxGroup {
+  margin: 8px 0;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #555;
+  padding: 6px;
+  background: #f9fafb;
+  border-radius: 4px;
+}
+
+.checkboxLabel input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+.helpText {
+  display: block;
+  font-size: 0.7rem;
+  color: #888;
+  margin-top: 2px;
+}
+
+/* Make modal content wider for quadrant layout */
+.modalContent {
+  min-width: 700px;
+  max-width: 800px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .quadrantGrid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .modalContent {
+    min-width: 90%;
+    max-width: 95%;
+    padding: 20px;
+  }
+}

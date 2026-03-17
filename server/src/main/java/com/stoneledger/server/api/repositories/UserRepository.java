@@ -5,29 +5,23 @@ import com.stoneledger.server.api.models.UserModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<UserModel, Long> {
-
-    /**
-     * Find user by username
-     */
     Optional<UserModel> findByUsername(String username);
-
-    /**
-     * Find user by email
-     */
     Optional<UserModel> findByEmail(String email);
-
-    /**
-     * Check if username exists
-     */
+    List<UserModel> findEmailByUserRole(UserRole userRole);
+    List<UserModel> findBySuspendEndDateBeforeAndSuspendedTrue(LocalDateTime now);
+    List<UserModel> findByActivityEndDateBefore(LocalDateTime now);
+    List<UserModel> findByPasswordExpirationDateBetween(LocalDateTime start, LocalDateTime end);
+    List<UserModel> findByPasswordExpirationDateBefore(LocalDateTime now);
+    List<UserModel> findByPasswordExpirationDateBeforeAndActiveTrue(LocalDateTime now);
+    List<UserModel> findByActiveFalseAndLastLoginIsNull();
+    Optional<Boolean> findActiveById(Long id);
     boolean existsByUsername(String username);
-
-    /**
-     * Check if email exists
-     */
     boolean existsByEmail(String email);
+
 }

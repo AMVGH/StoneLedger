@@ -1,0 +1,16 @@
+/* src/styles/global.css */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: #0b0f17;
+  color: #e9eef8;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}

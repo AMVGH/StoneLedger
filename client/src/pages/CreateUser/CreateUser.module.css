@@ -1,0 +1,328 @@
+/* ─── Page & Card Layout ─────────────────────────────────────────── */
+
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  background: #212122;
+}
+
+.card {
+  width: min(560px, 100%);
+  background: #ffffff;
+  color: #0b0f17;
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 26px 28px;
+}
+
+.logoRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 10px;
+}
+
+.title {
+  margin: 10px 0 18px;
+  font-size: 28px;
+  font-weight: 800;
+  color: #0b0f17;
+}
+
+/* ─── Form Layout ────────────────────────────────────────────────── */
+
+.row {
+  display: flex;
+  gap: 16px;
+}
+
+.row > div {
+  flex: 1;
+}
+
+@media (max-width: 640px) {
+  .row {
+    flex-direction: column;
+  }
+}
+
+/* ─── Labels, Inputs & Select ────────────────────────────────────── */
+
+.label {
+  display: block;
+  margin: 14px 0 6px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9ca3af;
+}
+
+.input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: #ffffff;
+  padding: 10px 6px 12px;
+  font-size: 14px;
+  color: #111827;
+  border-bottom: 1px solid #cbd5e1;
+}
+
+.input::placeholder {
+  color: #9ca3af;
+}
+
+.input:focus {
+  border-bottom: 2px solid #111827;
+}
+
+.input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.input[readonly] {
+  opacity: 0.75;
+  cursor: default;
+}
+
+.select {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 10px 6px 12px;
+  font-size: 14px;
+  color: #111827;
+  border-bottom: 1px solid #cbd5e1;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #111827 50%),
+    linear-gradient(135deg, #111827 50%, transparent 50%);
+  background-position: calc(100% - 16px) 55%, calc(100% - 11px) 55%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.select:focus {
+  border-bottom: 2px solid #111827;
+}
+
+/* ─── Password Rules ─────────────────────────────────────────────── */
+
+.passwordRules {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rulesTitle {
+  font-weight: 800;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.ruleOk {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: #16a34a;
+}
+
+.ruleNo {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: #6b7280;
+}
+
+.ruleIcon {
+  width: 16px;
+  text-align: center;
+}
+
+/* ─── Buttons ────────────────────────────────────────────────────── */
+
+.buttonGroup {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 24px;
+  width: 100%;
+}
+
+.primaryBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 24px;
+  border-radius: 10px;
+  background: #0b0f17;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  flex: 1;
+  max-width: 200px;
+  transition: all 0.2s ease;
+}
+
+.primaryBtn:hover {
+  background: #111827;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.primaryBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.secondaryBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 24px;
+  border-radius: 10px;
+  background: #f3f4f6;
+  color: #4b5563;
+  font-weight: 600;
+  font-size: 16px;
+  text-decoration: none;
+  border: 1px solid #d1d5db;
+  cursor: pointer;
+  flex: 1;
+  max-width: 200px;
+  transition: all 0.2s ease;
+}
+
+.secondaryBtn:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ─── Feedback & Actions ─────────────────────────────────────────── */
+
+.msg {
+  margin-top: 12px;
+  color: #b45309;
+  font-size: 13px;
+}
+
+.actions {
+  margin-top: 14px;
+  text-align: center;
+}
+
+.actions a {
+  color: #0b0f17;
+  text-decoration: underline;
+  font-size: 13px;
+}
+
+/* ─── Overlay (shared by Toast & Modal) ──────────────────────────── */
+
+.toastOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: grid;
+  place-items: center;
+  z-index: 1000;
+}
+
+/* ─── Toast ──────────────────────────────────────────────────────── */
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 18px 20px;
+  width: min(420px, 90vw);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+}
+
+.toastIcon {
+  font-size: 20px;
+  color: #16a34a;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.toastContent {
+  flex: 1;
+}
+
+.toastTitle {
+  font-weight: 700;
+  font-size: 15px;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.toastMessage {
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.toastClose {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.toastClose:hover {
+  color: #111827;
+}
+
+/* ─── Modal ──────────────────────────────────────────────────────── */
+
+.modal {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 2rem;
+  width: min(420px, 90vw);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.modalTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0b0f17;
+  margin: 0 0 0.25rem;
+}
+
+.modalSubtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 1rem;
+  line-height: 1.5;
+}
