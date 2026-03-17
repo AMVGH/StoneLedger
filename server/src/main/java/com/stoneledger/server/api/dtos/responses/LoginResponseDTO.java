@@ -13,6 +13,7 @@ public class LoginResponseDTO {
     private String firstName;
     private String lastName;
     private String username;
+    private long id;
     private String email;
     private UserRole userRole;
 }

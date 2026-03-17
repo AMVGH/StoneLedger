@@ -1,6 +1,7 @@
 package com.stoneledger.server.services;
 
 import com.stoneledger.server.api.dtos.requests.PasswordUpdateRequestDTO;
+import com.stoneledger.server.api.dtos.requests.SecurityQuestionVerifyRequestDTO;
 import com.stoneledger.server.api.exeptions.InvalidIdException;
 import com.stoneledger.server.api.models.PasswordModel;
 import com.stoneledger.server.api.models.UserModel;
@@ -46,5 +47,13 @@ public class PasswordService {
         passwordRepository.save(passwordHistoryInstance);
 
         return "User ID: " + user.getId() + " password update successful";
+    }
+
+    public boolean validateSecurityQuestionAndAnswer(SecurityQuestionVerifyRequestDTO request) {
+        UserModel user = userRepository.findById(request.getId())
+            .orElseThrow(() -> new InvalidIdException(errorMessageService.getError(112)));
+
+        return user.getSecurityQuestion().equals(request.getSecurityQuestion()) &&
+            user.getSecurityAnswer().equals(request.getSecurityQuestionAnswer());
     }
 }

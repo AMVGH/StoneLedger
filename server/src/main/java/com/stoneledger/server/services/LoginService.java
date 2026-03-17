@@ -73,6 +73,7 @@ public class LoginService {
                     user.getFirstName(),
                     user.getLastName(),
                     user.getUsername(),
+                    user.getId(),
                     user.getEmail(),
                     user.getUserRole()
             );

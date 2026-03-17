@@ -35,7 +35,9 @@ public class ValidationUtil {
             || request.getPassword() == null || request.getPassword().isBlank()
             || request.getUserAddress() == null || request.getUserAddress().isBlank()
             || request.getDateOfBirth() == null
-            || request.getUserRole() == null) {
+            || request.getUserRole() == null
+            || request.getSecurityQuestion() == null || request.getSecurityQuestion().isBlank()
+            || request.getSecurityQuestionAnswer() == null || request.getSecurityQuestionAnswer().isBlank()) {
             throw new InvalidRequestException(errorMessageService.getError(100));
         }
 
@@ -225,6 +227,15 @@ public class ValidationUtil {
             throw new InvalidEmailException(errorMessageService.getError(111));
         }
 
+        return true;
+    }
+
+    public boolean isValidSecurityQuestionRequest(SecurityQuestionVerifyRequestDTO request) {
+        isValidUserId(request.getId());
+        if (request.getSecurityQuestion() == null || request.getSecurityQuestion().isBlank()
+            || request.getSecurityQuestionAnswer() == null || request.getSecurityQuestionAnswer().isBlank()) {
+            throw new InvalidRequestException(errorMessageService.getError(100));
+        }
         return true;
     }
 }

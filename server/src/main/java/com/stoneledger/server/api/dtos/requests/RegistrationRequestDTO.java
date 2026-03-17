@@ -14,4 +14,6 @@ public class RegistrationRequestDTO {
     private String userAddress;
     private LocalDate dateOfBirth;
     private UserRole userRole;
+    private String securityQuestion;
+    private String securityQuestionAnswer;
 }

@@ -27,11 +27,6 @@ public class UserController {
     @Autowired
     private ValidationUtil validationUtil;
 
-    /*
-     TODO: Implement Endpoint for: 1) Setting Security Questions and Answers
-     */
-
-
     /**
      * Creates a new user with the StoneLedger system.
      * */
@@ -96,6 +91,9 @@ public class UserController {
         return ResponseEntity.ok(ApiResponseDTO.success("User rejected successfully."));
     }
 
+    /**
+     * Do not use on any client facing portion of the application. Only used for developers to purge individuals from database tables.
+     * */
     @PostMapping("/purge/{id}")
     public ResponseEntity<ApiResponseDTO<?>> purgeUser(@PathVariable Long id) {
         validationUtil.isValidUserId(id);

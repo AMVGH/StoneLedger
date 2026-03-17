@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import styles from "./CreateUser.module.css";
 import Logo from "../../assets/mountain.png";
 import { validatePassword, PASSWORD_POLICY_MESSAGE } from "../../utils/validators";
+import { SECURITY_QUESTIONS } from "../../utils/SecurityQuestions";
 
 function Rule({ ok, text }) {
   return (
@@ -28,6 +29,67 @@ function Toast({ message, onClose }) {
   );
 }
 
+function SecurityModal({ onConfirm, onCancel }) {
+  const [securityQuestion, setSecurityQuestion] = useState("");
+  const [securityQuestionAnswer, setSecurityQuestionAnswer] = useState("");
+  const [modalMsg, setModalMsg] = useState("");
+
+  function handleConfirm() {
+    if (!securityQuestion) {
+      setModalMsg("Please select a security question.");
+      return;
+    }
+    if (!securityQuestionAnswer.trim()) {
+      setModalMsg("Please provide an answer.");
+      return;
+    }
+    onConfirm({ securityQuestion, securityQuestionAnswer: securityQuestionAnswer.trim() });
+  }
+
+  return (
+    <div className={styles.toastOverlay}>
+      <div className={styles.modal}>
+        <h3 className={styles.modalTitle}>Security Question</h3>
+        <p className={styles.modalSubtitle}>
+          Set up a security question to help verify your identity if you ever need account recovery.
+        </p>
+
+        <label className={styles.label}>Select a Security Question</label>
+        <select
+          className={styles.select}
+          value={securityQuestion}
+          onChange={(e) => setSecurityQuestion(e.target.value)}
+        >
+          <option value="">Choose A Security Question</option>
+          {SECURITY_QUESTIONS.map((q) => (
+            <option key={q} value={q}>{q}</option>
+          ))}
+        </select>
+
+        <label className={styles.label}>Your Answer</label>
+        <input
+          className={styles.input}
+          type="text"
+          value={securityQuestionAnswer}
+          onChange={(e) => setSecurityQuestionAnswer(e.target.value)}
+          placeholder="Enter your answer"
+        />
+
+        {modalMsg && <div className={styles.msg}>{modalMsg}</div>}
+
+        <div className={styles.buttonGroup}>
+          <button className={styles.secondaryBtn} type="button" onClick={onCancel}>
+            ← Back
+          </button>
+          <button className={styles.primaryBtn} type="button" onClick={handleConfirm}>
+            Submit Request
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function CreateUser() {
   const nav = useNavigate();
 
@@ -41,6 +103,7 @@ export default function CreateUser() {
   const [role, setRole] = useState("USER");
   const [msg, setMsg] = useState("");
   const [showToast, setShowToast] = useState(false);
+  const [showSecurityModal, setShowSecurityModal] = useState(false);
 
   const { rules: passwordRules } = validatePassword(password);
 
@@ -61,7 +124,8 @@ export default function CreateUser() {
     nav("/login");
   }
 
-  async function onSubmit(e) {
+  // Step 1: Validate the main form, then show the security modal
+  function onSubmit(e) {
     e.preventDefault();
     setMsg("");
 
@@ -87,6 +151,14 @@ export default function CreateUser() {
       return;
     }
 
+    // All valid — open the security question modal
+    setShowSecurityModal(true);
+  }
+
+  // Step 2: Called by the modal with the security fields, fires the API request
+  async function handleSecurityConfirm({ securityQuestion, securityQuestionAnswer }) {
+    setShowSecurityModal(false);
+
     try {
       const response = await fetch("http://localhost:8080/api/auth/request-access", {
         method: "POST",
@@ -99,6 +171,8 @@ export default function CreateUser() {
           email: email.trim(),
           password,
           userRole: role,
+          securityQuestion,
+          securityQuestionAnswer,
         }),
       });
 
@@ -125,6 +199,13 @@ export default function CreateUser() {
         <Toast
           message="Your access request has been received. An administrator will review it and email you if approved."
           onClose={handleToastClose}
+        />
+      )}
+
+      {showSecurityModal && (
+        <SecurityModal
+          onConfirm={handleSecurityConfirm}
+          onCancel={() => setShowSecurityModal(false)}
         />
       )}
 
@@ -224,11 +305,11 @@ export default function CreateUser() {
           {msg && <div className={styles.msg}>{msg}</div>}
 
           <div className={styles.buttonGroup}>
-          <button className={styles.secondaryBtn} type="button" onClick={handleClearAll}>
-               Clear All Fields
+            <button className={styles.secondaryBtn} type="button" onClick={handleClearAll}>
+              Clear All Fields
             </button>
             <button className={styles.primaryBtn} type="submit">
-              Submit Access Request
+              Next →
             </button>
           </div>
         </form>

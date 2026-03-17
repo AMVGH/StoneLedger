@@ -439,6 +439,23 @@
   margin: 0;
 }
 
+.restoreBtn {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  background: #28a745;
+  color: white;
+}
+
+.restoreBtn:hover {
+  background: #218838;
+}
+
 /* Checkbox styles */
 .checkboxGroup {
   margin: 8px 0;

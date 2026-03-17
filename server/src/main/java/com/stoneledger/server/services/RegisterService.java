@@ -77,8 +77,8 @@ public class RegisterService {
             .suspendEndDate(null)
             .lastLogin(null)
             .failedLoginAttempts(0)
-            .securityQuestion(null)
-            .securityAnswer(null)
+            .securityQuestion(request.getSecurityQuestion())
+            .securityAnswer(request.getSecurityQuestionAnswer())
             .build();
 
         userRepository.save(newUser);

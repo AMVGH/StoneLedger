@@ -6,6 +6,7 @@ import com.stoneledger.server.api.repositories.UserRepository;
 import com.stoneledger.server.utils.EncryptionUtil;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -35,6 +36,7 @@ public class EmailService {
         List<UserModel> admins = userRepository.findEmailByUserRole(UserRole.ADMINISTRATOR);
         helper.setFrom(fromEmail);
         helper.setTo(admins.stream()
+            .filter(admin -> admin.isActive() && !admin.isSuspended())
             .map(UserModel::getEmail)
             .toArray(String[]::new));
 

@@ -2,6 +2,7 @@ package com.stoneledger.server.api.controllers;
 
 import com.stoneledger.server.api.dtos.ApiResponseDTO;
 import com.stoneledger.server.api.dtos.requests.PasswordUpdateRequestDTO;
+import com.stoneledger.server.api.dtos.requests.SecurityQuestionVerifyRequestDTO;
 import com.stoneledger.server.services.ErrorMessageService;
 import com.stoneledger.server.services.PasswordService;
 import com.stoneledger.server.utils.ValidationUtil;
@@ -31,5 +32,15 @@ public class PassController {
         validationUtil.isValidPasswordUpdateRequest(request);
         String passwordUpdateResponse = passwordService.updatePassword(request);
         return ResponseEntity.ok(ApiResponseDTO.success(passwordUpdateResponse));
+    }
+
+    /**
+     * Validates security question and answer for updating a password.
+     * */
+    @PostMapping("/validate-security-question")
+    public ResponseEntity<ApiResponseDTO<?>> verifySecurityQuestion(@RequestBody SecurityQuestionVerifyRequestDTO request) {
+        validationUtil.isValidSecurityQuestionRequest(request);
+        Boolean isQuestionAndAnswerCorrect = passwordService.validateSecurityQuestionAndAnswer(request);
+        return ResponseEntity.ok(ApiResponseDTO.success(isQuestionAndAnswerCorrect));
     }
 }

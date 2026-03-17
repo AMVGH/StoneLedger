@@ -423,6 +423,13 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
+.modalError {
+  margin-top: 10px;
+  margin-bottom: 4px;
+  color: #b45309;
+  font-size: 13px;
+}
+
 .checkboxLabel {
   display: flex;
   align-items: center;
