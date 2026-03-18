@@ -35,7 +35,9 @@ public class ValidationUtil {
             || request.getPassword() == null || request.getPassword().isBlank()
             || request.getUserAddress() == null || request.getUserAddress().isBlank()
             || request.getDateOfBirth() == null
-            || request.getUserRole() == null) {
+            || request.getUserRole() == null
+            || request.getSecurityQuestion() == null || request.getSecurityQuestion().isBlank()
+            || request.getSecurityQuestionAnswer() == null || request.getSecurityQuestionAnswer().isBlank()) {
             throw new InvalidRequestException(errorMessageService.getError(100));
         }
 
@@ -97,10 +99,6 @@ public class ValidationUtil {
 
     public boolean isValidSuspensionRequest(UserSuspensionDTO request)
         throws InvalidRequestException, InvalidIdException, InvalidLocalDateTimeException, UserSuspensionException {
-        System.out.println("Suspension request received: " + request.getId() +
-                " | start: " + request.getSuspensionStartDate() +
-                " | end: " + request.getSuspensionEndDate());
-        // Ensures all fields are non-empty
         if (request.getId() == null || request.getSuspensionStartDate() == null || request.getSuspensionEndDate() == null) {
             throw new InvalidRequestException(errorMessageService.getError(100));
         }
@@ -109,9 +107,7 @@ public class ValidationUtil {
         UserModel user = userRepository.findById(request.getId())
             .orElseThrow(() -> new InvalidIdException(errorMessageService.getError(112)));
 
-        // TODO: Resolve Bug
-
-        // Ensures that the suspension start date is not before today's date
+        // TODO: Fix before LocalDate.now() cases.
         // if (request.getSuspensionStartDate().toLocalDate().isBefore(LocalDate.now())) {
            // throw new InvalidLocalDateTimeException(errorMessageService.getError(114));
         // }
@@ -145,6 +141,7 @@ public class ValidationUtil {
 
     public boolean isValidRoleUpdateRequest(UpdateUserRoleDTO request) throws InvalidIdException, InvalidRequestException {
         if (request.getId() == null || request.getUserRole() == null) {
+            System.out.println("One or more request fields are null.");
             throw new InvalidRequestException(errorMessageService.getError(100));
         }
         isValidUserId(request.getId());
@@ -153,6 +150,7 @@ public class ValidationUtil {
         if (user.getUserRole() == request.getUserRole()) {
             throw new InvalidRequestException(errorMessageService.getError(117));
         }
+        System.out.println("Role update request body is valid.");
         return true;
     }
 
@@ -169,6 +167,7 @@ public class ValidationUtil {
             throw new InvalidRequestException(errorMessageService.getError(100));
         }
 
+        // TODO: Fix before LocalDate.now() cases.
         // if (request.getActivityStartDate().isBefore(LocalDateTime.now().minusMinutes(5))) {
         //     throw new InvalidLocalDateTimeException(errorMessageService.getError(114));
         // }
@@ -228,6 +227,15 @@ public class ValidationUtil {
             throw new InvalidEmailException(errorMessageService.getError(111));
         }
 
+        return true;
+    }
+
+    public boolean isValidSecurityQuestionRequest(SecurityQuestionVerifyRequestDTO request) {
+        isValidUserId(request.getId());
+        if (request.getSecurityQuestion() == null || request.getSecurityQuestion().isBlank()
+            || request.getSecurityQuestionAnswer() == null || request.getSecurityQuestionAnswer().isBlank()) {
+            throw new InvalidRequestException(errorMessageService.getError(100));
+        }
         return true;
     }
 }

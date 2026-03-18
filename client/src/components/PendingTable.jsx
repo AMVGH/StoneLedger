@@ -8,11 +8,10 @@ export default function PendingTable({ onApprove, onDeny }) {
   const [confirmAction, setConfirmAction] = useState(null);
   const [activityEndDate, setActivityEndDate] = useState("");
 
-  // Fetch pending users on component mount
   useEffect(() => {
     const fetchPendingUsers = async () => {
       try {
-        const token = localStorage.getItem('authToken');
+        const token = localStorage.getItem("authToken");
         const users = await getPendingUsers(token);
         setPendingUsers(users || []);
       } catch (err) {
@@ -24,10 +23,9 @@ export default function PendingTable({ onApprove, onDeny }) {
 
   const handleApprove = (user) => {
     setConfirmAction({ type: "approve", user });
-    // Set default activity end date to 1 year from now
     const defaultEndDate = new Date();
     defaultEndDate.setFullYear(defaultEndDate.getFullYear() + 1);
-    setActivityEndDate(defaultEndDate.toISOString().split('T')[0]);
+    setActivityEndDate(defaultEndDate.toISOString().split("T")[0]);
   };
 
   const handleDeny = (user) => {
@@ -37,12 +35,10 @@ export default function PendingTable({ onApprove, onDeny }) {
   const confirmApprove = async () => {
     const user = confirmAction.user;
     try {
-      const token = localStorage.getItem('authToken');
+      const token = localStorage.getItem("authToken");
       await approveUser(user.id, activityEndDate || null, token);
       setPendingUsers((prev) => prev.filter((u) => u.id !== user.id));
-      if (onApprove) {
-        onApprove(user);
-      }
+      if (onApprove) onApprove(user);
     } catch (err) {
       console.error("Failed to approve user:", err);
       alert("Failed to approve user. Please try again.");
@@ -54,12 +50,10 @@ export default function PendingTable({ onApprove, onDeny }) {
   const confirmDeny = async () => {
     const user = confirmAction.user;
     try {
-      const token = localStorage.getItem('authToken');
+      const token = localStorage.getItem("authToken");
       await rejectUser(user.id, token);
       setPendingUsers((prev) => prev.filter((u) => u.id !== user.id));
-      if (onDeny) {
-        onDeny(user);
-      }
+      if (onDeny) onDeny(user);
     } catch (err) {
       console.error("Failed to reject user:", err);
       alert("Failed to reject user. Please try again.");
@@ -103,18 +97,12 @@ export default function PendingTable({ onApprove, onDeny }) {
                 <td>{user.id}</td>
                 <td>{user.firstName} {user.lastName}</td>
                 <td>{user.email}</td>
-                <td>{user.accountCreationDate ? new Date(user.accountCreationDate).toLocaleDateString() : 'N/A'}</td>
+                <td>{user.accountCreationDate ? new Date(user.accountCreationDate).toLocaleDateString() : "N/A"}</td>
                 <td className={styles.actionCell}>
-                  <button
-                    className={styles.approveBtn}
-                    onClick={() => handleApprove(user)}
-                  >
+                  <button className={styles.approveBtn} onClick={() => handleApprove(user)}>
                     Approve
                   </button>
-                  <button
-                    className={styles.denyBtn}
-                    onClick={() => handleDeny(user)}
-                  >
+                  <button className={styles.denyBtn} onClick={() => handleDeny(user)}>
                     Deny
                   </button>
                 </td>

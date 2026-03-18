@@ -134,6 +134,9 @@ public class UserService {
         UserModel rejectedUser = userRepository.findById(id)
             .orElseThrow(() -> new MessagingLookupException(errorMessageService.getError(105)));
 
+        List<PasswordModel> associatedPasswords = passwordRepository.findByUser_Id(id);
+        passwordRepository.deleteAll(associatedPasswords);
+
         userRepository.deleteById(id);
         emailService.sendRejectionNotification(rejectedUser);
     }
@@ -296,10 +299,7 @@ public class UserService {
 
         userRepository.save(user);
 
-        String suspensionString  = (user.isSuspended()) ? "Suspended" : "Not Suspended";
-        return "User ID: " + user.getId() +
-            " Failed Login Attempts: " + 0 +
-            " Suspension Status: " + suspensionString;
+        return "System access restored for user ID: " + user.getId();
     }
 
 
