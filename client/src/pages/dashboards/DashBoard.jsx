@@ -147,30 +147,34 @@ export default function DashBoard() {
         </div>
 
         <nav className={styles.nav}>
-          <button
-            className={`${styles.navItem} ${nav === "User Management" ? styles.activeNav : ""}`}
-            onClick={() => setNav("User Management")}
-          >
-            User Management
-          </button>
-          <button
-            className={`${styles.navItem} ${nav === "Create User" ? styles.activeNav : ""}`}
-            onClick={() => setNav("Create User")}
-          >
-            Create User
-          </button>
-          <button
-            className={`${styles.navItem} ${nav === "Pending" ? styles.activeNav : ""}`}
-            onClick={() => setNav("Pending")}
-          >
-            Pending
-          </button>
-          <button
-            className={`${styles.navItem} ${nav === "Expired Passwords" ? styles.activeNav : ""}`}
-            onClick={() => setNav("Expired Passwords")}
-          >
-            Expired Passwords
-          </button>
+          {loggedInUser.role === "Admin" && (
+            <>
+              <button
+                className={`${styles.navItem} ${nav === "User Management" ? styles.activeNav : ""}`}
+                onClick={() => setNav("User Management")}
+              >
+                User Management
+              </button>
+              <button
+                className={`${styles.navItem} ${nav === "Create User" ? styles.activeNav : ""}`}
+                onClick={() => setNav("Create User")}
+              >
+                Create User
+              </button>
+              <button
+                className={`${styles.navItem} ${nav === "Pending" ? styles.activeNav : ""}`}
+                onClick={() => setNav("Pending")}
+              >
+                Pending
+              </button>
+              <button
+                className={`${styles.navItem} ${nav === "Expired Passwords" ? styles.activeNav : ""}`}
+                onClick={() => setNav("Expired Passwords")}
+              >
+                Expired Passwords
+              </button>
+            </>
+          )}
         </nav>
 
         <div className={styles.navSpacer}></div>
