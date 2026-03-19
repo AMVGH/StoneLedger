@@ -8,6 +8,8 @@ import CreateUserPage from "../../components/CreateUserPage";
 import useUserContext from "../../API/UserContext";
 import usePasswordContext from "../../API/Passwords";
 import { useNavigate } from "react-router-dom";
+import ChartOfAccounts from "../../components/ChartOfAccounts";
+import EventLogs from "../../components/EventLogs";
 
 export default function DashBoard() {
   const [nav, setNav] = useState("User Management");
@@ -147,7 +149,7 @@ export default function DashBoard() {
         </div>
 
         <nav className={styles.nav}>
-          {loggedInUser.role === "Admin" && (
+          {loggedInUser.role === "ADMINISTRATOR" && (
             <>
               <button
                 className={`${styles.navItem} ${nav === "User Management" ? styles.activeNav : ""}`}
@@ -173,8 +175,24 @@ export default function DashBoard() {
               >
                 Expired Passwords
               </button>
+        
+          
+          
+            <button
+              className={`${styles.navItem} ${nav === "Chart of Accounts" ? styles.activeNav : ""}`}
+              onClick={() => setNav("Chart of Accounts")}
+            >
+              Chart of Accounts
+            </button>    
+              <button
+              className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`}
+              onClick={() => setNav("Event Logs")}
+            >
+              Event Logs
+            </button>    
             </>
-          )}
+        )}
+      
         </nav>
 
         <div className={styles.navSpacer}></div>
@@ -230,6 +248,15 @@ export default function DashBoard() {
                 )}
               </div>
 
+              <button className={styles.iconBtn} title="Help">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+              </button>
+
               <div className={styles.profile}>
                 <div className={styles.userInfo}>
                   <span className={styles.username}>{loggedInUser.username}</span>
@@ -253,7 +280,7 @@ export default function DashBoard() {
           </div>
         )}
 
-        {nav === "User Management" && loggedInUser.role === "Admin" && (
+        {nav === "User Management" && loggedInUser.role === "ADMINISTRATOR" && (
           <section className={styles.content}>
             <h2>User Management</h2>
             <p>Manage users, roles, and permissions.</p>
@@ -261,7 +288,7 @@ export default function DashBoard() {
           </section>
         )}
 
-        {nav === "Create User" && loggedInUser.role === "Admin" && (
+        {nav === "Create User" && loggedInUser.role === "ADMINISTRATOR" && (
           <section className={styles.content}>
             <CreateUserPage
               onUserCreated={handleUserCreated}
@@ -270,7 +297,7 @@ export default function DashBoard() {
           </section>
         )}
 
-        {nav === "Pending" && loggedInUser.role === "Admin" && (
+        {nav === "Pending" && loggedInUser.role === "ADMINISTRATOR" && (
           <section className={styles.content}>
             <h2>Pending Requests</h2>
             <p>Approve or deny pending user access requests.</p>
@@ -278,11 +305,27 @@ export default function DashBoard() {
           </section>
         )}
 
-        {nav === "Expired Passwords" && loggedInUser.role === "Admin" && (
+        {nav === "Expired Passwords" && loggedInUser.role === "ADMINISTRATOR" && (
           <section className={styles.content}>
             <h2>Expired Passwords</h2>
             <p>View and manage users with expired passwords.</p>
             <ExpiredPasswords />
+          </section>
+        )}
+
+        {nav === "Chart of Accounts" && loggedInUser.role === "ADMINISTRATOR" && (
+          <section className={styles.content}>
+            <h2>Chart of Accounts</h2>
+            <p>View and manage the chart of accounts.</p>
+            <ChartOfAccounts />
+          </section>
+        )}
+
+        {nav === "Event Logs" && loggedInUser.role === "ADMINISTRATOR" && (
+          <section className={styles.content}>
+            <h2>Event Logs</h2>
+            <p>View system event logs for auditing and monitoring.</p>
+            <EventLogs />
           </section>
         )}
 
