@@ -1,0 +1,17 @@
+package com.stoneledger.server.api.repositories;
+
+import com.stoneledger.server.api.models.AccountModel;
+import com.stoneledger.server.api.models.PasswordModel;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.Query;
+
+import java.util.List;
+
+@Repository
+public interface AccountRepository extends JpaRepository<AccountModel, Long> {
+    boolean existsByAccountName(String accountName);
+    boolean existsByAccountNumber(long accountNumber);
+    @Query("SELECT a FROM AccountModel a JOIN FETCH a.user")
+    List<AccountModel> findAllWithUser();
+}

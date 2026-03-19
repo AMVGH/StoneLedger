@@ -10,6 +10,7 @@ import usePasswordContext from "../../API/Passwords";
 import { useNavigate } from "react-router-dom";
 import ChartOfAccounts from "../../components/ChartOfAccounts";
 import EventLogs from "../../components/EventLogs";
+import { SECURITY_QUESTIONS } from "../../utils/SecurityQuestions";
 
 export default function DashBoard() {
   const [nav, setNav] = useState("User Management");
@@ -17,11 +18,12 @@ export default function DashBoard() {
   const [resetStep, setResetStep] = useState(1);
   const [showSettings, setShowSettings] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
+  const [modalError, setModalError] = useState("");
   const [resetData, setResetData] = useState({
     email: "",
     userId: "",
-    securityAnswer1: "",
-    securityAnswer2: "",
+    securityQuestion: "",
+    securityAnswer: "",
     newPassword: "",
     confirmPassword: "",
   });
@@ -43,6 +45,7 @@ export default function DashBoard() {
         username: storedUser.username,
         name: `${storedUser.firstName} ${storedUser.lastName}`,
         role: storedUser.userRole,
+        id: storedUser.id,
         email: storedUser.email,
         profilePicture:
           storedUser.profilePictureUrl ||
@@ -52,6 +55,7 @@ export default function DashBoard() {
         username: "—",
         name: "—",
         role: "—",
+        id: "—",
         email: "",
         profilePicture:
           "https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTAxL3JtNjA5LXNvbGlkaWNvbi13LTAwMi1wLnBuZw.png",
@@ -70,75 +74,114 @@ export default function DashBoard() {
   };
 
   const handleApprove = (user) => {
-    notify("success", `${user.name} has been approved and added to the user table.`);
+    notify("success", `${user.firstName} ${user.lastName}'s request has been approved and added.`);
   };
 
   const handleDeny = (user) => {
-    notify("error", `${user.name}'s request has been denied and deleted.`);
+    notify("error", `${user.firstName} ${user.lastName}'s request has been denied and deleted.`);
   };
 
   // ── Reset Password ──
   const handleResetChange = (e) => {
     const { name, value } = e.target;
+    setModalError("");
     setResetData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleVerifyIdentity = () => {
     if (resetData.email && resetData.userId) {
+      setModalError("");
       setResetStep(2);
     } else {
-      notify("error", "Please enter both email and user ID.");
+      setModalError("Please enter both email and user ID.");
     }
   };
 
-  const handleVerifySecurityQuestions = () => {
-    if (resetData.securityAnswer1 && resetData.securityAnswer2) {
+  const handleVerifySecurityQuestion = async () => {
+    if (!resetData.securityQuestion || !resetData.securityAnswer.trim()) {
+      setModalError("Please select a question and provide an answer.");
+      return;
+    }
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await fetch("http://localhost:8080/api/passwords/validate-security-question", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          id: Number(resetData.userId),
+          securityQuestion: resetData.securityQuestion,
+          securityQuestionAnswer: resetData.securityAnswer.trim(),
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setModalError(data?.message || "Security question or answer did not match.");
+        return;
+      }
+      if (!data.data) {
+        setModalError("Security question or answer did not match.");
+        return;
+      }
+      setModalError("");
       setResetStep(3);
-    } else {
-      notify("error", "Please answer both security questions.");
+    } catch {
+      setModalError("Something went wrong. Please try again.");
     }
   };
 
   const handleResetPassword = async () => {
     if (!resetData.newPassword || !resetData.confirmPassword) {
-      notify("error", "Please fill in both password fields.");
+      setModalError("Please fill in both password fields.");
       return;
     }
     if (resetData.newPassword !== resetData.confirmPassword) {
-      notify("error", "Passwords do not match.");
+      setModalError("Passwords do not match.");
       return;
     }
     try {
       const token = localStorage.getItem("authToken");
-      await updatePassword(resetData.userId, resetData.newPassword, token);
+      const response = await fetch("http://localhost:8080/api/passwords/update-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          id: Number(resetData.userId),
+          updatedPassword: resetData.newPassword,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setModalError(data?.message || "Failed to reset password.");
+        return;
+      }
       notify("success", "Password has been reset successfully!");
+      setShowResetModal(false);
       handleCancelReset();
-    } catch (error) {
-      notify("error", error.response?.data?.message || "Failed to reset password.");
+    } catch {
+      setModalError("Something went wrong. Please try again.");
     }
   };
 
   const handleCancelReset = () => {
     setResetStep(1);
+    setModalError("");
     setResetData({
       email: "",
       userId: "",
-      securityAnswer1: "",
-      securityAnswer2: "",
+      securityQuestion: "",
+      securityAnswer: "",
       newPassword: "",
       confirmPassword: "",
     });
   };
 
-  const securityQuestions = {
-    question1: "What is your mother's maiden name?",
-    question2: "What was the name of your first pet?",
-  };
-
   const handleUserCreated = () => {
     notify("success", "User created successfully!");
-    // Optionally switch to User Management tab to see the new user
-    // setNav("User Management");
   };
 
   return (
@@ -175,24 +218,20 @@ export default function DashBoard() {
               >
                 Expired Passwords
               </button>
-        
-          
-          
-            <button
-              className={`${styles.navItem} ${nav === "Chart of Accounts" ? styles.activeNav : ""}`}
-              onClick={() => setNav("Chart of Accounts")}
-            >
-              Chart of Accounts
-            </button>    
               <button
-              className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`}
-              onClick={() => setNav("Event Logs")}
-            >
-              Event Logs
-            </button>    
+                className={`${styles.navItem} ${nav === "Chart of Accounts" ? styles.activeNav : ""}`}
+                onClick={() => setNav("Chart of Accounts")}
+              >
+                Chart of Accounts
+              </button>
+              <button
+                className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`}
+                onClick={() => setNav("Event Logs")}
+              >
+                Event Logs
+              </button>
             </>
-        )}
-      
+          )}
         </nav>
 
         <div className={styles.navSpacer}></div>
@@ -208,7 +247,6 @@ export default function DashBoard() {
         <header className={styles.topbar}>
           <div className={styles.topbarContent}>
             <div className={styles.spacer}></div>
-
             <div className={styles.rightSection}>
               <div className={styles.settingsWrap}>
                 <button
@@ -216,17 +254,8 @@ export default function DashBoard() {
                   title="Settings"
                   onClick={() => setShowSettings((prev) => !prev)}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="3" />
                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
                   </svg>
@@ -260,7 +289,7 @@ export default function DashBoard() {
               <div className={styles.profile}>
                 <div className={styles.userInfo}>
                   <span className={styles.username}>{loggedInUser.username}</span>
-                  <span className={styles.userRole}>{loggedInUser.role}</span>
+                  <span className={styles.userRole}>ID: {loggedInUser.id} | {loggedInUser.role}</span>
                 </div>
                 <div className={styles.avatar}>
                   <img
@@ -290,10 +319,7 @@ export default function DashBoard() {
 
         {nav === "Create User" && loggedInUser.role === "ADMINISTRATOR" && (
           <section className={styles.content}>
-            <CreateUserPage
-              onUserCreated={handleUserCreated}
-              standalone={true}
-            />
+            <CreateUserPage onUserCreated={handleUserCreated} standalone={true} />
           </section>
         )}
 
@@ -330,7 +356,7 @@ export default function DashBoard() {
         )}
 
         {/* Reset Password Modal */}
-        {showResetModal && loggedInUser.role === "Admin" && (
+        {showResetModal && loggedInUser.role === "ADMINISTRATOR" && (
           <div className={styles.modalOverlay} onClick={() => { setShowResetModal(false); handleCancelReset(); }}>
             <div className={styles.resetModal} onClick={(e) => e.stopPropagation()}>
               <div className={styles.resetModalHeader}>
@@ -349,7 +375,7 @@ export default function DashBoard() {
                   1. Verify Identity
                 </div>
                 <div className={`${styles.step} ${resetStep >= 2 ? styles.active : ""}`}>
-                  2. Security Questions
+                  2. Security Question
                 </div>
                 <div className={`${styles.step} ${resetStep >= 3 ? styles.active : ""}`}>
                   3. New Password
@@ -359,7 +385,7 @@ export default function DashBoard() {
               {resetStep === 1 && (
                 <div className={styles.resetCard}>
                   <h3>Step 1: Verify Identity</h3>
-                  <p>Enter the email address and user ID provided when the credentials were created.</p>
+                  <p>Enter the email address and user ID of the account to reset.</p>
                   <div className={styles.resetFormGroup}>
                     <label>Email Address</label>
                     <input
@@ -380,6 +406,7 @@ export default function DashBoard() {
                       placeholder="Enter user ID"
                     />
                   </div>
+                  {modalError && <div className={styles.modalError}>{modalError}</div>}
                   <div className={styles.resetActions}>
                     <button className={styles.primaryBtn} onClick={handleVerifyIdentity}>
                       Continue
@@ -390,31 +417,35 @@ export default function DashBoard() {
 
               {resetStep === 2 && (
                 <div className={styles.resetCard}>
-                  <h3>Step 2: Security Questions</h3>
-                  <p>Answer the security questions to verify your identity.</p>
+                  <h3>Step 2: Security Question</h3>
+                  <p>Select and answer the security question associated with this account.</p>
                   <div className={styles.resetFormGroup}>
-                    <label>{securityQuestions.question1}</label>
-                    <input
-                      type="text"
-                      name="securityAnswer1"
-                      value={resetData.securityAnswer1}
+                    <label>Security Question</label>
+                    <select
+                      name="securityQuestion"
+                      value={resetData.securityQuestion}
                       onChange={handleResetChange}
-                      placeholder="Your answer"
-                    />
+                    >
+                      <option value="">Select A Question</option>
+                      {SECURITY_QUESTIONS.map((q) => (
+                        <option key={q} value={q}>{q}</option>
+                      ))}
+                    </select>
                   </div>
                   <div className={styles.resetFormGroup}>
-                    <label>{securityQuestions.question2}</label>
+                    <label>Answer</label>
                     <input
                       type="text"
-                      name="securityAnswer2"
-                      value={resetData.securityAnswer2}
+                      name="securityAnswer"
+                      value={resetData.securityAnswer}
                       onChange={handleResetChange}
-                      placeholder="Your answer"
+                      placeholder="Enter your answer"
                     />
                   </div>
+                  {modalError && <div className={styles.modalError}>{modalError}</div>}
                   <div className={styles.resetActions}>
-                    <button className={styles.secondaryBtn} onClick={() => setResetStep(1)}>Back</button>
-                    <button className={styles.primaryBtn} onClick={handleVerifySecurityQuestions}>Continue</button>
+                    <button className={styles.secondaryBtn} onClick={() => { setModalError(""); setResetStep(1); }}>Back</button>
+                    <button className={styles.primaryBtn} onClick={handleVerifySecurityQuestion}>Continue</button>
                   </div>
                 </div>
               )}
@@ -443,17 +474,12 @@ export default function DashBoard() {
                       placeholder="Confirm new password"
                     />
                   </div>
+                  {modalError && <div className={styles.modalError}>{modalError}</div>}
                   <div className={styles.resetActions}>
-                    <button className={styles.secondaryBtn} onClick={() => setResetStep(2)}>Back</button>
+                    <button className={styles.secondaryBtn} onClick={() => { setModalError(""); setResetStep(2); }}>Back</button>
                     <button className={styles.primaryBtn} onClick={handleResetPassword}>Reset Password</button>
                   </div>
                 </div>
-              )}
-
-              {resetStep > 1 && (
-                <button className={styles.cancelResetBtn} onClick={handleCancelReset}>
-                  Cancel and Start Over
-                </button>
               )}
             </div>
           </div>

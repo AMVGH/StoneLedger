@@ -1,15 +1,18 @@
 package com.stoneledger.server.utils;
 
 import com.stoneledger.server.api.dtos.requests.*;
+import com.stoneledger.server.api.enums.AccountCategory;
 import com.stoneledger.server.api.exeptions.*;
 import com.stoneledger.server.api.models.PasswordModel;
 import com.stoneledger.server.api.models.UserModel;
+import com.stoneledger.server.api.repositories.AccountRepository;
 import com.stoneledger.server.api.repositories.PasswordRepository;
 import com.stoneledger.server.api.repositories.UserRepository;
 import com.stoneledger.server.services.ErrorMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.security.GeneralSecurityException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -17,6 +20,8 @@ import java.util.List;
 
 @Service
 public class ValidationUtil {
+    @Autowired
+    private AccountRepository accountRepository;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -234,6 +239,58 @@ public class ValidationUtil {
         isValidUserId(request.getId());
         if (request.getSecurityQuestion() == null || request.getSecurityQuestion().isBlank()
             || request.getSecurityQuestionAnswer() == null || request.getSecurityQuestionAnswer().isBlank()) {
+            throw new InvalidRequestException(errorMessageService.getError(100));
+        }
+        return true;
+    }
+
+    public boolean isValidAccountCreationRequest(AccountCreationRequestDTO request) {
+        // Ensures all required fields are non-empty
+        if (request.getAccountNumber() == null
+                || request.getAccountName() == null || request.getAccountName().isBlank()
+                || request.getNormalSide() == null
+                || request.getAccountCategory() == null
+                || request.getInitialBalance() == null
+                || request.getDebit() == null
+                || request.getCredit() == null
+                || request.getBalance() == null
+                || request.getUserId() == null
+                || request.getOrder() == null
+                || request.getAssociatedStatement() == null) {
+            throw new InvalidRequestException(errorMessageService.getError(100));
+        }
+
+        // Ensures that all monetary values have two decimal places
+        if (!hasTwoDecimalPlaces(request.getInitialBalance())
+                || !hasTwoDecimalPlaces(request.getDebit())
+                || !hasTwoDecimalPlaces(request.getCredit())
+                || !hasTwoDecimalPlaces(request.getBalance())) {
+            throw new FinancialAccountException(errorMessageService.getError(120));
+        }
+
+        // Ensures that the userId associated with the request exists and is valid
+        isValidUserId(request.getUserId());
+
+        // Ensures that a financial account does not already exist with the associated account name or account number
+        if (accountRepository.existsByAccountName(request.getAccountName())
+                || accountRepository.existsByAccountNumber(request.getAccountNumber())) {
+            throw new FinancialAccountException(errorMessageService.getError(119));
+        }
+
+        return true;
+    }
+
+    /**
+     * Helper method for determining if a value has the correct amount of decimal places.
+     */
+    private boolean hasTwoDecimalPlaces(BigDecimal value){
+        if (value.scale() == 2){
+            return true;
+        } else return false;
+    }
+
+    public boolean isValidAccountNumberRequest(AccountNumberRequestDTO request) {
+        if (request.getAccountCategory() == null) {
             throw new InvalidRequestException(errorMessageService.getError(100));
         }
         return true;

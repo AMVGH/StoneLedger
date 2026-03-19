@@ -1,6 +1,7 @@
-package com.stoneledger.server.api.exeptions;
+package com.stoneledger.server.config;
 
 import com.stoneledger.server.api.dtos.ApiResponseDTO;
+import com.stoneledger.server.api.exeptions.AppException;
 import com.stoneledger.server.services.ErrorMessageService;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;

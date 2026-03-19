@@ -310,6 +310,17 @@
   color: #555;
 }
 
+.resetFormGroup select {
+  height: 45px;
+  font-size: 14px;
+  padding: 0 10px;
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background-color: white;
+  cursor: pointer;
+}
+
 .resetFormGroup input {
   width: 100%;
   padding: 10px 12px;
