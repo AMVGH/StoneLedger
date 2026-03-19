@@ -4,6 +4,8 @@ import com.stoneledger.server.api.dtos.requests.AccountCreationRequestDTO;
 import com.stoneledger.server.api.dtos.requests.AccountNumberRequestDTO;
 import com.stoneledger.server.api.dtos.responses.AccountInformationDTO;
 import com.stoneledger.server.api.enums.AccountCategory;
+import com.stoneledger.server.api.enums.LoggingEvents;
+import com.stoneledger.server.api.enums.LoggingTables;
 import com.stoneledger.server.api.exeptions.FinancialAccountException;
 import com.stoneledger.server.api.exeptions.InvalidRequestException;
 import com.stoneledger.server.api.models.AccountModel;
@@ -23,6 +25,8 @@ public class AccountService {
     private AccountRepository accountRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private EventLoggingService eventLoggingService;
     @Autowired
     private ErrorMessageService errorMessageService;
 
@@ -76,9 +80,17 @@ public class AccountService {
         financialAccount.setActive(true);
         financialAccount.setAccountAddDate(currentDateTime);
 
+        // Saves the new account to the database
         accountRepository.save(financialAccount);
 
-        // TODO: Add event logging
+        // Logs the account creation event with the eventLoggingService
+        eventLoggingService.logEvent(
+            request.getUserId(),
+            LoggingTables.ACCOUNTS,
+            LoggingEvents.CREATE,
+            null, // On CREATE the before image is null
+            financialAccount
+        );
 
         return true;
     }
