@@ -352,10 +352,8 @@ public class ValidationUtil {
     /**
      * Helper method for determining if a value has the correct amount of decimal places.
      */
-    private boolean hasTwoDecimalPlaces(BigDecimal value){
-        if (value.scale() == 2){
-            return true;
-        } else return false;
+    private boolean hasTwoDecimalPlaces(BigDecimal value) {
+        return value.stripTrailingZeros().scale() <= 2;
     }
 
     public boolean isValidAccountNumberRequest(AccountNumberRequestDTO request) {
