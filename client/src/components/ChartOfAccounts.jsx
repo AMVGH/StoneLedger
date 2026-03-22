@@ -1,15 +1,5 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import styles from "./ChartOfAccounts.module.css";
-import logo from "../assets/StoneLedgerLogo-removebg-preview (1).png";
-import { useNavigate } from "react-router-dom";
-
-const mockUser = {
-  username: "admin01",
-  name: "John Doe",
-  role: "Admin",
-  profilePicture:
-    "https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTAxL3JtNjA5LXNvbGlkaWNvbi13LTAwMi1wLnBuZw.png",
-};
 
 const mockAccounts = [
   {
@@ -201,11 +191,130 @@ const mockAccounts = [
   },
 ];
 
-export default function ChartOfAccounts() {
-  const [showSettings, setShowSettings] = useState(false);
+export default function ChartOfAccounts({ onAccountSelect }) {
   const [selectedDate, setSelectedDate] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const navigate = useNavigate();
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState({
+    accountName: "",
+    accountNumber: "",
+    category: "",
+    subcategory: "",
+    minBalance: "",
+    maxBalance: "",
+  });
+
+  const categories = useMemo(
+    () => [...new Set(mockAccounts.map((acct) => acct.accountCategory))],
+    []
+  );
+
+  const subcategories = useMemo(() => {
+    const source = filters.category
+      ? mockAccounts.filter((acct) => acct.accountCategory === filters.category)
+      : mockAccounts;
+    return [...new Set(source.map((acct) => acct.accountSubcategory))];
+  }, [filters.category]);
+
+  const filteredAccounts = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+    const minBalance = Number(filters.minBalance);
+    const maxBalance = Number(filters.maxBalance);
+
+    return mockAccounts.filter((acct) => {
+      if (selectedDate && acct.accountAddDate !== selectedDate) {
+        return false;
+      }
+
+      if (!query) {
+        // continue to panel filters
+      } else {
+        const matchesSearch = [
+          acct.accountNumber,
+          acct.accountName,
+          acct.accountDescription,
+          acct.accountCategory,
+          acct.accountSubcategory,
+          acct.statement,
+        ]
+          .join(" ")
+          .toLowerCase()
+          .includes(query);
+
+        if (!matchesSearch) {
+          return false;
+        }
+      }
+
+      if (
+        filters.accountName &&
+        !acct.accountName.toLowerCase().includes(filters.accountName.toLowerCase())
+      ) {
+        return false;
+      }
+
+      if (
+        filters.accountNumber &&
+        !String(acct.accountNumber).includes(filters.accountNumber)
+      ) {
+        return false;
+      }
+
+      if (filters.category && acct.accountCategory !== filters.category) {
+        return false;
+      }
+
+      if (filters.subcategory && acct.accountSubcategory !== filters.subcategory) {
+        return false;
+      }
+
+      if (
+        !Number.isNaN(minBalance) &&
+        filters.minBalance !== "" &&
+        acct.balance < minBalance
+      ) {
+        return false;
+      }
+
+      if (
+        !Number.isNaN(maxBalance) &&
+        filters.maxBalance !== "" &&
+        acct.balance > maxBalance
+      ) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [searchTerm, selectedDate, filters]);
+
+  const handleFilterInput = (event) => {
+    const { name, value } = event.target;
+    setFilters((prev) => {
+      const next = { ...prev, [name]: value };
+      if (name === "category" && value !== prev.category) {
+        next.subcategory = "";
+      }
+      return next;
+    });
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      accountName: "",
+      accountNumber: "",
+      category: "",
+      subcategory: "",
+      minBalance: "",
+      maxBalance: "",
+    });
+  };
+
+  const handleOpenLedger = (account) => {
+    if (typeof onAccountSelect === "function") {
+      onAccountSelect(account);
+    }
+  };
 
   return (
     <div className={styles.page}>
@@ -247,18 +356,93 @@ export default function ChartOfAccounts() {
             </div>
 
             <div className={styles.headerRight}>
-              <button className={styles.filterBtn}>
+              <button
+                type="button"
+                className={styles.filterBtn}
+                onClick={() => setShowFilters((prev) => !prev)}
+              >
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
                   fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
                 </svg>
-                Filter
+                {showFilters ? "Hide Filters" : "Filter"}
               </button>
               <button className={styles.addAccountBtn}>
                 + Add Account
               </button>
             </div>
           </div>
+
+          {showFilters && (
+            <div className={styles.filterPanel}>
+              <div className={styles.filterGrid}>
+                <input
+                  type="text"
+                  name="accountName"
+                  className={styles.filterInput}
+                  placeholder="Account Name"
+                  value={filters.accountName}
+                  onChange={handleFilterInput}
+                />
+                <input
+                  type="text"
+                  name="accountNumber"
+                  className={styles.filterInput}
+                  placeholder="Account Number"
+                  value={filters.accountNumber}
+                  onChange={handleFilterInput}
+                />
+                <select
+                  name="category"
+                  className={styles.filterSelect}
+                  value={filters.category}
+                  onChange={handleFilterInput}
+                >
+                  <option value="">All Categories</option>
+                  {categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  name="subcategory"
+                  className={styles.filterSelect}
+                  value={filters.subcategory}
+                  onChange={handleFilterInput}
+                >
+                  <option value="">All Subcategories</option>
+                  {subcategories.map((subcategory) => (
+                    <option key={subcategory} value={subcategory}>
+                      {subcategory}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="number"
+                  name="minBalance"
+                  className={styles.filterInput}
+                  placeholder="Min Balance"
+                  value={filters.minBalance}
+                  onChange={handleFilterInput}
+                />
+                <input
+                  type="number"
+                  name="maxBalance"
+                  className={styles.filterInput}
+                  placeholder="Max Balance"
+                  value={filters.maxBalance}
+                  onChange={handleFilterInput}
+                />
+              </div>
+              <div className={styles.filterActions}>
+                <span className={styles.resultCount}>{filteredAccounts.length} accounts</span>
+                <button type="button" className={styles.filterBtn} onClick={clearFilters}>
+                  Clear Filters
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className={styles.tableWrapper}>
             <table className={styles.table}>
@@ -283,10 +467,36 @@ export default function ChartOfAccounts() {
                 </tr>
               </thead>
               <tbody>
-                {mockAccounts.map((acct) => (
-                  <tr key={acct.accountNumber}>
-                    <td>{acct.accountNumber}</td>
-                    <td>{acct.accountName}</td>
+                {filteredAccounts.map((acct) => (
+                  <tr
+                    key={acct.accountNumber}
+                    className={styles.rowClickable}
+                    onClick={() => handleOpenLedger(acct)}
+                  >
+                    <td>
+                      <button
+                        type="button"
+                        className={styles.linkLikeBtn}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenLedger(acct);
+                        }}
+                      >
+                        {acct.accountNumber}
+                      </button>
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        className={styles.linkLikeBtn}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenLedger(acct);
+                        }}
+                      >
+                        {acct.accountName}
+                      </button>
+                    </td>
                     <td>{acct.accountDescription}</td>
                     <td>
                       <span className={`${styles.badge} ${acct.normalSide === "Debit" ? styles.badgeDebit : styles.badgeCredit}`}>
@@ -306,9 +516,33 @@ export default function ChartOfAccounts() {
                     <td>{acct.comments || "—"}</td>
                     <td>
                       <div className={styles.actions}>
-                        <button className={styles.actionBtn} title="View">👁️</button>
-                        <button className={styles.actionBtn} title="Edit">✏️</button>
-                        <button className={`${styles.actionBtn} ${styles.deactivateBtn}`} title="Deactivate">🚫</button>
+                        <button
+                          type="button"
+                          className={styles.actionBtn}
+                          title="View ledger"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenLedger(acct);
+                          }}
+                        >
+                          👁️
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.actionBtn}
+                          title="Edit"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          type="button"
+                          className={`${styles.actionBtn} ${styles.deactivateBtn}`}
+                          title="Deactivate"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          🚫
+                        </button>
                       </div>
                     </td>
                   </tr>

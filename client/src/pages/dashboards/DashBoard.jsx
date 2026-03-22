@@ -6,14 +6,15 @@ import PendingTable from "../../components/PendingTable";
 import ExpiredPasswords from "../../components/ExpiredPasswords";
 import CreateUserPage from "../../components/CreateUserPage";
 import useUserContext from "../../API/UserContext";
-import usePasswordContext from "../../API/Passwords";
 import { useNavigate } from "react-router-dom";
 import ChartOfAccounts from "../../components/ChartOfAccounts";
 import EventLogs from "../../components/EventLogs";
+import AccountLedger from "../../components/AccountLedger";
 import { SECURITY_QUESTIONS } from "../../utils/SecurityQuestions";
 
 export default function DashBoard() {
   const [nav, setNav] = useState("User Management");
+  const [selectedAccount, setSelectedAccount] = useState(null);
   const [notification, setNotification] = useState(null);
   const [resetStep, setResetStep] = useState(1);
   const [showSettings, setShowSettings] = useState(false);
@@ -29,7 +30,6 @@ export default function DashBoard() {
   });
 
   const { logout } = useUserContext();
-  const { updatePassword } = usePasswordContext();
   const navigate = useNavigate();
 
   const storedUser = (() => {
@@ -220,10 +220,21 @@ export default function DashBoard() {
               </button>
               <button
                 className={`${styles.navItem} ${nav === "Chart of Accounts" ? styles.activeNav : ""}`}
-                onClick={() => setNav("Chart of Accounts")}
+                onClick={() => {
+                  setNav("Chart of Accounts");
+                  setSelectedAccount(null);
+                }}
               >
                 Chart of Accounts
               </button>
+              {selectedAccount && (
+                <button
+                  className={`${styles.navItem} ${nav === "Account Ledger" ? styles.activeNav : ""}`}
+                  onClick={() => setNav("Account Ledger")}
+                >
+                  Account Ledger
+                </button>
+              )}
               <button
                 className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`}
                 onClick={() => setNav("Event Logs")}
@@ -343,7 +354,21 @@ export default function DashBoard() {
           <section className={styles.content}>
             <h2>Chart of Accounts</h2>
             <p>View and manage the chart of accounts.</p>
-            <ChartOfAccounts />
+            <ChartOfAccounts
+              onAccountSelect={(account) => {
+                setSelectedAccount(account);
+                setNav("Account Ledger");
+              }}
+            />
+          </section>
+        )}
+
+        {nav === "Account Ledger" && loggedInUser.role === "ADMINISTRATOR" && (
+          <section className={styles.content}>
+            <AccountLedger
+              account={selectedAccount}
+              onBack={() => setNav("Chart of Accounts")}
+            />
           </section>
         )}
 

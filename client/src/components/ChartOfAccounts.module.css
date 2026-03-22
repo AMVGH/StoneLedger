@@ -283,6 +283,50 @@
   background: #f0f4fa;
 }
 
+.filterPanel {
+  border: 1px solid #e1e8f0;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.filterGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.filterInput,
+.filterSelect {
+  border: 1px solid #d6dde6;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 0.82rem;
+  background: #fff;
+  color: #333;
+}
+
+.filterInput:focus,
+.filterSelect:focus {
+  outline: none;
+  border-color: #1565c0;
+  box-shadow: 0 0 0 2px rgba(21, 101, 192, 0.12);
+}
+
+.filterActions {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.resultCount {
+  font-size: 0.8rem;
+  color: #5f6b7a;
+}
+
 /* ── Add Account button ── */
 .addAccountBtn {
   display: inline-flex;
@@ -385,6 +429,24 @@
 
 .table tbody tr:hover {
   background: #f8fafd;
+}
+
+.rowClickable {
+  cursor: pointer;
+}
+
+.linkLikeBtn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: #0d47a1;
+  text-decoration: underline;
+  font: inherit;
+  cursor: pointer;
+}
+
+.linkLikeBtn:hover {
+  color: #1565c0;
 }
 
 /* ── Money cells ── */
