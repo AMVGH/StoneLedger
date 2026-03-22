@@ -41,7 +41,7 @@ public class AccountModel {
     @Column(name="account_category", nullable = false)
     private AccountCategory accountCategory;
     @Enumerated(EnumType.STRING)
-    @Column(name="account_subcategory")
+    @Column(name="account_subcategory", length = 50)
     private AccountSubcategory accountSubcategory;
     @Column(name="initial_balance", precision = 15, scale = 2, nullable = false)
     @Digits(integer = 13, fraction = 2)
