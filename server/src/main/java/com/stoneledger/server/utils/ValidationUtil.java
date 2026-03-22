@@ -2,7 +2,9 @@ package com.stoneledger.server.utils;
 
 import com.stoneledger.server.api.dtos.requests.*;
 import com.stoneledger.server.api.enums.AccountCategory;
+import com.stoneledger.server.api.enums.AccountSubcategory;
 import com.stoneledger.server.api.exeptions.*;
+import com.stoneledger.server.api.models.AccountModel;
 import com.stoneledger.server.api.models.PasswordModel;
 import com.stoneledger.server.api.models.UserModel;
 import com.stoneledger.server.api.repositories.AccountRepository;
@@ -14,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.security.GeneralSecurityException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -28,6 +29,8 @@ public class ValidationUtil {
     private PasswordRepository passwordRepository;
     @Autowired
     private EncryptionUtil encryptionUtil;
+    @Autowired
+    private AccountUtil accountUtil;
     @Autowired
     private ErrorMessageService errorMessageService;
 
@@ -250,6 +253,7 @@ public class ValidationUtil {
                 || request.getAccountName() == null || request.getAccountName().isBlank()
                 || request.getNormalSide() == null
                 || request.getAccountCategory() == null
+                || request.getAccountSubcategory() == null
                 || request.getInitialBalance() == null
                 || request.getDebit() == null
                 || request.getCredit() == null
@@ -268,6 +272,14 @@ public class ValidationUtil {
             throw new FinancialAccountException(errorMessageService.getError(120));
         }
 
+        // Checks if the category is an asset or liability
+        boolean isAssetOrLiability = request.getAccountCategory() == AccountCategory.ASSET || request.getAccountCategory() == AccountCategory.LIABILITY;
+
+        // If there is a subcategory associated with anything other than an asset or liability throw an exception
+        if (!isAssetOrLiability && request.getAccountSubcategory() != AccountSubcategory.NONE) {
+            throw new FinancialAccountException(errorMessageService.getError(127));
+        }
+
         // Ensures that the userId associated with the request exists and is valid
         isValidUserId(request.getUserId());
 
@@ -275,6 +287,63 @@ public class ValidationUtil {
         if (accountRepository.existsByAccountName(request.getAccountName())
                 || accountRepository.existsByAccountNumber(request.getAccountNumber())) {
             throw new FinancialAccountException(errorMessageService.getError(119));
+        }
+
+        return true;
+    }
+
+    public boolean isValidFinancialAccountEditRequest(UpdateAccountInformationDTO request) {
+        // Ensures all required fields are non-empty
+        if (request.getAccountNumber() == null
+            || request.getAccountName() == null || request.getAccountName().isBlank()
+            || request.getNormalSide() == null
+            || request.getAccountCategory() == null
+            || request.getAccountSubcategory() == null
+            || request.getInitialBalance() == null
+            || request.getDebit() == null
+            || request.getCredit() == null
+            || request.getBalance() == null
+            || request.getUserId() == null
+            || request.getOrder() == null
+            || request.getAssociatedStatement() == null) {
+            throw new InvalidRequestException(errorMessageService.getError(100));
+        }
+
+        // Ensures that all monetary values have two decimal places
+        if (!hasTwoDecimalPlaces(request.getInitialBalance())
+            || !hasTwoDecimalPlaces(request.getDebit())
+            || !hasTwoDecimalPlaces(request.getCredit())
+            || !hasTwoDecimalPlaces(request.getBalance())) {
+            throw new FinancialAccountException(errorMessageService.getError(120));
+        }
+
+        // Ensures ownership userId is valid
+        isValidUserId(request.getUserId());
+
+        // Ensures that a valid account exists associated with the account ID (Not account number since it can change on edit)
+        AccountModel account = accountRepository.findById(request.getId())
+            .orElseThrow(() -> new FinancialAccountException(errorMessageService.getError(123)));
+
+        // If the account number is being changed, ensure that it doesn't already exist
+        if (!request.getAccountNumber().equals(account.getAccountNumber())) {
+            if (accountRepository.existsByAccountNumber(request.getAccountNumber())) {
+                throw new FinancialAccountException(errorMessageService.getError(123));
+            }
+        }
+
+        // If account name is being changed, ensure it doesn't already exist
+        if (!request.getAccountName().equals(account.getAccountName())) {
+            if (accountRepository.existsByAccountName(request.getAccountName())) {
+                throw new FinancialAccountException(errorMessageService.getError(123));
+            }
+        }
+
+        // Checks if the category is an asset or liability
+        boolean isAssetOrLiability = request.getAccountCategory() == AccountCategory.ASSET || request.getAccountCategory() == AccountCategory.LIABILITY;
+
+        // If there is a subcategory associated with anything other than an asset or liability throw an exception
+        if (!isAssetOrLiability && request.getAccountSubcategory() != AccountSubcategory.NONE) {
+            throw new FinancialAccountException(errorMessageService.getError(127));
         }
 
         return true;
@@ -293,6 +362,51 @@ public class ValidationUtil {
         if (request.getAccountCategory() == null) {
             throw new InvalidRequestException(errorMessageService.getError(100));
         }
+        return true;
+    }
+
+    public boolean isValidFinancialAccountActivationRequest(ActivationRequestDTO request) {
+        // Check if ownership userId is valid
+        isValidUserId(request.getUserId());
+
+        // Retrieve the account associated with the accountNumber, throw an exception w/ error code if the lookup came back empty
+        AccountModel account = accountRepository.findByAccountNumber(request.getAccountNumber())
+            .orElseThrow(() -> new FinancialAccountException(
+                errorMessageService.getError(123)
+            ));
+
+        // Check if already activated
+        if (account.isActive()) {
+            throw new FinancialAccountException(errorMessageService.getError(125));
+        }
+
+        return true;
+    }
+
+    public boolean isValidFinancialAccountDeactivationRequest(DeactivationRequestDTO request) {
+        // Check if ownership userId is valid
+        isValidUserId(request.getUserId());
+
+        // Retrieve the account associated with the accountNumber, throw an exception w/ error code if the lookup came back empty
+        AccountModel account = accountRepository.findByAccountNumber(request.getAccountNumber())
+            .orElseThrow(() -> new FinancialAccountException(
+                errorMessageService.getError(123)
+            ));
+
+        // Check if already deactivated
+        if (!account.isActive()) {
+            throw new FinancialAccountException(
+                errorMessageService.getError(125)
+            );
+        }
+
+        // Check if account has non-zero balance
+        if (account.getBalance().compareTo(BigDecimal.ZERO) != 0) {
+            throw new FinancialAccountException(
+                errorMessageService.getError(124)
+            );
+        }
+
         return true;
     }
 }
