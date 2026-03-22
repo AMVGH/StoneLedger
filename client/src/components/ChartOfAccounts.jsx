@@ -187,7 +187,7 @@ function AddAccountModal({ onClose, onSuccess }) {
   );
 }
 
-export default function ChartOfAccounts({ onAccountSelect, onEditAccount, refreshTrigger }) {
+export default function ChartOfAccounts({ onAccountSelect, onEditAccount, refreshTrigger, userRole }) {
   const { getFinancialAccounts, activateFinancialAccount, deactivateFinancialAccount } = useUserContext();
 
   const [accounts, setAccounts] = useState([]);
@@ -333,7 +333,7 @@ export default function ChartOfAccounts({ onAccountSelect, onEditAccount, refres
               </svg>
               {showFilters ? "Hide Filters" : "Filter"}
             </button>
-            <button type="button" className={styles.addAccountBtn} onClick={() => setShowAddModal(true)}>+ Add Account</button>
+            {userRole === "ADMINISTRATOR" && <button type="button" className={styles.addAccountBtn} onClick={() => setShowAddModal(true)}>+ Add Account</button>}
           </div>
         </div>
 
@@ -392,6 +392,7 @@ export default function ChartOfAccounts({ onAccountSelect, onEditAccount, refres
                   <td><span className={`${styles.badge} ${acct.active ? styles.badgeCredit : styles.badgeDebit}`}>{acct.active ? "Active" : "Inactive"}</span></td>
                   <td>{acct.comment || "—"}</td>
                   <td>
+                    {userRole === "ADMINISTRATOR" ? (
                     <div className={styles.actions}>
                       <button type="button" className={styles.actionBtn} title="Edit" style={{ color: "#6b7280" }}
                         onClick={(e) => { e.stopPropagation(); if (typeof onEditAccount === "function") onEditAccount({ ...acct }); }}>
@@ -415,6 +416,9 @@ export default function ChartOfAccounts({ onAccountSelect, onEditAccount, refres
                         </svg>
                       </button>
                     </div>
+                    ) : (
+                      <span style={{ color: "#9ca3af" }}>—</span>
+                    )}
                   </td>
                 </tr>
               ))}

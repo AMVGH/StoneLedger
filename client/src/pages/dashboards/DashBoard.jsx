@@ -195,7 +195,9 @@ function EditAccountModal({ account, onClose, onSuccess }) {
 }
 
 export default function DashBoard() {
-  const [nav, setNav] = useState("User Management");
+  const initialUser = (() => { try { return JSON.parse(localStorage.getItem("user")) || null; } catch { return null; } })();
+  const initialNav = (initialUser?.userRole === "MANAGER" || initialUser?.userRole === "ACCOUNTANT") ? "Chart of Accounts" : "User Management";
+  const [nav, setNav] = useState(initialNav);
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [editingAccount, setEditingAccount] = useState(null);
   const [refreshAccounts, setRefreshAccounts] = useState(0);
@@ -203,6 +205,7 @@ export default function DashBoard() {
   const [resetStep, setResetStep] = useState(1);
   const [showSettings, setShowSettings] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [modalError, setModalError] = useState("");
   const [resetData, setResetData] = useState({
     email: "", userId: "", securityQuestion: "",
@@ -335,6 +338,15 @@ export default function DashBoard() {
               <button className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`} onClick={() => setNav("Event Logs")}>Event Logs</button>
             </>
           )}
+          {(loggedInUser.role === "MANAGER" || loggedInUser.role === "ACCOUNTANT") && (
+            <>
+              <button
+                className={`${styles.navItem} ${(nav === "Chart of Accounts" || nav === "Account Ledger") ? styles.activeNav : ""}`}
+                onClick={() => { setNav("Chart of Accounts"); setSelectedAccount(null); }}
+              >Chart of Accounts</button>
+              <button className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`} onClick={() => setNav("Event Logs")}>Event Logs</button>
+            </>
+          )}
         </nav>
         <div className={styles.navSpacer}></div>
         <nav className={styles.navBottom}>
@@ -360,7 +372,7 @@ export default function DashBoard() {
                   </div>
                 )}
               </div>
-              <button className={styles.iconBtn} title="Help">
+              <button className={styles.iconBtn} title="Help" onClick={() => setShowHelp(true)}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10" />
                   <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
@@ -384,7 +396,7 @@ export default function DashBoard() {
           <div className={`${styles.notification} ${styles[notification.type]}`}>{notification.message}</div>
         )}
 
-        {nav === "User Management" && loggedInUser.role === "ADMINISTRATOR" && (
+        {nav === "User Management" && ["ADMINISTRATOR", "MANAGER", "ACCOUNTANT"].includes(loggedInUser.role) && (
           <section className={styles.content}><h2>User Management</h2><p>Manage users, roles, and permissions.</p><UsersTable /></section>
         )}
         {nav === "Create User" && loggedInUser.role === "ADMINISTRATOR" && (
@@ -393,11 +405,11 @@ export default function DashBoard() {
         {nav === "Pending" && loggedInUser.role === "ADMINISTRATOR" && (
           <section className={styles.content}><h2>Pending Requests</h2><p>Approve or deny pending user access requests.</p><PendingTable onApprove={handleApprove} onDeny={handleDeny} /></section>
         )}
-        {nav === "Expired Passwords" && loggedInUser.role === "ADMINISTRATOR" && (
+        {nav === "Expired Passwords" && ["ADMINISTRATOR", "MANAGER", "ACCOUNTANT"].includes(loggedInUser.role) && (
           <section className={styles.content}><h2>Expired Passwords</h2><p>View and manage users with expired passwords.</p><ExpiredPasswords /></section>
         )}
 
-        {nav === "Chart of Accounts" && loggedInUser.role === "ADMINISTRATOR" && (
+        {nav === "Chart of Accounts" && ["ADMINISTRATOR", "MANAGER", "ACCOUNTANT"].includes(loggedInUser.role) && (
           <section className={styles.content}>
             <h2>Chart of Accounts</h2>
             <p>View and manage the chart of accounts.</p>
@@ -406,22 +418,38 @@ export default function DashBoard() {
                 setSelectedAccount(account);
                 setNav("Account Ledger");
               }}
-              onEditAccount={(account) => setEditingAccount(account)}
+              onEditAccount={loggedInUser.role === "ADMINISTRATOR" ? (account) => setEditingAccount(account) : undefined}
               refreshTrigger={refreshAccounts}
+              userRole={loggedInUser.role}
             />
           </section>
         )}
 
-        {nav === "Account Ledger" && loggedInUser.role === "ADMINISTRATOR" && (
+        {nav === "Account Ledger" && ["ADMINISTRATOR", "MANAGER", "ACCOUNTANT"].includes(loggedInUser.role) && (
           <section className={styles.content}>
             <AccountLedger account={selectedAccount} onBack={() => setNav("Chart of Accounts")} />
           </section>
         )}
-        {nav === "Event Logs" && loggedInUser.role === "ADMINISTRATOR" && (
+        {nav === "Event Logs" && ["ADMINISTRATOR", "MANAGER", "ACCOUNTANT"].includes(loggedInUser.role) && (
           <section className={styles.content}><h2>Event Logs</h2><p>View system event logs for auditing and monitoring.</p><EventLogs /></section>
         )}
 
-        {showResetModal && loggedInUser.role === "ADMINISTRATOR" && (
+        {showHelp && (
+          <div className={styles.modalOverlay} onClick={() => setShowHelp(false)}>
+            <div className={styles.resetModal} onClick={(e) => e.stopPropagation()} style={{ maxWidth: "540px" }}>
+              <div className={styles.resetModalHeader}>
+                <h2>Official StoneLedger User Manual</h2>
+                <button className={styles.modalCloseBtn} onClick={() => setShowHelp(false)}>✕</button>
+              </div>
+              <div style={{ padding: "20px 24px", fontSize: "14px", lineHeight: "1.7", color: "#374151" }}>
+                <p>Welcome to StoneLedger, a comprehensive online accounting platform designed for financial administrators, managers, and accountants alike. StoneLedger offers tailored dashboards providing only the exact tools you need, right when you need them. This manual is designed to guide you through effectively navigating and utilizing the StoneLedger platform.</p>
+                <p style={{ marginTop: "14px" }}><a href="https://kennesawedu-my.sharepoint.com/:w:/r/personal/avalen31_students_kennesaw_edu/Documents/School%20Work/Spring%202026/SWE%204713%20(SWE%20Application%20Domain)/Project%20Documents/Group%204%20User%20Manual.docx?d=w826c53ead27c44a181f78d63acd99c92&csf=1&web=1&e=8n5maV" target="_blank" rel="noopener noreferrer" style={{ color: "#4f46e5", textDecoration: "underline" }}>View Full User Manual</a></p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showResetModal && ["ADMINISTRATOR", "MANAGER", "ACCOUNTANT"].includes(loggedInUser.role) && (
           <div className={styles.modalOverlay} onClick={() => { setShowResetModal(false); handleCancelReset(); }}>
             <div className={styles.resetModal} onClick={(e) => e.stopPropagation()}>
               <div className={styles.resetModalHeader}>
