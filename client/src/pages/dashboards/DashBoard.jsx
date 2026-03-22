@@ -219,7 +219,7 @@ export default function DashBoard() {
                 Expired Passwords
               </button>
               <button
-                className={`${styles.navItem} ${nav === "Chart of Accounts" ? styles.activeNav : ""}`}
+                className={`${styles.navItem} ${(nav === "Chart of Accounts" || nav === "Account Ledger") ? styles.activeNav : ""}`}
                 onClick={() => {
                   setNav("Chart of Accounts");
                   setSelectedAccount(null);
@@ -227,14 +227,6 @@ export default function DashBoard() {
               >
                 Chart of Accounts
               </button>
-              {selectedAccount && (
-                <button
-                  className={`${styles.navItem} ${nav === "Account Ledger" ? styles.activeNav : ""}`}
-                  onClick={() => setNav("Account Ledger")}
-                >
-                  Account Ledger
-                </button>
-              )}
               <button
                 className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`}
                 onClick={() => setNav("Event Logs")}

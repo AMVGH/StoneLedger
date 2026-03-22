@@ -134,10 +134,10 @@ const useUserContext = create((set) => ({
     approveUser: async (userId, activityEndDate = null, token = null) => {
         set({ loading: true, error: null });
         try {
-            const url = activityEndDate 
+            const url = activityEndDate
                 ? `/users/approve/${userId}?activityEndDate=${activityEndDate}`
                 : `/users/approve/${userId}`;
-            
+
             const response = await api.post(url, {}, {
                 headers: token ? { Authorization: token } : {}
             });
@@ -281,13 +281,61 @@ const useUserContext = create((set) => ({
         }
     },
 
+    // Get all financial accounts
+    getFinancialAccounts: async (token = null) => {
+        set({ loading: true, error: null });
+        try {
+            const response = await api.get('/financial-accounts/get-financial-accounts', {
+                headers: token ? { Authorization: token } : {}
+            });
+            set({ loading: false });
+            return response.data.data;
+        } catch (error) {
+            const errorMsg = error.response?.data?.message || error.message || 'Failed to fetch financial accounts';
+            console.error('Error fetching financial accounts:', errorMsg);
+            set({ error: errorMsg, loading: false });
+            throw error;
+        }
+    },
+
+    // Generate an account number based on account category
+    generateAccountNumber: async (accountCategory, token = null) => {
+        set({ loading: true, error: null });
+        try {
+            const response = await api.post('/financial-accounts/generate-account-number',
+                { accountCategory },
+                { headers: token ? { Authorization: token } : {} }
+            );
+            set({ loading: false });
+            return response.data.data;
+        } catch (error) {
+            const errorMsg = error.response?.data?.message || error.message || 'Failed to generate account number';
+            console.error('Error generating account number:', errorMsg);
+            set({ error: errorMsg, loading: false });
+            throw error;
+        }
+    },
+
+    // Create a new financial account
+    createFinancialAccount: async (accountData, token = null) => {
+        set({ loading: true, error: null });
+        try {
+            const response = await api.post('/financial-accounts/create-financial-account',
+                accountData,
+                { headers: token ? { Authorization: token } : {} }
+            );
+            set({ loading: false });
+            return response.data.data;
+        } catch (error) {
+            const errorMsg = error.response?.data?.message || error.message || 'Failed to create financial account';
+            console.error('Error creating financial account:', errorMsg);
+            set({ error: errorMsg, loading: false });
+            throw error;
+        }
+    },
+
     // Clear errors
     clearError: () => set({ error: null })
-
-
-
-
-
 
 }));
 export default useUserContext;
