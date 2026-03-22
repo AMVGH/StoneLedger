@@ -334,6 +334,77 @@ const useUserContext = create((set) => ({
         }
     },
 
+    // Edit an existing financial account
+    editFinancialAccount: async (accountData, token = null) => {
+        set({ loading: true, error: null });
+        try {
+            const response = await api.post('/financial-accounts/edit-financial-account',
+                accountData,
+                { headers: token ? { Authorization: token } : {} }
+            );
+            set({ loading: false });
+            return response.data.data;
+        } catch (error) {
+            const errorMsg = error.response?.data?.message || error.message || 'Failed to edit financial account';
+            console.error('Error editing financial account:', errorMsg);
+            set({ error: errorMsg, loading: false });
+            throw error;
+        }
+    },
+
+    // Activate a financial account
+    activateFinancialAccount: async (userId, accountNumber, token = null) => {
+        set({ loading: true, error: null });
+        try {
+            const response = await api.post('/financial-accounts/activate-financial-account',
+                { userId, accountNumber },
+                { headers: token ? { Authorization: token } : {} }
+            );
+            set({ loading: false });
+            return response.data.data;
+        } catch (error) {
+            const errorMsg = error.response?.data?.message || error.message || 'Failed to activate financial account';
+            console.error('Error activating financial account:', errorMsg);
+            set({ error: errorMsg, loading: false });
+            throw error;
+        }
+    },
+
+    // Deactivate a financial account
+    deactivateFinancialAccount: async (userId, accountNumber, token = null) => {
+        set({ loading: true, error: null });
+        try {
+            const response = await api.post('/financial-accounts/deactivate-financial-account',
+                { userId, accountNumber },
+                { headers: token ? { Authorization: token } : {} }
+            );
+            set({ loading: false });
+            return response.data.data;
+        } catch (error) {
+            const errorMsg = error.response?.data?.message || error.message || 'Failed to deactivate financial account';
+            console.error('Error deactivating financial account:', errorMsg);
+            set({ error: errorMsg, loading: false });
+            throw error;
+        }
+    },
+
+    // Get all event logs
+    getEvents: async (token = null) => {
+        set({ loading: true, error: null });
+        try {
+            const response = await api.get('/events/get-events', {
+                headers: token ? { Authorization: token } : {}
+            });
+            set({ loading: false });
+            return response.data.data;
+        } catch (error) {
+            const errorMsg = error.response?.data?.message || error.message || 'Failed to fetch events';
+            console.error('Error fetching events:', errorMsg);
+            set({ error: errorMsg, loading: false });
+            throw error;
+        }
+    },
+
     // Clear errors
     clearError: () => set({ error: null })
 
