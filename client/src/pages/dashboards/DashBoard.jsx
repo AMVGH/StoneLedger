@@ -196,7 +196,7 @@ function EditAccountModal({ account, onClose, onSuccess }) {
 
 export default function DashBoard() {
   const initialUser = (() => { try { return JSON.parse(localStorage.getItem("user")) || null; } catch { return null; } })();
-  const initialNav = (initialUser?.userRole === "MANAGER" || initialUser?.userRole === "ACCOUNTANT") ? "Chart of Accounts" : "User Management";
+  const initialNav = (initialUser?.userRole === "MANAGER" || initialUser?.userRole === "ACCOUNTANT" || initialUser?.userRole === "USER") ? "Chart of Accounts" : "User Management";
   const [nav, setNav] = useState(initialNav);
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [editingAccount, setEditingAccount] = useState(null);
@@ -347,6 +347,15 @@ export default function DashBoard() {
               <button className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`} onClick={() => setNav("Event Logs")}>Event Logs</button>
             </>
           )}
+          {loggedInUser.role === "USER" && (
+            <>
+              <button
+                className={`${styles.navItem} ${(nav === "Chart of Accounts" || nav === "Account Ledger") ? styles.activeNav : ""}`}
+                onClick={() => { setNav("Chart of Accounts"); setSelectedAccount(null); }}
+              >Chart of Accounts</button>
+              <button className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`} onClick={() => setNav("Event Logs")}>Event Logs</button>
+            </>
+          )}
         </nav>
         <div className={styles.navSpacer}></div>
         <nav className={styles.navBottom}>
@@ -396,7 +405,7 @@ export default function DashBoard() {
           <div className={`${styles.notification} ${styles[notification.type]}`}>{notification.message}</div>
         )}
 
-        {nav === "User Management" && ["ADMINISTRATOR", "MANAGER", "ACCOUNTANT"].includes(loggedInUser.role) && (
+        {nav === "User Management" && ["ADMINISTRATOR"].includes(loggedInUser.role) && (
           <section className={styles.content}><h2>User Management</h2><p>Manage users, roles, and permissions.</p><UsersTable /></section>
         )}
         {nav === "Create User" && loggedInUser.role === "ADMINISTRATOR" && (
@@ -405,11 +414,11 @@ export default function DashBoard() {
         {nav === "Pending" && loggedInUser.role === "ADMINISTRATOR" && (
           <section className={styles.content}><h2>Pending Requests</h2><p>Approve or deny pending user access requests.</p><PendingTable onApprove={handleApprove} onDeny={handleDeny} /></section>
         )}
-        {nav === "Expired Passwords" && ["ADMINISTRATOR", "MANAGER", "ACCOUNTANT"].includes(loggedInUser.role) && (
+        {nav === "Expired Passwords" && ["ADMINISTRATOR"].includes(loggedInUser.role) && (
           <section className={styles.content}><h2>Expired Passwords</h2><p>View and manage users with expired passwords.</p><ExpiredPasswords /></section>
         )}
 
-        {nav === "Chart of Accounts" && ["ADMINISTRATOR", "MANAGER", "ACCOUNTANT"].includes(loggedInUser.role) && (
+        {nav === "Chart of Accounts" && ["ADMINISTRATOR", "MANAGER", "USER"].includes(loggedInUser.role) && (
           <section className={styles.content}>
             <h2>Chart of Accounts</h2>
             <p>View and manage the chart of accounts.</p>
@@ -425,12 +434,12 @@ export default function DashBoard() {
           </section>
         )}
 
-        {nav === "Account Ledger" && ["ADMINISTRATOR", "MANAGER", "ACCOUNTANT"].includes(loggedInUser.role) && (
+        {nav === "Account Ledger" && ["ADMINISTRATOR", "MANAGER", "USER"].includes(loggedInUser.role) && (
           <section className={styles.content}>
             <AccountLedger account={selectedAccount} onBack={() => setNav("Chart of Accounts")} />
           </section>
         )}
-        {nav === "Event Logs" && ["ADMINISTRATOR", "MANAGER", "ACCOUNTANT"].includes(loggedInUser.role) && (
+        {nav === "Event Logs" && ["ADMINISTRATOR", "MANAGER", "USER"].includes(loggedInUser.role) && (
           <section className={styles.content}><h2>Event Logs</h2><p>View system event logs for auditing and monitoring.</p><EventLogs /></section>
         )}
 
@@ -449,7 +458,7 @@ export default function DashBoard() {
           </div>
         )}
 
-        {showResetModal && ["ADMINISTRATOR", "MANAGER", "ACCOUNTANT"].includes(loggedInUser.role) && (
+        {showResetModal && ["ADMINISTRATOR", "MANAGER", "USER"].includes(loggedInUser.role) && (
           <div className={styles.modalOverlay} onClick={() => { setShowResetModal(false); handleCancelReset(); }}>
             <div className={styles.resetModal} onClick={(e) => e.stopPropagation()}>
               <div className={styles.resetModalHeader}>
