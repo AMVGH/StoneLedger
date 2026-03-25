@@ -1,6 +1,7 @@
-package com.stoneledger.server.api.exeptions;
+package com.stoneledger.server.config;
 
 import com.stoneledger.server.api.dtos.ApiResponseDTO;
+import com.stoneledger.server.api.exeptions.AppException;
 import com.stoneledger.server.services.ErrorMessageService;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,11 +15,13 @@ public class GlobalExceptionHandler {
     private ErrorMessageService errorMessageService;
     @ExceptionHandler(AppException.class)
     public ResponseEntity<ApiResponseDTO<?>> handleAppException(AppException e) {
+        e.printStackTrace();
         return ResponseEntity.badRequest().body(ApiResponseDTO.error(e.getErrorModel()));
     }
 
     @ExceptionHandler(MessagingException.class)
     public ResponseEntity<ApiResponseDTO<?>> handleMessagingException(MessagingException e) {
+        e.printStackTrace();
         return ResponseEntity.internalServerError().body(
             ApiResponseDTO.error(errorMessageService.getError(104))
         );
@@ -26,6 +29,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponseDTO<?>> handleException(Exception e) {
+        e.printStackTrace();
         return ResponseEntity.internalServerError().body(ApiResponseDTO.error(errorMessageService.getError(500)));
     }
 }

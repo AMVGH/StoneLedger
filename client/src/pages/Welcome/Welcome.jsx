@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import styles from "./Welcome.module.css";
-import heroImg from "../../assets/High_Definition_Mountains.png";
+import heroImg from "../../assets/High_Definition_Plane.png";
 import sLogo from "../../assets/mountain.png";
 
 export default function Welcome() {
