@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import ChartOfAccounts from "../../components/ChartOfAccounts";
 import EventLogs from "../../components/EventLogs";
 import AccountLedger from "../../components/AccountLedger";
+import GeneralJournal from "../../components/GeneralJournal";
 import { SECURITY_QUESTIONS } from "../../utils/SecurityQuestions";
 
 const ACCOUNT_CATEGORIES = ["ASSET", "EXPENSE", "LIABILITY", "EQUITY", "REVENUE"];
@@ -336,6 +337,7 @@ export default function DashBoard() {
                 onClick={() => { setNav("Chart of Accounts"); setSelectedAccount(null); }}
               >Chart of Accounts</button>
               <button className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`} onClick={() => setNav("Event Logs")}>Event Logs</button>
+              <button className={`${styles.navItem} ${nav === "General Journal" ? styles.activeNav : ""}`} onClick={() => setNav("General Journal")}>General Journal</button>
             </>
           )}
           {(loggedInUser.role === "MANAGER" || loggedInUser.role === "ACCOUNTANT") && (
@@ -345,6 +347,7 @@ export default function DashBoard() {
                 onClick={() => { setNav("Chart of Accounts"); setSelectedAccount(null); }}
               >Chart of Accounts</button>
               <button className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`} onClick={() => setNav("Event Logs")}>Event Logs</button>
+              <button className={`${styles.navItem} ${nav === "General Journal" ? styles.activeNav : ""}`} onClick={() => setNav("General Journal")}>General Journal</button>
             </>
           )}
           {loggedInUser.role === "USER" && (
@@ -354,6 +357,7 @@ export default function DashBoard() {
                 onClick={() => { setNav("Chart of Accounts"); setSelectedAccount(null); }}
               >Chart of Accounts</button>
               <button className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`} onClick={() => setNav("Event Logs")}>Event Logs</button>
+              <button className={`${styles.navItem} ${nav === "General Journal" ? styles.activeNav : ""}`} onClick={() => setNav("General Journal")}>General Journal</button>
             </>
           )}
         </nav>
@@ -441,6 +445,13 @@ export default function DashBoard() {
         )}
         {nav === "Event Logs" && ["ADMINISTRATOR", "MANAGER", "USER"].includes(loggedInUser.role) && (
           <section className={styles.content}><h2>Event Logs</h2><p>View system event logs for auditing and monitoring.</p><EventLogs /></section>
+        )}
+        {nav === "General Journal" && (
+          <section className={styles.content}>
+            <h2>General Journal</h2>
+            <p>View and manage journal entries.</p>
+            <GeneralJournal userRole={loggedInUser?.role} />
+          </section>
         )}
 
         {showHelp && (
