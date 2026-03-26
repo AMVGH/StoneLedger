@@ -25,6 +25,7 @@ export default function GeneralJournal({ userRole }) {
   const [showDatePopup, setShowDatePopup] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [transactionDescription, setTransactionDescription] = useState("");
+  const [transactionFiles, setTransactionFiles] = useState([]); // [{name, type, file, url}]
   const [transactionLines, setTransactionLines] = useState([
     { accountId: "", debit: "", credit: "" },
     { accountId: "", debit: "", credit: "" },
@@ -36,28 +37,37 @@ export default function GeneralJournal({ userRole }) {
     { id: "TXN-001", description: "Client invoice #1042 payment", lines: [
       { accountId: 101, accountName: "Cash", debit: 5000.00, credit: 0 },
       { accountId: 401, accountName: "Service Revenue", debit: 0, credit: 5000.00 },
-    ], status: "APPROVED", comment: "Payment received in full" },
+    ], status: "APPROVED", comment: "Payment received in full", files: [
+      { name: "invoice1042.pdf", type: "pdf", url: "#" },
+      { name: "remittance.jpg", type: "jpg", url: "#" },
+    ] },
     { id: "TXN-002", description: "March operating expenses", lines: [
       { accountId: 502, accountName: "Rent Expense", debit: 2000.00, credit: 0 },
       { accountId: 503, accountName: "Utilities Expense", debit: 350.00, credit: 0 },
       { accountId: 101, accountName: "Cash", debit: 0, credit: 2350.00 },
-    ], status: "PENDING", comment: "Awaiting manager approval" },
+    ], status: "PENDING", comment: "Awaiting manager approval", files: [
+      { name: "lease.docx", type: "docx", url: "#" },
+      { name: "utilities.csv", type: "csv", url: "#" },
+    ] },
     { id: "TXN-003", description: "Office supplies purchase", lines: [
       { accountId: 601, accountName: "Office Supplies", debit: 420.00, credit: 0 },
       { accountId: 101, accountName: "Cash", debit: 0, credit: 420.00 },
-    ], status: "APPROVED", comment: "Paid with company card" },
+    ], status: "APPROVED", comment: "Paid with company card", files: [
+      { name: "receipt.png", type: "png", url: "#" } ] },
     { id: "TXN-004", description: "Payroll for March", lines: [
       { accountId: 701, accountName: "Salaries Expense", debit: 3200.00, credit: 0 },
       { accountId: 101, accountName: "Cash", debit: 0, credit: 3200.00 },
-    ], status: "REJECTED", comment: "Incorrect payroll amount" },
+    ], status: "REJECTED", comment: "Incorrect payroll amount", files: [] },
     { id: "TXN-005", description: "Equipment purchase for IT department", lines: [
       { accountId: 801, accountName: "Equipment", debit: 1500.00, credit: 0 },
       { accountId: 101, accountName: "Cash", debit: 0, credit: 1500.00 },
-    ], status: "APPROVED", comment: "Laptops for new hires" },
+    ], status: "APPROVED", comment: "Laptops for new hires", files: [
+      { name: "quote.xlsx", type: "xlsx", url: "#" } ] },
     { id: "TXN-006", description: "Travel reimbursement for sales team", lines: [
       { accountId: 901, accountName: "Travel Expense", debit: 800.00, credit: 0 },
       { accountId: 101, accountName: "Cash", debit: 0, credit: 800.00 },
-    ], status: "PENDING", comment: "Pending receipts" },
+    ], status: "PENDING", comment: "Pending receipts", files: [
+      { name: "travel.pdf", type: "pdf", url: "#" } ] },
   ];
   const [filters, setFilters] = useState({
     accountName: "", accountNumber: "", category: "",
@@ -156,6 +166,16 @@ export default function GeneralJournal({ userRole }) {
   if (loading) return <div className={styles.page}><section className={styles.content}><p style={{ padding: "2rem" }}>Loading journal entries…</p></section></div>;
   if (error) return <div className={styles.page}><section className={styles.content}><p style={{ padding: "2rem", color: "red" }}>{error}</p><button onClick={fetchAccounts}>Retry</button></section></div>;
 
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files).map(file => ({
+      name: file.name,
+      type: file.type ? file.type.split('/').pop() : file.name.split('.').pop(),
+      file,
+      url: URL.createObjectURL(file),
+    }));
+    setTransactionFiles(files);
+  };
+
   return (
     <div className={styles.page}>
       {showAddModal && (
@@ -191,6 +211,26 @@ export default function GeneralJournal({ userRole }) {
               <div className={styles.formGroup} style={{ marginTop: 8 }}>
                 <label className={styles.formLabel}>Description</label>
                 <input type="text" className={styles.formInput} placeholder="Transaction description" value={transactionDescription} onChange={e => setTransactionDescription(e.target.value)} />
+              </div>
+              <div className={styles.formGroup} style={{ marginTop: 8 }}>
+                <label className={styles.formLabel}>Attach Source Documents</label>
+                <input
+                  type="file"
+                  className={styles.formInput}
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.jpg,.jpeg,.png"
+                  multiple
+                  onChange={handleFileChange}
+                />
+                <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+                  Allowed: PDF, Word, Excel, CSV, JPG, PNG
+                </div>
+                {transactionFiles.length > 0 && (
+                  <ul style={{ margin: '8px 0 0 0', padding: 0, listStyle: 'none' }}>
+                    {transactionFiles.map((f, i) => (
+                      <li key={i} style={{ fontSize: 13, color: '#333' }}>{f.name} ({f.type || f.name.split('.').pop().toUpperCase()})</li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </div>
             <div className={styles.modalFooter}>
@@ -254,7 +294,7 @@ export default function GeneralJournal({ userRole }) {
             <thead>
               <tr>
                 <th>Transaction ID</th><th>Account Affected</th><th>Debit</th>
-                <th>Credit</th><th>Description</th><th>Status</th><th>Comments</th>
+                <th>Credit</th><th>Description</th><th>Files</th><th>Status</th><th>Comments</th>
               </tr>
             </thead>
             <tbody>
@@ -269,6 +309,32 @@ export default function GeneralJournal({ userRole }) {
                     <td className={styles.money}>{line.credit ? `$${fmt(line.credit)}` : "—"}</td>
                     {idx === 0 ? (
                       <td rowSpan={txn.lines.length}>{txn.description}</td>
+                    ) : null}
+                    {idx === 0 ? (
+                      <td rowSpan={txn.lines.length}>
+                        {txn.files && txn.files.length > 0 ? (
+                          <div style={{ marginTop: 0 }}>
+                            {txn.files.map((f, i) => (
+                              <a
+                                key={i}
+                                href={f.url}
+                                download={f.name}
+                                style={{
+                                  display: 'inline-block',
+                                  marginRight: 8,
+                                  color: '#4f46e5',
+                                  textDecoration: 'underline',
+                                  fontSize: 13,
+                                  cursor: 'pointer',
+                                }}
+                                title={`Download ${f.name}`}
+                              >
+                                [{f.type.toUpperCase()}]
+                              </a>
+                            ))}
+                          </div>
+                        ) : <span style={{ color: '#aaa', fontSize: 13 }}>—</span>}
+                      </td>
                     ) : null}
                     {idx === 0 ? (
                       <td rowSpan={txn.lines.length}><span className={`${styles.badge} ${txn.status === "APPROVED" ? styles.badgeApproved : txn.status === "REJECTED" ? styles.badgeRejected : styles.badgePending}`}>{txn.status === "APPROVED" ? "Approved" : txn.status === "REJECTED" ? "Rejected" : "Pending"}</span></td>
