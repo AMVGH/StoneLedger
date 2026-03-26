@@ -431,6 +431,10 @@ public class ValidationUtil {
 
         // Iterates over the accounts impacted and validates each one
         for (TransactionEntryDTO transactionInnerAccountEntry : request.getAccountsImpacted()) {
+            if (transactionInnerAccountEntry == null) {
+                throw new TransactionValidationException(errorMessageService.getError(100));
+            }
+
             if (transactionInnerAccountEntry.getAccountId() == null) {
                 throw new TransactionValidationException(errorMessageService.getError(123));
             }

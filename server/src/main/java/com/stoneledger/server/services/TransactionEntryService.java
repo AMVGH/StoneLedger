@@ -20,14 +20,14 @@ public class TransactionEntryService {
     private EventLoggingService eventLoggingService;
     @Transactional
     public void saveInnerTransactionEntries(Long userId, List<TransactionEntryModel> transactionInnerEntries) {
-        eventLoggingService.logEvent(
-                userId,
-                LoggingTables.TRANSACTION_ENTRIES,
-                LoggingEvents.CREATE,
-                null,
-                transactionInnerEntries
-        );
-
         transactionEntryRepository.saveAll(transactionInnerEntries);
+
+        eventLoggingService.logEvent(
+            userId,
+            LoggingTables.TRANSACTION_ENTRIES,
+            LoggingEvents.CREATE,
+            null,
+            transactionInnerEntries
+        );
     }
 }
