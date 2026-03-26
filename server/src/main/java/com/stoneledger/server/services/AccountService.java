@@ -8,7 +8,7 @@ import com.stoneledger.server.api.exeptions.InvalidRequestException;
 import com.stoneledger.server.api.models.AccountModel;
 import com.stoneledger.server.api.repositories.AccountRepository;
 import com.stoneledger.server.api.repositories.UserRepository;
-import com.stoneledger.server.utils.AccountUtil;
+import com.stoneledger.server.utils.MonetaryUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,7 +26,7 @@ public class AccountService {
     private UserRepository userRepository;
 
     @Autowired
-    private AccountUtil accountUtil;
+    private MonetaryUtil monetaryUtil;
     @Autowired
     private EventLoggingService eventLoggingService;
     @Autowired
@@ -64,7 +64,7 @@ public class AccountService {
         LocalDateTime currentDateTime = LocalDateTime.now();
 
         // Validates that the account balance associated with the account is correct
-        accountUtil.validateAccountBalance(
+        monetaryUtil.validateAccountBalance(
             request.getNormalSide(),
             request.getInitialBalance(),
             request.getDebit(),
@@ -156,7 +156,7 @@ public class AccountService {
                 ? request.getBalance()
                 : beforeImageAccount.getBalance();
 
-            accountUtil.validateAccountBalance(
+            monetaryUtil.validateAccountBalance(
                 normalSide,
                 initialBalance,
                 debit,
