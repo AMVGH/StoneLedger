@@ -36,10 +36,18 @@ public class TransactionController {
         return ResponseEntity.ok(ApiResponseDTO.success(transactionWriteSuccess));
     }
 
-    @PostMapping("/update-transaction-status")
-    public ResponseEntity<ApiResponseDTO<?>> updateTransactionStatus(@RequestBody TransactionStatusUpdateDTO request) {
-        //validationUtil.isValidTransactionStatusUpdateRequest(request);
-        return ResponseEntity.ok(ApiResponseDTO.success(true));
+    @PostMapping("/approve-transaction")
+    public ResponseEntity<ApiResponseDTO<?>> approveTransaction(@RequestBody TransactionStatusUpdateDTO request) {
+        validationUtil.isValidTransactionStatusUpdateRequest(request);
+        boolean transactionApproveSuccess = transactionService.approveTransaction(request);
+        return ResponseEntity.ok(ApiResponseDTO.success(transactionApproveSuccess));
+    }
+
+    @PostMapping("/reject-transaction")
+    public ResponseEntity<ApiResponseDTO<?>> rejectTransaction(@RequestBody TransactionStatusUpdateDTO request) {
+        validationUtil.isValidTransactionStatusUpdateRequest(request);
+        boolean transactionRejectSuccess = transactionService.rejectTransaction(request);
+        return ResponseEntity.ok(ApiResponseDTO.success(transactionRejectSuccess));
     }
 
     @GetMapping("/get-pending-entries")
@@ -47,6 +55,4 @@ public class TransactionController {
         List<TransactionPendingEntryDTO> pendingTransactionEntries = transactionService.getPendingTransactionEntries();
         return ResponseEntity.ok(ApiResponseDTO.success(pendingTransactionEntries));
     }
-
-
 }

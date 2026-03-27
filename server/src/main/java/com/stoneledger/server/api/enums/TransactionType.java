@@ -4,5 +4,6 @@ public enum TransactionType {
     STANDARD,
     REVERSAL,
     ADJUSTMENT,
-    CLOSING
+    CLOSING,
+    OPENING
 }

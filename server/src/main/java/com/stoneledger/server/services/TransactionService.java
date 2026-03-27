@@ -1,13 +1,13 @@
 package com.stoneledger.server.services;
 
 import com.stoneledger.server.api.dtos.requests.TransactionCreationDTO;
+import com.stoneledger.server.api.dtos.requests.TransactionStatusUpdateDTO;
 import com.stoneledger.server.api.dtos.responses.AccountInformationDTO;
 import com.stoneledger.server.api.dtos.responses.AccountSummaryDTO;
 import com.stoneledger.server.api.dtos.responses.TransactionInformationDTO;
 import com.stoneledger.server.api.dtos.responses.TransactionPendingEntryDTO;
-import com.stoneledger.server.api.enums.LoggingEvents;
-import com.stoneledger.server.api.enums.LoggingTables;
-import com.stoneledger.server.api.enums.TransactionStatus;
+import com.stoneledger.server.api.enums.*;
+import com.stoneledger.server.api.exeptions.FinancialAccountException;
 import com.stoneledger.server.api.exeptions.InvalidIdException;
 import com.stoneledger.server.api.exeptions.TransactionValidationException;
 import com.stoneledger.server.api.models.AccountModel;
@@ -15,10 +15,12 @@ import com.stoneledger.server.api.models.TransactionEntryModel;
 import com.stoneledger.server.api.models.TransactionModel;
 import com.stoneledger.server.api.models.UserModel;
 import com.stoneledger.server.api.repositories.AccountRepository;
+import com.stoneledger.server.api.repositories.TransactionEntryRepository;
 import com.stoneledger.server.api.repositories.TransactionRepository;
 import com.stoneledger.server.api.repositories.UserRepository;
 import com.stoneledger.server.utils.MonetaryUtil;
 import jakarta.mail.MessagingException;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.hibernate.annotations.NaturalId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,13 +44,15 @@ public class TransactionService {
     @Autowired
     private TransactionRepository transactionRepository;
     @Autowired
-    private TransactionEntryService transactionEntryService;
+    private TransactionEntryRepository transactionEntryRepository;
     @Autowired
     private EventLoggingService eventLoggingService;
     @Autowired
     private ErrorMessageService errorMessageService;
     @Autowired
     private EmailService emailService;
+    @Autowired
+    private EntityManager entityManager;
 
     public List<TransactionPendingEntryDTO> getPendingTransactionEntries() {
         return transactionRepository.findByTransactionStatus(TransactionStatus.PENDING)
@@ -114,12 +119,14 @@ public class TransactionService {
                     entry.setAccountImpacted(account);
                     entry.setEntryType(dto.getEntryType());
                     entry.setAmount(dto.getAmount());
+                    entry.setIsApproved(false);
+                    entry.setEntryDate(transactionDate);
                     return entry;
                 })
                 .toList();
         // Sets the accounts impacted to entries
         transaction.setAccountsImpacted(entries);
-        transactionRepository.save(transaction);
+        transactionRepository.saveAndFlush(transaction);
 
         eventLoggingService.logEvent(
             request.getCreatedBy(),
@@ -135,6 +142,131 @@ public class TransactionService {
             LoggingEvents.CREATE,
             null,
             transaction
+        );
+
+        return true;
+    }
+
+    @Transactional
+    public boolean approveTransaction(TransactionStatusUpdateDTO request) {
+        TransactionModel beforeImageTransaction = transactionRepository.findById(request.getTransactionId())
+            .orElseThrow(() -> new TransactionValidationException(
+                errorMessageService.getError(132)
+            ));
+
+        entityManager.detach(beforeImageTransaction);
+
+        TransactionModel afterImageTransaction = transactionRepository.findById(request.getTransactionId())
+            .orElseThrow(() -> new TransactionValidationException(
+                errorMessageService.getError(132)
+            ));
+
+        if (afterImageTransaction.getTransactionStatus() == TransactionStatus.APPROVED || afterImageTransaction.getTransactionStatus() != TransactionStatus.PENDING ) {
+            throw new TransactionValidationException(errorMessageService.getError(133));
+        }
+
+        // Sets the transaction status to APPROVED
+        afterImageTransaction.setTransactionStatus(TransactionStatus.APPROVED);
+
+        // Since the transaction has been approved, update the accounts impacted, as well as the entries impacted for the ledger
+        for (TransactionEntryModel entry : afterImageTransaction.getAccountsImpacted()) {
+            AccountModel beforeImageAccount = accountRepository.findById(entry.getAccountImpacted().getId())
+                .orElseThrow(() -> new FinancialAccountException(
+                    errorMessageService.getError(123)
+                ));
+
+            entityManager.detach(beforeImageAccount);
+
+            AccountModel afterImageAccount = accountRepository.findById(entry.getAccountImpacted().getId())
+                .orElseThrow(() -> new FinancialAccountException(
+                    errorMessageService.getError(123)
+                ));
+
+            switch (entry.getEntryType()) {
+                case DEBIT -> afterImageAccount.setDebit(afterImageAccount.getDebit().add(entry.getAmount()));
+                case CREDIT -> afterImageAccount.setCredit(afterImageAccount.getCredit().add(entry.getAmount()));
+            }
+
+            BigDecimal newBalance;
+            if (afterImageAccount.getNormalSide() == NormalSide.LEFT) {
+                newBalance = entry.getEntryType() == EntryType.DEBIT
+                    ? afterImageAccount.getBalance().add(entry.getAmount())
+                    : afterImageAccount.getBalance().subtract(entry.getAmount());
+            } else {
+                newBalance = entry.getEntryType() == EntryType.CREDIT
+                    ? afterImageAccount.getBalance().add(entry.getAmount())
+                    : afterImageAccount.getBalance().subtract(entry.getAmount());
+            }
+
+            afterImageAccount.setBalance(newBalance);
+            accountRepository.saveAndFlush(afterImageAccount);
+
+            entityManager.detach(entry);
+            TransactionEntryModel beforeImageEntry = entry;
+
+            TransactionEntryModel afterImageEntry = transactionEntryRepository.findById(entry.getId())
+                .orElseThrow(() -> new TransactionValidationException(
+                    errorMessageService.getError(132)
+                ));
+
+            afterImageEntry.setIsApproved(true);
+            transactionEntryRepository.saveAndFlush(afterImageEntry);
+
+            eventLoggingService.logEvent(
+                request.getUserId(),
+                LoggingTables.ACCOUNTS,
+                LoggingEvents.UPDATE,
+                beforeImageAccount,
+                afterImageAccount
+            );
+
+            eventLoggingService.logEvent(
+                request.getUserId(),
+                LoggingTables.TRANSACTION_ENTRIES,
+                LoggingEvents.UPDATE,
+                beforeImageEntry,
+                afterImageEntry
+            );
+        }
+
+        transactionRepository.saveAndFlush(afterImageTransaction);
+
+        eventLoggingService.logEvent(
+            request.getUserId(),
+            LoggingTables.TRANSACTIONS,
+            LoggingEvents.UPDATE,
+            beforeImageTransaction,
+            afterImageTransaction
+        );
+        return true;
+    }
+
+    @Transactional
+    public boolean rejectTransaction(TransactionStatusUpdateDTO request) {
+        TransactionModel beforeImageTransaction = transactionRepository.findById(request.getTransactionId())
+            .orElseThrow(() -> new TransactionValidationException(
+                errorMessageService.getError(132)
+            ));
+
+        entityManager.detach(beforeImageTransaction);
+
+        TransactionModel afterImageTransaction = transactionRepository.findById(request.getTransactionId())
+            .orElseThrow(() -> new TransactionValidationException(
+                errorMessageService.getError(132)
+            ));
+
+        if (afterImageTransaction.getTransactionStatus() == TransactionStatus.REJECTED || afterImageTransaction.getTransactionStatus() != TransactionStatus.PENDING ) {
+            throw new TransactionValidationException(errorMessageService.getError(133));
+        } else afterImageTransaction.setTransactionStatus(TransactionStatus.REJECTED);
+
+        transactionRepository.saveAndFlush(afterImageTransaction);
+
+        eventLoggingService.logEvent(
+            request.getUserId(),
+            LoggingTables.TRANSACTIONS,
+            LoggingEvents.UPDATE,
+            beforeImageTransaction,
+            afterImageTransaction
         );
 
         return true;

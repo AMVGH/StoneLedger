@@ -26,14 +26,12 @@ public class AccountController {
     private AccountRepository accountRepository;
 
 
-    // TODO: Do limitations for adding/edit/deactivating for manager/accounting on frontend.
     @GetMapping("/get-financial-accounts")
     public ResponseEntity<ApiResponseDTO<?>> getUsers() {
         List<AccountInformationDTO> systemFinancialAccounts = accountService.getFinancialAccounts();
         return ResponseEntity.ok(ApiResponseDTO.success(systemFinancialAccounts));
     }
 
-    // TODO: Confer whether this is the best approach for generating account numbers or if that should be at the discretion of user.
     @PostMapping("/generate-account-number")
     public ResponseEntity<ApiResponseDTO<?>> generateAccountNumber(@RequestBody AccountNumberRequestDTO request) {
         validationUtil.isValidAccountNumberRequest(request);

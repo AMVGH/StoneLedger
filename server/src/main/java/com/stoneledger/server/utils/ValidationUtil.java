@@ -459,4 +459,27 @@ public class ValidationUtil {
         }
         return true;
     }
+
+    public boolean isValidTransactionStatusUpdateRequest(TransactionStatusUpdateDTO request) {
+        if (request.getTransactionId() == null || request.getUserId() == null) {
+            throw new TransactionValidationException(errorMessageService.getError(100));
+        }
+
+        isValidAccountId(request.getTransactionId());
+        isValidUserId(request.getUserId());
+
+        return true;
+    }
+
+    public boolean isValidPageNumber(int pageNumber, int totalPages) {
+        if (totalPages == 0 && pageNumber == 1) {
+            return true; // No transactions yet, page 1 is still a valid request
+        }
+        if (pageNumber <= 0 || pageNumber > totalPages) {
+            throw new InvalidRequestException(
+                errorMessageService.getError(134)
+            );
+        }
+        return true;
+    }
 }
