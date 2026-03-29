@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./DashBoard.module.css";
 import Logo from "../../components/Logo";
 import UsersTable from "../../components/UsersTable";
@@ -195,10 +195,20 @@ function EditAccountModal({ account, onClose, onSuccess }) {
   );
 }
 
+
 export default function DashBoard() {
+  const { user, getLoggedInUserInfo } = useUserContext();
+  const token = localStorage.getItem("authToken");
   const initialUser = (() => { try { return JSON.parse(localStorage.getItem("user")) || null; } catch { return null; } })();
   const initialNav = (initialUser?.userRole === "MANAGER" || initialUser?.userRole === "ACCOUNTANT" || initialUser?.userRole === "USER") ? "Chart of Accounts" : "User Management";
   const [nav, setNav] = useState(initialNav);
+
+  // Auto-load user info into Zustand store if not present
+  useEffect(() => {
+    if (!user && token) {
+      getLoggedInUserInfo(token).catch(() => {});
+    }
+  }, [user, token, getLoggedInUserInfo]);
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [editingAccount, setEditingAccount] = useState(null);
   const [refreshAccounts, setRefreshAccounts] = useState(0);

@@ -1,6 +1,10 @@
 import React, { useMemo, useState, useRef, useEffect, useCallback } from "react";
 import styles from "./GeneralJournal.module.css";
 import useUserContext from "../API/UserContext";
+import { getTotalJournalPages, getTransactionsForPage } from '../API/GeneralJournal';
+import useTransactionContext from '../API/TransactionControl';
+import { getApprovedTransactionEntriesForLedger } from '../API/Entry';
+
 
 function formatDateTime(value) {
   if (!value) return "—";
@@ -11,10 +15,12 @@ function formatDateTime(value) {
   return String(value).slice(0, 10);
 }
 
+
 function toDateStr(value) { return formatDateTime(value); }
 
 export default function GeneralJournal({ userRole }) {
-  const { getFinancialAccounts } = useUserContext();
+  const { getFinancialAccounts,  } = useUserContext();
+  const { createNewTransaction } = useTransactionContext();
 
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,42 +39,9 @@ export default function GeneralJournal({ userRole }) {
   const [transactionComment, setTransactionComment] = useState("");
   const [transactionAmount, setTransactionAmount] = useState(0);
 
-  const staticTransactions = [
-    { id: "TXN-001", description: "Client invoice #1042 payment", lines: [
-      { accountId: 101, accountName: "Cash", debit: 5000.00, credit: 0 },
-      { accountId: 401, accountName: "Service Revenue", debit: 0, credit: 5000.00 },
-    ], status: "APPROVED", comment: "Payment received in full", files: [
-      { name: "invoice1042.pdf", type: "pdf", url: "#" },
-      { name: "remittance.jpg", type: "jpg", url: "#" },
-    ] },
-    { id: "TXN-002", description: "March operating expenses", lines: [
-      { accountId: 502, accountName: "Rent Expense", debit: 2000.00, credit: 0 },
-      { accountId: 503, accountName: "Utilities Expense", debit: 350.00, credit: 0 },
-      { accountId: 101, accountName: "Cash", debit: 0, credit: 2350.00 },
-    ], status: "PENDING", comment: "Awaiting manager approval", files: [
-      { name: "lease.docx", type: "docx", url: "#" },
-      { name: "utilities.csv", type: "csv", url: "#" },
-    ] },
-    { id: "TXN-003", description: "Office supplies purchase", lines: [
-      { accountId: 601, accountName: "Office Supplies", debit: 420.00, credit: 0 },
-      { accountId: 101, accountName: "Cash", debit: 0, credit: 420.00 },
-    ], status: "APPROVED", comment: "Paid with company card", files: [
-      { name: "receipt.png", type: "png", url: "#" } ] },
-    { id: "TXN-004", description: "Payroll for March", lines: [
-      { accountId: 701, accountName: "Salaries Expense", debit: 3200.00, credit: 0 },
-      { accountId: 101, accountName: "Cash", debit: 0, credit: 3200.00 },
-    ], status: "REJECTED", comment: "Incorrect payroll amount", files: [] },
-    { id: "TXN-005", description: "Equipment purchase for IT department", lines: [
-      { accountId: 801, accountName: "Equipment", debit: 1500.00, credit: 0 },
-      { accountId: 101, accountName: "Cash", debit: 0, credit: 1500.00 },
-    ], status: "APPROVED", comment: "Laptops for new hires", files: [
-      { name: "quote.xlsx", type: "xlsx", url: "#" } ] },
-    { id: "TXN-006", description: "Travel reimbursement for sales team", lines: [
-      { accountId: 901, accountName: "Travel Expense", debit: 800.00, credit: 0 },
-      { accountId: 101, accountName: "Cash", debit: 0, credit: 800.00 },
-    ], status: "PENDING", comment: "Pending receipts", files: [
-      { name: "travel.pdf", type: "pdf", url: "#" } ] },
-  ];
+  // Transactions state from backend
+  const [transactions, setTransactions] = useState([]);
+  const [totalPages, setTotalPages] = useState(1);
   const [filters, setFilters] = useState({
     accountName: "", accountNumber: "", category: "",
     minBalance: "", maxBalance: "",
@@ -76,6 +49,8 @@ export default function GeneralJournal({ userRole }) {
 
   const popupRef = useRef(null);
   const token = localStorage.getItem("authToken");
+  const storedUser = (() => { try { return JSON.parse(localStorage.getItem("user")) || null; } catch { return null; } })();
+  const loggedInUserId = storedUser?.id ?? null;
 
   const fetchAccounts = useCallback(async () => {
     setLoading(true);
@@ -153,18 +128,81 @@ export default function GeneralJournal({ userRole }) {
     ]);
     setTransactionComment("");
     setTransactionDescription("");
+    setTransactionFiles([]);
     setShowAddModal(false);
+  };
+
+  // Add Transaction handler
+  const handleAddTransaction = async () => {
+    // Guard: Ensure user info is loaded
+    if (!loggedInUserId) {
+      setError('User info not loaded. Please log in again or refresh the page.');
+      return;
+    }
+    // Prepare transaction object for backend (TransactionCreationDTO)
+    const transaction = {
+      transactionType: 'STANDARD', // or let user select, default to STANDARD
+      transactionDescription: transactionDescription,
+      createdBy: Number(loggedInUserId),
+      accountsImpacted: transactionLines
+        .filter(line => line.accountId && (parseFloat(line.debit) || parseFloat(line.credit)))
+        .flatMap(line => {
+          const entries = [];
+          if (parseFloat(line.debit)) {
+            entries.push({
+              accountId: Number(line.accountId),
+              entryType: 'DEBIT',
+              amount: parseFloat(line.debit)
+            });
+          }
+          if (parseFloat(line.credit)) {
+            entries.push({
+              accountId: Number(line.accountId),
+              entryType: 'CREDIT',
+              amount: parseFloat(line.credit)
+            });
+          }
+          return entries;
+        })
+    };
+    // Only send the first file for now (backend expects one file)
+    const attachment = transactionFiles.length > 0 ? transactionFiles[0].file : null;
+    try {
+      setLoading(true);
+      await createNewTransaction(transaction, attachment);
+      resetModal();
+      await fetchJournalData();
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || "Failed to add transaction.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Pagination state
   const [page, setPage] = useState(1);
-  const pageSize = 5;
-  const totalPages = Math.ceil(staticTransactions.length / pageSize);
-  const pagedTransactions = staticTransactions.slice((page - 1) * pageSize, page * pageSize);
   const goToPage = (p) => setPage(Math.max(1, Math.min(totalPages, p)));
 
+  // Fetch transactions and total pages from backend
+  const fetchJournalData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const totalRes = await getTotalJournalPages();
+      setTotalPages(totalRes.data || 1);
+      const txnRes = await getTransactionsForPage(page);
+      setTransactions(txnRes.data || []);
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || "Failed to fetch journal entries.");
+    } finally {
+      setLoading(false);
+    }
+  }, [page]);
+
+  useEffect(() => { fetchJournalData(); }, [fetchJournalData]);
+
   if (loading) return <div className={styles.page}><section className={styles.content}><p style={{ padding: "2rem" }}>Loading journal entries…</p></section></div>;
-  if (error) return <div className={styles.page}><section className={styles.content}><p style={{ padding: "2rem", color: "red" }}>{error}</p><button onClick={fetchAccounts}>Retry</button></section></div>;
+  if (error) return <div className={styles.page}><section className={styles.content}><p style={{ padding: "2rem", color: "red" }}>{error}</p><button onClick={fetchJournalData}>Retry</button></section></div>;
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files).map(file => ({
@@ -235,7 +273,7 @@ export default function GeneralJournal({ userRole }) {
             </div>
             <div className={styles.modalFooter}>
               <button type="button" className={styles.cancelBtn} onClick={resetModal}>Cancel</button>
-              <button type="button" className={styles.submitBtn}>Create Transaction</button>
+              <button type="button" className={styles.submitBtn} onClick={handleAddTransaction}>Create Transaction</button>
             </div>
           </div>
         </div>
@@ -298,54 +336,57 @@ export default function GeneralJournal({ userRole }) {
               </tr>
             </thead>
             <tbody>
-              {pagedTransactions.map((txn) =>
-                txn.lines.map((line, idx) => (
-                  <tr key={`${txn.id}-${idx}`} className={styles.rowClickable}>
-                    {idx === 0 ? (
-                      <td rowSpan={txn.lines.length}><span className={styles.linkLikeBtn}>{txn.id}</span></td>
-                    ) : null}
-                    <td>{line.accountName}</td>
-                    <td className={styles.money}>{line.debit ? `$${fmt(line.debit)}` : "—"}</td>
-                    <td className={styles.money}>{line.credit ? `$${fmt(line.credit)}` : "—"}</td>
-                    {idx === 0 ? (
-                      <td rowSpan={txn.lines.length}>{txn.description}</td>
-                    ) : null}
-                    {idx === 0 ? (
-                      <td rowSpan={txn.lines.length}>
-                        {txn.files && txn.files.length > 0 ? (
-                          <div style={{ marginTop: 0 }}>
-                            {txn.files.map((f, i) => (
-                              <a
-                                key={i}
-                                href={f.url}
-                                download={f.name}
-                                style={{
-                                  display: 'inline-block',
-                                  marginRight: 8,
-                                  color: '#4f46e5',
-                                  textDecoration: 'underline',
-                                  fontSize: 13,
-                                  cursor: 'pointer',
-                                }}
-                                title={`Download ${f.name}`}
-                              >
-                                [{f.type.toUpperCase()}]
-                              </a>
-                            ))}
-                          </div>
-                        ) : <span style={{ color: '#aaa', fontSize: 13 }}>—</span>}
-                      </td>
-                    ) : null}
-                    {idx === 0 ? (
-                      <td rowSpan={txn.lines.length}><span className={`${styles.badge} ${txn.status === "APPROVED" ? styles.badgeApproved : txn.status === "REJECTED" ? styles.badgeRejected : styles.badgePending}`}>{txn.status === "APPROVED" ? "Approved" : txn.status === "REJECTED" ? "Rejected" : "Pending"}</span></td>
-                    ) : null}
-                    {idx === 0 ? (
-                      <td rowSpan={txn.lines.length}>{txn.comment || "—"}</td>
-                    ) : null}
-                  </tr>
-                ))
-              )}
-              {pagedTransactions.length === 0 && (
+              {transactions.length > 0 ? (
+                transactions.map((txn) =>
+                  txn.transactionEntries && txn.transactionEntries.length > 0 ? (
+                    txn.transactionEntries.map((line, idx) => (
+                      <tr key={`${txn.id}-${idx}`} className={styles.rowClickable}>
+                        {idx === 0 ? (
+                          <td rowSpan={txn.transactionEntries.length}><span className={styles.linkLikeBtn}>{txn.id}</span></td>
+                        ) : null}
+                        <td>{line.accountName}</td>
+                        <td className={styles.money}>{line.debit ? `$${fmt(line.debit)}` : "—"}</td>
+                        <td className={styles.money}>{line.credit ? `$${fmt(line.credit)}` : "—"}</td>
+                        {idx === 0 ? (
+                          <td rowSpan={txn.transactionEntries.length}>{txn.description}</td>
+                        ) : null}
+                        {idx === 0 ? (
+                          <td rowSpan={txn.transactionEntries.length}>
+                            {txn.files && txn.files.length > 0 ? (
+                              <div style={{ marginTop: 0 }}>
+                                {txn.files.map((f, i) => (
+                                  <a
+                                    key={i}
+                                    href={f.url}
+                                    download={f.name}
+                                    style={{
+                                      display: 'inline-block',
+                                      marginRight: 8,
+                                      color: '#4f46e5',
+                                      textDecoration: 'underline',
+                                      fontSize: 13,
+                                      cursor: 'pointer',
+                                    }}
+                                    title={`Download ${f.name}`}
+                                  >
+                                    [{f.type ? f.type.toUpperCase() : ''}]
+                                  </a>
+                                ))}
+                              </div>
+                            ) : <span style={{ color: '#aaa', fontSize: 13 }}>—</span>}
+                          </td>
+                        ) : null}
+                        {idx === 0 ? (
+                          <td rowSpan={txn.transactionEntries.length}><span className={`${styles.badge} ${txn.status === "APPROVED" ? styles.badgeApproved : txn.status === "REJECTED" ? styles.badgeRejected : styles.badgePending}`}>{txn.status === "APPROVED" ? "Approved" : txn.status === "REJECTED" ? "Rejected" : "Pending"}</span></td>
+                        ) : null}
+                        {idx === 0 ? (
+                          <td rowSpan={txn.transactionEntries.length}>{txn.comment || "—"}</td>
+                        ) : null}
+                      </tr>
+                    ))
+                  ) : null
+                )
+              ) : (
                 <tr><td colSpan={7} style={{ textAlign: "center", padding: "2rem", color: "#6b7280" }}>No journal entries found.</td></tr>
               )}
             </tbody>
