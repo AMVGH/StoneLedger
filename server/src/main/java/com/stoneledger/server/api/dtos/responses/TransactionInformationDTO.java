@@ -6,10 +6,12 @@ import com.stoneledger.server.api.enums.TransactionType;
 import com.stoneledger.server.api.models.TransactionEntryModel;
 import com.stoneledger.server.api.models.UserModel;
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Data
 public class TransactionInformationDTO {
     private Long id;
     private TransactionType transactionType;

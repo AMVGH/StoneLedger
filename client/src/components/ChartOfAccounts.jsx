@@ -42,7 +42,8 @@ function AddAccountModal({ onClose, onSuccess }) {
 
   const handleCategoryChange = async (e) => {
     const category = e.target.value;
-    setForm((prev) => ({ ...prev, accountCategory: category, accountNumber: "" }));
+    const normalSide = ["ASSET", "EXPENSE"].includes(category) ? "LEFT" : "RIGHT";
+    setForm((prev) => ({ ...prev, accountCategory: category, accountNumber: "", normalSide }));
     if (!category) return;
     setGenerating(true);
     setFormError("");
@@ -130,11 +131,14 @@ function AddAccountModal({ onClose, onSuccess }) {
               <input type="text" name="accountDescription" className={styles.formInput} placeholder="Brief description" value={form.accountDescription} onChange={handleChange} />
             </div>
             <div className={styles.formGroup}>
-              <label className={styles.formLabel}>Normal Side <span className={styles.required}>*</span></label>
-              <select name="normalSide" className={styles.formSelect} value={form.normalSide} onChange={handleChange}>
-                <option value="">Select side</option>
-                {NORMAL_SIDES.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
+              <label className={styles.formLabel}>Normal Side</label>
+              <input
+                type="text"
+                className={styles.formInput}
+                value={form.normalSide || "—"}
+                readOnly
+                style={{ background: "var(--color-background-secondary,#f9fafb)", color: "var(--color-text-secondary,#6b7280)" }}
+              />
             </div>
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>Account Subcategory <span className={styles.required}>*</span></label>
@@ -258,29 +262,44 @@ export default function ChartOfAccounts({ onAccountSelect, onEditAccount, refres
     return [...new Set(source.map((a) => a.accountSubcategory))];
   }, [accounts, filters.category]);
 
-  const filteredAccounts = useMemo(() => {
-    const query = searchTerm.trim().toLowerCase();
-    const minBalance = Number(filters.minBalance);
-    const maxBalance = Number(filters.maxBalance);
-    return accounts.filter((acct) => {
+const filteredAccounts = useMemo(() => {
+  const query = searchTerm.trim().toLowerCase();
+  const minBalance = Number(filters.minBalance);
+  const maxBalance = Number(filters.maxBalance);
+
+  return accounts
+    .filter((acct) => {
       const dateStr = toDateStr(acct.accountAddDate);
       if (selectedDate && dateStr > selectedDate) return false;
+
       if (query) {
-        const match = [acct.accountNumber, acct.accountName, acct.accountDescription,
-          acct.accountCategory, acct.accountSubcategory, acct.associatedStatement]
-          .join(" ").toLowerCase().includes(query);
+        const match = [
+          acct.accountNumber,
+          acct.accountName,
+          acct.accountDescription,
+          acct.accountCategory,
+          acct.accountSubcategory,
+          acct.associatedStatement,
+        ]
+          .join(" ")
+          .toLowerCase()
+          .includes(query);
         if (!match) return false;
       }
+
       if (filters.accountName && !acct.accountName?.toLowerCase().includes(filters.accountName.toLowerCase())) return false;
       if (filters.accountNumber && !String(acct.accountNumber).includes(filters.accountNumber)) return false;
       if (filters.category && acct.accountCategory !== filters.category) return false;
       if (filters.subcategory && acct.accountSubcategory !== filters.subcategory) return false;
+
       const bal = Number(acct.balance);
       if (!Number.isNaN(minBalance) && filters.minBalance !== "" && bal < minBalance) return false;
       if (!Number.isNaN(maxBalance) && filters.maxBalance !== "" && bal > maxBalance) return false;
+
       return true;
-    });
-  }, [accounts, searchTerm, selectedDate, filters]);
+    })
+    .sort((a, b) => a.accountNumber - b.accountNumber)
+}, [accounts, searchTerm, selectedDate, filters]);
 
   const handleFilterInput = (e) => {
     const { name, value } = e.target;

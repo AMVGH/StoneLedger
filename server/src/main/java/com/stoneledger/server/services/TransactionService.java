@@ -1,8 +1,8 @@
 package com.stoneledger.server.services;
 
 import com.stoneledger.server.api.dtos.requests.TransactionCreationDTO;
+import com.stoneledger.server.api.dtos.requests.TransactionEntryDTO;
 import com.stoneledger.server.api.dtos.requests.TransactionStatusUpdateDTO;
-import com.stoneledger.server.api.dtos.responses.AccountInformationDTO;
 import com.stoneledger.server.api.dtos.responses.AccountSummaryDTO;
 import com.stoneledger.server.api.dtos.responses.TransactionInformationDTO;
 import com.stoneledger.server.api.dtos.responses.TransactionPendingEntryDTO;
@@ -22,10 +22,10 @@ import com.stoneledger.server.utils.MonetaryUtil;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
-import org.hibernate.annotations.NaturalId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -54,6 +54,43 @@ public class TransactionService {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+    public List<TransactionInformationDTO> getAllEntries() {
+        List<TransactionModel> transactions = transactionRepository.findAllByOrderByCreatedDateDesc();
+
+        return transactions.stream()
+            .map(txn -> {
+                TransactionInformationDTO dto = new TransactionInformationDTO();
+                dto.setId(txn.getId());
+                dto.setTransactionType(txn.getTransactionType());
+                dto.setTransactionDescription(txn.getTransactionDescription());
+                dto.setAttachment(txn.getAttachment());
+                dto.setAttachmentName(txn.getAttachmentName());
+                dto.setCreatedBy(txn.getCreatedBy() != null ? txn.getCreatedBy().getId() : null);
+                dto.setCreatedDate(txn.getCreatedDate());
+                dto.setTransactionStatus(txn.getTransactionStatus());
+                dto.setApprovedBy(txn.getUpdatedBy() != null ? txn.getUpdatedBy().getId() : null);
+                dto.setApprovedDate(txn.getUpdateDate());
+                dto.setApprovalComment(txn.getUpdateComment());
+
+                List<TransactionEntryDTO> entryDTOs = txn.getAccountsImpacted() == null
+                    ? List.of()
+                    : txn.getAccountsImpacted().stream()
+                    .map(entry -> {
+                        TransactionEntryDTO entryDTO = new TransactionEntryDTO();
+                        entryDTO.setAccountId(entry.getAccountImpacted() != null ? entry.getAccountImpacted().getId() : null);
+                        entryDTO.setEntryType(entry.getEntryType());
+                        entryDTO.setAmount(entry.getAmount());
+                        return entryDTO;
+                    })
+                    .collect(Collectors.toList());
+
+                dto.setAccountsImpacted(entryDTOs);
+                return dto;
+            })
+            .collect(Collectors.toList());
+    }
     public List<TransactionPendingEntryDTO> getPendingTransactionEntries() {
         return transactionRepository.findByTransactionStatus(TransactionStatus.PENDING)
             .stream()
@@ -154,28 +191,29 @@ public class TransactionService {
                 errorMessageService.getError(132)
             ));
 
-        entityManager.detach(beforeImageTransaction);
+        // Serialize BEFORE detaching
+        String beforeImageTransactionJson = objectMapper.writeValueAsString(beforeImageTransaction);
 
         TransactionModel afterImageTransaction = transactionRepository.findById(request.getTransactionId())
             .orElseThrow(() -> new TransactionValidationException(
                 errorMessageService.getError(132)
             ));
 
-        if (afterImageTransaction.getTransactionStatus() == TransactionStatus.APPROVED || afterImageTransaction.getTransactionStatus() != TransactionStatus.PENDING ) {
+        if (afterImageTransaction.getTransactionStatus() == TransactionStatus.APPROVED || afterImageTransaction.getTransactionStatus() != TransactionStatus.PENDING) {
             throw new TransactionValidationException(errorMessageService.getError(133));
         }
 
-        // Sets the transaction status to APPROVED
         afterImageTransaction.setTransactionStatus(TransactionStatus.APPROVED);
+        afterImageTransaction.setUpdateComment(request.getStatusUpdateReason());
 
-        // Since the transaction has been approved, update the accounts impacted, as well as the entries impacted for the ledger
         for (TransactionEntryModel entry : afterImageTransaction.getAccountsImpacted()) {
             AccountModel beforeImageAccount = accountRepository.findById(entry.getAccountImpacted().getId())
                 .orElseThrow(() -> new FinancialAccountException(
                     errorMessageService.getError(123)
                 ));
 
-            entityManager.detach(beforeImageAccount);
+            // Serialize BEFORE detaching
+            String beforeImageAccountJson = objectMapper.writeValueAsString(beforeImageAccount);
 
             AccountModel afterImageAccount = accountRepository.findById(entry.getAccountImpacted().getId())
                 .orElseThrow(() -> new FinancialAccountException(
@@ -201,8 +239,8 @@ public class TransactionService {
             afterImageAccount.setBalance(newBalance);
             accountRepository.saveAndFlush(afterImageAccount);
 
-            entityManager.detach(entry);
-            TransactionEntryModel beforeImageEntry = entry;
+            // Serialize BEFORE detaching
+            String beforeImageEntryJson = objectMapper.writeValueAsString(entry);
 
             TransactionEntryModel afterImageEntry = transactionEntryRepository.findById(entry.getId())
                 .orElseThrow(() -> new TransactionValidationException(
@@ -216,7 +254,7 @@ public class TransactionService {
                 request.getUserId(),
                 LoggingTables.ACCOUNTS,
                 LoggingEvents.UPDATE,
-                beforeImageAccount,
+                beforeImageAccountJson,   // pre-serialized
                 afterImageAccount
             );
 
@@ -224,7 +262,7 @@ public class TransactionService {
                 request.getUserId(),
                 LoggingTables.TRANSACTION_ENTRIES,
                 LoggingEvents.UPDATE,
-                beforeImageEntry,
+                beforeImageEntryJson,     // pre-serialized
                 afterImageEntry
             );
         }
@@ -235,9 +273,10 @@ public class TransactionService {
             request.getUserId(),
             LoggingTables.TRANSACTIONS,
             LoggingEvents.UPDATE,
-            beforeImageTransaction,
+            beforeImageTransactionJson,   // pre-serialized
             afterImageTransaction
         );
+
         return true;
     }
 
@@ -248,6 +287,7 @@ public class TransactionService {
                 errorMessageService.getError(132)
             ));
 
+        String beforeImageJson = objectMapper.writeValueAsString(beforeImageTransaction);
         entityManager.detach(beforeImageTransaction);
 
         TransactionModel afterImageTransaction = transactionRepository.findById(request.getTransactionId())
@@ -257,7 +297,10 @@ public class TransactionService {
 
         if (afterImageTransaction.getTransactionStatus() == TransactionStatus.REJECTED || afterImageTransaction.getTransactionStatus() != TransactionStatus.PENDING ) {
             throw new TransactionValidationException(errorMessageService.getError(133));
-        } else afterImageTransaction.setTransactionStatus(TransactionStatus.REJECTED);
+        } else {
+            afterImageTransaction.setTransactionStatus(TransactionStatus.REJECTED);
+            afterImageTransaction.setUpdateComment(request.getStatusUpdateReason());
+        }
 
         transactionRepository.saveAndFlush(afterImageTransaction);
 
@@ -265,7 +308,7 @@ public class TransactionService {
             request.getUserId(),
             LoggingTables.TRANSACTIONS,
             LoggingEvents.UPDATE,
-            beforeImageTransaction,
+            beforeImageJson,
             afterImageTransaction
         );
 

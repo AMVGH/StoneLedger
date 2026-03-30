@@ -2,6 +2,7 @@ package com.stoneledger.server.api.controllers;
 
 import com.stoneledger.server.api.dtos.ApiResponseDTO;
 import com.stoneledger.server.api.dtos.requests.TransactionCreationDTO;
+import com.stoneledger.server.api.dtos.requests.TransactionEntryDTO;
 import com.stoneledger.server.api.dtos.requests.TransactionStatusUpdateDTO;
 import com.stoneledger.server.api.dtos.responses.TransactionInformationDTO;
 import com.stoneledger.server.api.dtos.responses.TransactionPendingEntryDTO;
@@ -51,7 +52,7 @@ public class TransactionController {
     }
 
     @GetMapping("/get-pending-entries")
-    public ResponseEntity<ApiResponseDTO<?>> updateTransactionStatus() {
+    public ResponseEntity<ApiResponseDTO<?>> getPendingEntries() {
         List<TransactionPendingEntryDTO> pendingTransactionEntries = transactionService.getPendingTransactionEntries();
         return ResponseEntity.ok(ApiResponseDTO.success(pendingTransactionEntries));
     }

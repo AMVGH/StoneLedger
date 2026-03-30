@@ -3,72 +3,134 @@ import { create } from 'zustand';
 
 const useTransactionContext = create((set) => ({
 
-		// Create a new journal transaction
-		createNewTransaction: async (transaction, file = null) => {
-			set({ loading: true, error: null });
-			try {
-				let response;
-				if (file) {
-					const formData = new FormData();
-					formData.append('transaction', JSON.stringify(transaction));
-					formData.append('file', file);
-					response = await api.post('/transactions/create-journal-transaction', formData);
-				} else {
-					response = await api.post('/transactions/create-journal-transaction', transaction);
-				}
-				set({ loading: false });
-				return response.data;
-			} catch (error) {
-				const errorMsg = error.response?.data?.message || error.message || 'Failed to create journal transaction';
-				set({ error: errorMsg, loading: false });
-				throw error;
-			}
-		},
-	loading: false,
-	error: null,
+  createNewTransaction: async (transaction, file = null) => {
+    set({ loading: true, error: null });
+    try {
+      const formData = new FormData();
+      formData.append(
+        'transaction',
+        new Blob([JSON.stringify(transaction)], { type: 'application/json' })
+      );
+      if (file) {
+        formData.append('attachment', file);
+      }
+      const response = await api.post(
+        '/transactions/create-journal-transaction',
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      );
+      set({ loading: false });
+      return response.data;
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to create journal transaction';
+      set({ error: errorMsg, loading: false });
+      throw error;
+    }
+  },
 
+  loading: false,
+  error: null,
 
-	
-	approveTransaction: async (transactionStatusUpdate) => {
-		set({ loading: true, error: null });
-		try {
-			const response = await api.post('/transactions/approve-transaction', transactionStatusUpdate);
-			set({ loading: false });
-			return response.data;
-		} catch (error) {
-			const errorMsg = error.response?.data?.message || error.message || 'Failed to approve transaction';
-			set({ error: errorMsg, loading: false });
-			throw error;
-		}
-	},
+  getPendingEntries: async () => {
+    set({ loading: true, error: null });
+    try {
+      const response = await api.get('/transactions/get-pending-entries');
+      set({ loading: false });
+      return response.data;
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to fetch pending entries';
+      set({ error: errorMsg, loading: false });
+      throw error;
+    }
+  },
 
-	rejectTransaction: async (transactionStatusUpdate) => {
-		set({ loading: true, error: null });
-		try {
-			const response = await api.post('/transactions/reject-transaction', transactionStatusUpdate);
-			set({ loading: false });
-			return response.data;
-		} catch (error) {
-			const errorMsg = error.response?.data?.message || error.message || 'Failed to reject transaction';
-			set({ error: errorMsg, loading: false });
-			throw error;
-		}
-	},
+  approveTransaction: async (txnId, comment, userId) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await api.post(`/transactions/approve-transaction`, {
+        transactionId: txnId,
+        statusUpdateReason: comment,
+        userId: userId
+      });
+      set({ loading: false });
+      return response.data;
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to approve transaction';
+      set({ error: errorMsg, loading: false });
+      throw error;
+    }
+  },
 
-	getPendingEntries: async () => {
-		set({ loading: true, error: null });
-		try {
-			const response = await api.get('/transactions/get-pending-entries');
-			set({ loading: false });
-			return response.data;
-		} catch (error) {
-			const errorMsg = error.response?.data?.message || error.message || 'Failed to fetch pending entries';
-			set({ error: errorMsg, loading: false });
-			throw error;
-		}
-	},
+  rejectTransaction: async (txnId, comment, userId) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await api.post(`/transactions/reject-transaction`, {
+        transactionId: txnId,
+        statusUpdateReason: comment,
+        userId: userId
+      });
+      set({ loading: false });
+      return response.data;
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to reject transaction';
+      set({ error: errorMsg, loading: false });
+      throw error;
+    }
+  },
 
-	clearError: () => set({ error: null })
+  getApprovedEntriesForLedger: async (accountId) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await api.get(`/transaction-entries/get-approved-transaction-entries/${accountId}`);
+      set({ loading: false });
+      return response.data;
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to fetch ledger entries';
+      set({ error: errorMsg, loading: false });
+      throw error;
+    }
+  },
+
+  getTotalPages: async () => {
+    set({ loading: true, error: null });
+    try {
+      const response = await api.get('/general-journal/get-total-pages');
+      set({ loading: false });
+      return response.data;
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to fetch total pages';
+      set({ error: errorMsg, loading: false });
+      throw error;
+    }
+  },
+
+  getTransactionsForPage: async (pageNumber) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await api.get(`/general-journal/get-transactions-for-page/${pageNumber}`);
+      set({ loading: false });
+      return response.data;
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to fetch transactions for page';
+      set({ error: errorMsg, loading: false });
+      throw error;
+    }
+  },
+
+  getPageReference: async (transactionId) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await api.get(`/general-journal/get-page-reference/${transactionId}`);
+      set({ loading: false });
+      return response.data;
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to fetch page reference';
+      set({ error: errorMsg, loading: false });
+      throw error;
+    }
+  },
+
+  clearError: () => set({ error: null })
 }));
 
 export default useTransactionContext;

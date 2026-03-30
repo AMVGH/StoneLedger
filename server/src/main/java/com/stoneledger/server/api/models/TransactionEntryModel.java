@@ -1,5 +1,6 @@
 package com.stoneledger.server.api.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.stoneledger.server.api.enums.EntryType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -23,6 +24,7 @@ public class TransactionEntryModel {
 
     @ManyToOne
     @JoinColumn(name = "transaction_id", nullable = true) // ONLY null on account creation entries, otherwise this should always have a reference.
+    @JsonIgnore
     private TransactionModel parentTransaction;
 
     @ManyToOne

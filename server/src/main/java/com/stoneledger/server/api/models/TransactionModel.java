@@ -41,12 +41,12 @@ public class TransactionModel {
     @Column(name = "transaction_status", nullable = false)
     private TransactionStatus transactionStatus;
     @ManyToOne
-    @JoinColumn(name = "approved_by")
-    private UserModel approvedBy;
-    @Column(name = "approved_date")
-    private LocalDateTime approvedDate;
-    @Column(name = "approval_comment")
-    private String approvalComment;
+    @JoinColumn(name = "updated_by")
+    private UserModel updatedBy;
+    @Column(name = "update_date")
+    private LocalDateTime updateDate;
+    @Column(name = "update_comment")
+    private String updateComment;
 }
 
 
