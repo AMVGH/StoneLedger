@@ -461,11 +461,9 @@ public class ValidationUtil {
     }
 
     public boolean isValidTransactionStatusUpdateRequest(TransactionStatusUpdateDTO request) {
-        if (request.getTransactionId() == null || request.getUserId() == null) {
+        if (request.getTransactionId() == null || request.getUserId() == null || request.getStatusUpdateReason() == null || request.getStatusUpdateReason().isBlank()) {
             throw new TransactionValidationException(errorMessageService.getError(100));
         }
-
-        isValidAccountId(request.getTransactionId());
         isValidUserId(request.getUserId());
 
         return true;

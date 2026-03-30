@@ -6,5 +6,6 @@ import lombok.Data;
 @Data
 public class TransactionStatusUpdateDTO {
     private Long transactionId;
+    private String statusUpdateReason;
     private Long userId;
 }

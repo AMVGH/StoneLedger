@@ -1,6 +1,8 @@
 package com.stoneledger.server.api.controllers;
 
 import com.stoneledger.server.api.dtos.ApiResponseDTO;
+import com.stoneledger.server.api.dtos.requests.TransactionEntryDTO;
+import com.stoneledger.server.api.dtos.responses.TransactionInformationDTO;
 import com.stoneledger.server.api.models.TransactionModel;
 import com.stoneledger.server.api.repositories.TransactionRepository;
 import com.stoneledger.server.services.GeneralJournalService;
@@ -34,7 +36,7 @@ public class GeneralJournalController {
     public ResponseEntity<ApiResponseDTO<?>> getTransactionsForPage(@PathVariable int pageNumber) {
         int totalJournalPages = generalJournalService.calculateTotalJournalPages();
         validationUtil.isValidPageNumber(pageNumber, totalJournalPages);
-        List<TransactionModel> pageTransactions = generalJournalService.findTransactionsForPage(pageNumber);
+        List<TransactionInformationDTO> pageTransactions = generalJournalService.findTransactionsForPage(pageNumber);
         return ResponseEntity.ok(ApiResponseDTO.success(pageTransactions));
     }
 

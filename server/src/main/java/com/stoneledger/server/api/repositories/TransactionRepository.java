@@ -10,4 +10,5 @@ import java.util.List;
 @Repository
 public interface TransactionRepository extends JpaRepository<TransactionModel, Long> {
     List<TransactionModel> findByTransactionStatus(TransactionStatus status);
+    List<TransactionModel> findAllByOrderByCreatedDateDesc();
 }
