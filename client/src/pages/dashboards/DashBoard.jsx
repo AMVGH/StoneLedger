@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import styles from "./DashBoard.module.css";
 import Logo from "../../components/Logo";
 import UsersTable from "../../components/UsersTable";
@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import ChartOfAccounts from "../../components/ChartOfAccounts";
 import EventLogs from "../../components/EventLogs";
 import AccountLedger from "../../components/AccountLedger";
+import GeneralJournal from "../../components/GeneralJournal";
 import { SECURITY_QUESTIONS } from "../../utils/SecurityQuestions";
 
 const ACCOUNT_CATEGORIES = ["ASSET", "EXPENSE", "LIABILITY", "EQUITY", "REVENUE"];
@@ -194,10 +195,285 @@ function EditAccountModal({ account, onClose, onSuccess }) {
   );
 }
 
+// ── Notification Bell (Manager only) ──────────────────────────────────────────
+function NotificationBell({ onNavigateToJournal }) {
+  const [entries, setEntries] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const modalRef = useRef(null);
+  const token = localStorage.getItem("authToken");
+
+  const fetchPending = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("http://localhost:8080/api/transactions/get-pending-entries", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json();
+      setEntries(json?.data || []);
+    } catch {
+      setError("Failed to load pending entries.");
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  // Poll every 30 seconds for badge count
+  useEffect(() => {
+    fetchPending();
+    const interval = setInterval(fetchPending, 30000);
+    return () => clearInterval(interval);
+  }, [fetchPending]);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e) {
+      if (modalRef.current && !modalRef.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  const handleOpen = () => {
+    setOpen((p) => !p);
+    if (!open) fetchPending();
+  };
+
+  const formatDate = (val) => {
+    if (!val) return "—";
+    const d = new Date(val);
+    return isNaN(d) ? String(val).slice(0, 10) : d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  };
+
+  const count = entries.length;
+
+  return (
+    <div style={{ position: "relative" }}>
+      {/* Bell button */}
+      <button
+        title="Pending Transactions"
+        onClick={handleOpen}
+        style={{
+          position: "relative",
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          padding: "4px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: open ? "#4f46e5" : "#6b7280",
+          borderRadius: "6px",
+          transition: "color 0.15s",
+        }}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+        </svg>
+        {count > 0 && (
+          <span style={{
+            position: "absolute",
+            top: "-2px",
+            right: "-4px",
+            background: "#ef4444",
+            color: "#fff",
+            borderRadius: "999px",
+            fontSize: "10px",
+            fontWeight: 700,
+            minWidth: "16px",
+            height: "16px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "0 4px",
+            lineHeight: 1,
+            boxShadow: "0 0 0 2px #fff",
+            pointerEvents: "none",
+          }}>
+            {count > 99 ? "99+" : count}
+          </span>
+        )}
+      </button>
+
+      {/* Dropdown modal */}
+      {open && (
+        <div
+          ref={modalRef}
+          style={{
+            position: "absolute",
+            top: "calc(100% + 10px)",
+            right: 0,
+            width: "380px",
+            maxHeight: "480px",
+            background: "#fff",
+            border: "0.5px solid #e5e7eb",
+            borderRadius: "12px",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
+            zIndex: 1000,
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+          }}
+        >
+          {/* Header */}
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "14px 16px 12px",
+            borderBottom: "0.5px solid #f3f4f6",
+            flexShrink: 0,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                fill="none" stroke="#4f46e5" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              </svg>
+              <span style={{ fontSize: "14px", fontWeight: 600, color: "#111827" }}>Pending Transactions</span>
+              {count > 0 && (
+                <span style={{
+                  background: "#fef2f2",
+                  color: "#ef4444",
+                  border: "0.5px solid #fecaca",
+                  borderRadius: "999px",
+                  fontSize: "11px",
+                  fontWeight: 600,
+                  padding: "1px 7px",
+                }}>
+                  {count} pending
+                </span>
+              )}
+            </div>
+            <button
+              onClick={() => setOpen(false)}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "#9ca3af", fontSize: "16px", lineHeight: 1, padding: "0 2px" }}
+            >✕</button>
+          </div>
+
+          {/* Body */}
+          <div style={{ overflowY: "auto", flex: 1 }}>
+            {loading ? (
+              <div style={{ padding: "32px 16px", textAlign: "center", color: "#6b7280", fontSize: "13px" }}>
+                Loading…
+              </div>
+            ) : error ? (
+              <div style={{ padding: "24px 16px", textAlign: "center", color: "#ef4444", fontSize: "13px" }}>{error}</div>
+            ) : entries.length === 0 ? (
+              <div style={{ padding: "40px 16px", textAlign: "center" }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"
+                  fill="none" stroke="#d1d5db" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+                  style={{ display: "block", margin: "0 auto 10px" }}>
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+                <p style={{ fontSize: "13px", color: "#9ca3af", margin: 0 }}>No pending transactions</p>
+              </div>
+            ) : (
+              <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+                {entries.map((entry, idx) => (
+                  <li
+                    key={entry.transactionId ?? idx}
+                    style={{
+                      padding: "12px 16px",
+                      borderBottom: idx < entries.length - 1 ? "0.5px solid #f3f4f6" : "none",
+                    }}
+                  >
+                    {/* Row: ID + date */}
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
+                      <span style={{
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        color: "#4f46e5",
+                        background: "#eef2ff",
+                        borderRadius: "5px",
+                        padding: "2px 7px",
+                      }}>
+                        TXN #{entry.transactionId}
+                      </span>
+                      <span style={{ fontSize: "11px", color: "#9ca3af" }}>
+                        {formatDate(entry.transactionAddDate)}
+                      </span>
+                    </div>
+
+                    {/* Accounts */}
+                    {entry.accountsImpacted && entry.accountsImpacted.length > 0 ? (
+                      <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "4px" }}>
+                        {entry.accountsImpacted.map((acct, ai) => (
+                          <li key={ai} style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            fontSize: "12px",
+                            color: "#374151",
+                            background: "#f9fafb",
+                            borderRadius: "5px",
+                            padding: "4px 8px",
+                          }}>
+                            <span style={{ fontWeight: 500 }}>
+                              {acct.accountNumber ? `${acct.accountNumber} — ` : ""}{acct.accountName || `Account #${acct.accountId ?? acct.id ?? "?"}`}
+                            </span>
+                            <div style={{ display: "flex", gap: "8px", flexShrink: 0, marginLeft: "8px" }}>
+                              {acct.debit != null && Number(acct.debit) !== 0 && (
+                                <span style={{ color: "#059669", fontWeight: 600 }}>
+                                  Dr ${Number(acct.debit).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                                </span>
+                              )}
+                              {acct.credit != null && Number(acct.credit) !== 0 && (
+                                <span style={{ color: "#dc2626", fontWeight: 600 }}>
+                                  Cr ${Number(acct.credit).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                                </span>
+                              )}
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p style={{ fontSize: "12px", color: "#9ca3af", margin: 0 }}>No accounts listed.</p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* Footer */}
+          {entries.length > 0 && (
+            <div style={{
+              padding: "10px 16px",
+              borderTop: "0.5px solid #f3f4f6",
+              flexShrink: 0,
+              display: "flex",
+              justifyContent: "flex-end",
+            }}>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Main Dashboard ─────────────────────────────────────────────────────────────
 export default function DashBoard() {
+  const { user, getLoggedInUserInfo } = useUserContext();
+  const token = localStorage.getItem("authToken");
   const initialUser = (() => { try { return JSON.parse(localStorage.getItem("user")) || null; } catch { return null; } })();
-  const initialNav = (initialUser?.userRole === "MANAGER" || initialUser?.userRole === "ACCOUNTANT") ? "Chart of Accounts" : "User Management";
+  const initialNav = (initialUser?.userRole === "MANAGER" || initialUser?.userRole === "ACCOUNTANT" || initialUser?.userRole === "USER") ? "Chart of Accounts" : "User Management";
   const [nav, setNav] = useState(initialNav);
+  const [prevNav, setPrevNav] = useState("Chart of Accounts");
+
+  useEffect(() => {
+    if (!user && token) {
+      getLoggedInUserInfo(token).catch(() => {});
+    }
+  }, [user, token, getLoggedInUserInfo]);
+
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [editingAccount, setEditingAccount] = useState(null);
   const [refreshAccounts, setRefreshAccounts] = useState(0);
@@ -338,12 +614,23 @@ export default function DashBoard() {
               <button className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`} onClick={() => setNav("Event Logs")}>Event Logs</button>
             </>
           )}
-          {(loggedInUser.role === "MANAGER" || loggedInUser.role === "ACCOUNTANT") && (
+          {(loggedInUser.role === "MANAGER") && (
             <>
               <button
                 className={`${styles.navItem} ${(nav === "Chart of Accounts" || nav === "Account Ledger") ? styles.activeNav : ""}`}
                 onClick={() => { setNav("Chart of Accounts"); setSelectedAccount(null); }}
               >Chart of Accounts</button>
+              <button className={`${styles.navItem} ${nav === "General Journal" ? styles.activeNav : ""}`} onClick={() => setNav("General Journal")}>General Journal</button>
+              <button className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`} onClick={() => setNav("Event Logs")}>Event Logs</button>
+            </>
+          )}
+          {loggedInUser.role === "USER" && (
+            <>
+              <button
+                className={`${styles.navItem} ${(nav === "Chart of Accounts" || nav === "Account Ledger") ? styles.activeNav : ""}`}
+                onClick={() => { setNav("Chart of Accounts"); setSelectedAccount(null); }}
+              >Chart of Accounts</button>
+              <button className={`${styles.navItem} ${nav === "General Journal" ? styles.activeNav : ""}`} onClick={() => setNav("General Journal")}>General Journal</button>
               <button className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`} onClick={() => setNav("Event Logs")}>Event Logs</button>
             </>
           )}
@@ -359,6 +646,14 @@ export default function DashBoard() {
           <div className={styles.topbarContent}>
             <div className={styles.spacer}></div>
             <div className={styles.rightSection}>
+
+              {/* Notification Bell — managers only */}
+              {loggedInUser.role === "MANAGER" && (
+                <NotificationBell
+                  onNavigateToJournal={() => setNav("General Journal")}
+                />
+              )}
+
               <div className={styles.settingsWrap}>
                 <button className={styles.iconBtn} title="Settings" onClick={() => setShowSettings((prev) => !prev)}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -396,7 +691,7 @@ export default function DashBoard() {
           <div className={`${styles.notification} ${styles[notification.type]}`}>{notification.message}</div>
         )}
 
-        {nav === "User Management" && ["ADMINISTRATOR", "MANAGER", "ACCOUNTANT"].includes(loggedInUser.role) && (
+        {nav === "User Management" && ["ADMINISTRATOR"].includes(loggedInUser.role) && (
           <section className={styles.content}><h2>User Management</h2><p>Manage users, roles, and permissions.</p><UsersTable /></section>
         )}
         {nav === "Create User" && loggedInUser.role === "ADMINISTRATOR" && (
@@ -405,17 +700,18 @@ export default function DashBoard() {
         {nav === "Pending" && loggedInUser.role === "ADMINISTRATOR" && (
           <section className={styles.content}><h2>Pending Requests</h2><p>Approve or deny pending user access requests.</p><PendingTable onApprove={handleApprove} onDeny={handleDeny} /></section>
         )}
-        {nav === "Expired Passwords" && ["ADMINISTRATOR", "MANAGER", "ACCOUNTANT"].includes(loggedInUser.role) && (
+        {nav === "Expired Passwords" && ["ADMINISTRATOR"].includes(loggedInUser.role) && (
           <section className={styles.content}><h2>Expired Passwords</h2><p>View and manage users with expired passwords.</p><ExpiredPasswords /></section>
         )}
 
-        {nav === "Chart of Accounts" && ["ADMINISTRATOR", "MANAGER", "ACCOUNTANT"].includes(loggedInUser.role) && (
+        {nav === "Chart of Accounts" && ["ADMINISTRATOR", "MANAGER", "USER"].includes(loggedInUser.role) && (
           <section className={styles.content}>
             <h2>Chart of Accounts</h2>
             <p>View and manage the chart of accounts.</p>
             <ChartOfAccounts
               onAccountSelect={(account) => {
                 setSelectedAccount(account);
+                setPrevNav("Chart of Accounts");
                 setNav("Account Ledger");
               }}
               onEditAccount={loggedInUser.role === "ADMINISTRATOR" ? (account) => setEditingAccount(account) : undefined}
@@ -425,13 +721,29 @@ export default function DashBoard() {
           </section>
         )}
 
-        {nav === "Account Ledger" && ["ADMINISTRATOR", "MANAGER", "ACCOUNTANT"].includes(loggedInUser.role) && (
+        {nav === "Account Ledger" && ["ADMINISTRATOR", "MANAGER", "USER"].includes(loggedInUser.role) && (
           <section className={styles.content}>
-            <AccountLedger account={selectedAccount} onBack={() => setNav("Chart of Accounts")} />
+            <AccountLedger account={selectedAccount} onBack={() => setNav(prevNav)} />
           </section>
         )}
-        {nav === "Event Logs" && ["ADMINISTRATOR", "MANAGER", "ACCOUNTANT"].includes(loggedInUser.role) && (
+
+        {nav === "Event Logs" && ["ADMINISTRATOR", "MANAGER", "USER"].includes(loggedInUser.role) && (
           <section className={styles.content}><h2>Event Logs</h2><p>View system event logs for auditing and monitoring.</p><EventLogs /></section>
+        )}
+
+        {nav === "General Journal" && ["MANAGER", "USER"].includes(loggedInUser.role) && (
+          <section className={styles.content}>
+            <h2>General Journal</h2>
+            <p>View and manage journal entries.</p>
+            <GeneralJournal
+              userRole={loggedInUser?.role}
+              onAccountSelect={(account) => {
+                setSelectedAccount(account);
+                setPrevNav("General Journal");
+                setNav("Account Ledger");
+              }}
+            />
+          </section>
         )}
 
         {showHelp && (
@@ -449,7 +761,7 @@ export default function DashBoard() {
           </div>
         )}
 
-        {showResetModal && ["ADMINISTRATOR", "MANAGER", "ACCOUNTANT"].includes(loggedInUser.role) && (
+        {showResetModal && ["ADMINISTRATOR", "MANAGER", "USER"].includes(loggedInUser.role) && (
           <div className={styles.modalOverlay} onClick={() => { setShowResetModal(false); handleCancelReset(); }}>
             <div className={styles.resetModal} onClick={(e) => e.stopPropagation()}>
               <div className={styles.resetModalHeader}>

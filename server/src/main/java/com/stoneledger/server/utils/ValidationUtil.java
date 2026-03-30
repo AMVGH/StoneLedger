@@ -30,8 +30,6 @@ public class ValidationUtil {
     @Autowired
     private EncryptionUtil encryptionUtil;
     @Autowired
-    private AccountUtil accountUtil;
-    @Autowired
     private ErrorMessageService errorMessageService;
 
 
@@ -71,6 +69,14 @@ public class ValidationUtil {
         // Ensures the user ID exists in the table
         if (!userRepository.existsById(id)) {
             throw new InvalidIdException(errorMessageService.getError(112));
+        }
+        return true;
+    }
+
+    public boolean isValidAccountId(long id) throws InvalidIdException {
+        // Ensures the account ID exists in the table
+        if (!accountRepository.existsById(id)) {
+            throw new InvalidIdException(errorMessageService.getError(123));
         }
         return true;
     }
@@ -405,6 +411,73 @@ public class ValidationUtil {
             );
         }
 
+        return true;
+    }
+
+
+    public boolean isValidTransactionCreationRequest(TransactionCreationDTO request) {
+        // Ensures the creation request is valid
+        if (request.getTransactionType() == null || request.getCreatedBy() == null || request.getAccountsImpacted() == null) {
+            throw new TransactionValidationException(errorMessageService.getError(100));
+        }
+
+        // Ensures that the user id passed by the request is valid
+        isValidUserId(request.getCreatedBy());
+
+        // If the number of accounts impacted is less than two, throw an exception
+        if (request.getAccountsImpacted().size() < 2) {
+            throw new TransactionValidationException(errorMessageService.getError(129));
+        }
+
+        // Iterates over the accounts impacted and validates each one
+        for (TransactionEntryDTO transactionInnerAccountEntry : request.getAccountsImpacted()) {
+            if (transactionInnerAccountEntry == null) {
+                throw new TransactionValidationException(errorMessageService.getError(100));
+            }
+
+            if (transactionInnerAccountEntry.getAccountId() == null) {
+                throw new TransactionValidationException(errorMessageService.getError(123));
+            }
+
+            // Ensures that an account id is associated with each inner entry
+            isValidAccountId(transactionInnerAccountEntry.getAccountId());
+
+            // Ensures that the inner entry has an entry type associated with it (DEBIT or CREDIT)
+            if (transactionInnerAccountEntry.getEntryType() == null) {
+                throw new TransactionValidationException(errorMessageService.getError(130));
+            }
+
+            // Ensures that each inner entry has an amount associated with it
+            if (transactionInnerAccountEntry.getAmount() == null) {
+                throw new TransactionValidationException(errorMessageService.getError(131));
+            }
+
+            // Ensures that the amount for every inner entry is formatted correctly
+            if (!hasTwoDecimalPlaces(transactionInnerAccountEntry.getAmount())) {
+                throw new TransactionValidationException(errorMessageService.getError(120));
+            }
+        }
+        return true;
+    }
+
+    public boolean isValidTransactionStatusUpdateRequest(TransactionStatusUpdateDTO request) {
+        if (request.getTransactionId() == null || request.getUserId() == null || request.getStatusUpdateReason() == null || request.getStatusUpdateReason().isBlank()) {
+            throw new TransactionValidationException(errorMessageService.getError(100));
+        }
+        isValidUserId(request.getUserId());
+
+        return true;
+    }
+
+    public boolean isValidPageNumber(int pageNumber, int totalPages) {
+        if (totalPages == 0 && pageNumber == 1) {
+            return true; // No transactions yet, page 1 is still a valid request
+        }
+        if (pageNumber <= 0 || pageNumber > totalPages) {
+            throw new InvalidRequestException(
+                errorMessageService.getError(134)
+            );
+        }
         return true;
     }
 }

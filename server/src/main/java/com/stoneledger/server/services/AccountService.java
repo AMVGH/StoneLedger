@@ -6,9 +6,13 @@ import com.stoneledger.server.api.enums.*;
 import com.stoneledger.server.api.exeptions.FinancialAccountException;
 import com.stoneledger.server.api.exeptions.InvalidRequestException;
 import com.stoneledger.server.api.models.AccountModel;
+import com.stoneledger.server.api.models.TransactionEntryModel;
+import com.stoneledger.server.api.models.TransactionModel;
 import com.stoneledger.server.api.repositories.AccountRepository;
+import com.stoneledger.server.api.repositories.TransactionEntryRepository;
 import com.stoneledger.server.api.repositories.UserRepository;
-import com.stoneledger.server.utils.AccountUtil;
+import com.stoneledger.server.utils.MonetaryUtil;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,11 +30,16 @@ public class AccountService {
     private UserRepository userRepository;
 
     @Autowired
-    private AccountUtil accountUtil;
+    private EntityManager entityManager;
+
+    @Autowired
+    private MonetaryUtil monetaryUtil;
     @Autowired
     private EventLoggingService eventLoggingService;
     @Autowired
     private ErrorMessageService errorMessageService;
+    @Autowired
+    private TransactionEntryRepository transactionEntryRepository;
 
     public List<AccountInformationDTO> getFinancialAccounts() {
         return accountRepository.findAllWithUser().stream()
@@ -64,13 +73,14 @@ public class AccountService {
         LocalDateTime currentDateTime = LocalDateTime.now();
 
         // Validates that the account balance associated with the account is correct
-        accountUtil.validateAccountBalance(
+        monetaryUtil.validateAccountBalance(
             request.getNormalSide(),
             request.getInitialBalance(),
             request.getDebit(),
             request.getCredit(),
             request.getBalance()
         );
+
 
         // Builds all fields using the content passed in the request
         financialAccount.setAccountNumber(request.getAccountNumber());
@@ -93,7 +103,44 @@ public class AccountService {
         financialAccount.setAccountAddDate(currentDateTime);
 
         // Saves the new account to the database
-        accountRepository.save(financialAccount);
+        accountRepository.saveAndFlush(financialAccount);
+
+        //If the initial balance is non-zero, add an opening transaction and associated entries for ledger
+        if (request.getDebit().compareTo(BigDecimal.ZERO) != 0) {
+            TransactionEntryModel debitEntry = new TransactionEntryModel();
+            debitEntry.setParentTransaction(null);
+            debitEntry.setAccountImpacted(financialAccount);
+            debitEntry.setEntryType(EntryType.DEBIT);
+            debitEntry.setAmount(request.getDebit());
+            debitEntry.setIsApproved(true);
+            transactionEntryRepository.saveAndFlush(debitEntry);
+
+            eventLoggingService.logEvent(
+                request.getUserId(),
+                LoggingTables.TRANSACTION_ENTRIES,
+                LoggingEvents.CREATE,
+                null,
+                debitEntry
+            );
+        }
+
+        if (request.getCredit().compareTo(BigDecimal.ZERO) != 0) {
+            TransactionEntryModel creditEntry = new TransactionEntryModel();
+            creditEntry.setParentTransaction(null);
+            creditEntry.setAccountImpacted(financialAccount);
+            creditEntry.setEntryType(EntryType.CREDIT);
+            creditEntry.setAmount(request.getCredit());
+            creditEntry.setIsApproved(true);
+            transactionEntryRepository.saveAndFlush(creditEntry);
+
+            eventLoggingService.logEvent(
+                request.getUserId(),
+                LoggingTables.TRANSACTION_ENTRIES,
+                LoggingEvents.CREATE,
+                null,
+                creditEntry
+            );
+        }
 
         // Logs the account creation event with the eventLoggingService
         eventLoggingService.logEvent(
@@ -109,19 +156,20 @@ public class AccountService {
 
     @Transactional
     public boolean editFinancialAccount(UpdateAccountInformationDTO request) {
-        // Gathers images for both the old account and an account instance we will be updating for logging comparison
         AccountModel beforeImageAccount = accountRepository.findById(request.getId())
             .orElseThrow(() -> new FinancialAccountException(
                 errorMessageService.getError(123)
             ));
+
+        entityManager.detach(beforeImageAccount);
 
         AccountModel afterImageAccount = accountRepository.findById(request.getId())
             .orElseThrow(() -> new FinancialAccountException(
                 errorMessageService.getError(123)
             ));
 
-        // If the category is being changed from, ASSET or LIABILITY, enforce null on subcategory
-        boolean isAssetOrLiability = request.getAccountCategory() == AccountCategory.ASSET || request.getAccountCategory() == AccountCategory.LIABILITY;
+        boolean isAssetOrLiability = request.getAccountCategory() == AccountCategory.ASSET
+            || request.getAccountCategory() == AccountCategory.LIABILITY;
 
         if (!isAssetOrLiability) {
             afterImageAccount.setAccountSubcategory(AccountSubcategory.NONE);
@@ -129,13 +177,11 @@ public class AccountService {
             afterImageAccount.setAccountSubcategory(request.getAccountSubcategory());
         }
 
-        // Determines if any of the monetary fields have changed against what is stored in the database
         boolean monetaryFieldChanged = request.getInitialBalance().compareTo(beforeImageAccount.getInitialBalance()) != 0
             || request.getDebit().compareTo(beforeImageAccount.getDebit()) != 0
             || request.getCredit().compareTo(beforeImageAccount.getCredit()) != 0
             || request.getBalance().compareTo(beforeImageAccount.getBalance()) != 0;
 
-        // If any of the fields have changed, we must revalidate the balance to ensure that the balance displayed on the account is always valid
         if (monetaryFieldChanged) {
             NormalSide normalSide = !request.getNormalSide().equals(beforeImageAccount.getNormalSide())
                 ? request.getNormalSide()
@@ -143,28 +189,19 @@ public class AccountService {
             BigDecimal initialBalance = request.getInitialBalance().compareTo(beforeImageAccount.getInitialBalance()) != 0
                 ? request.getInitialBalance()
                 : beforeImageAccount.getInitialBalance();
-
             BigDecimal debit = request.getDebit().compareTo(beforeImageAccount.getDebit()) != 0
                 ? request.getDebit()
                 : beforeImageAccount.getDebit();
-
             BigDecimal credit = request.getCredit().compareTo(beforeImageAccount.getCredit()) != 0
                 ? request.getCredit()
                 : beforeImageAccount.getCredit();
-
             BigDecimal balance = request.getBalance().compareTo(beforeImageAccount.getBalance()) != 0
                 ? request.getBalance()
                 : beforeImageAccount.getBalance();
 
-            accountUtil.validateAccountBalance(
-                normalSide,
-                initialBalance,
-                debit,
-                credit,
-                balance);
+            monetaryUtil.validateAccountBalance(normalSide, initialBalance, debit, credit, balance);
         }
 
-        // Updated the afterImageAccount with the values from the request
         afterImageAccount.setAccountNumber(request.getAccountNumber());
         afterImageAccount.setAccountName(request.getAccountName());
         afterImageAccount.setAccountDescription(request.getAccountDescription());
@@ -179,10 +216,105 @@ public class AccountService {
         afterImageAccount.setAssociatedStatement(request.getAssociatedStatement());
         afterImageAccount.setComment(request.getComment());
 
-        // Saves changes to the database
-        accountRepository.save(afterImageAccount);
+        accountRepository.saveAndFlush(afterImageAccount);
 
-        // Logs event with the event owner's userId, table/event, and both images
+        // Reflect debit changes at the entry level
+        if (request.getDebit().compareTo(beforeImageAccount.getDebit()) != 0) {
+            TransactionEntryModel existingDebitEntry = transactionEntryRepository
+                .findByAccountImpactedAndEntryTypeAndParentTransactionIsNull(
+                    afterImageAccount,
+                    EntryType.DEBIT
+                )
+                .orElse(null);
+
+            if (existingDebitEntry != null) {
+                entityManager.detach(existingDebitEntry);
+
+                TransactionEntryModel afterImageDebitEntry = transactionEntryRepository
+                    .findByAccountImpactedAndEntryTypeAndParentTransactionIsNull(
+                        afterImageAccount,
+                        EntryType.DEBIT
+                    )
+                    .orElseThrow();
+
+                afterImageDebitEntry.setAmount(request.getDebit());
+                transactionEntryRepository.saveAndFlush(afterImageDebitEntry);
+
+                eventLoggingService.logEvent(
+                    request.getUserId(),
+                    LoggingTables.TRANSACTION_ENTRIES,
+                    LoggingEvents.UPDATE,
+                    existingDebitEntry,
+                    afterImageDebitEntry
+                );
+            } else if (request.getDebit().compareTo(BigDecimal.ZERO) != 0) {
+                TransactionEntryModel debitEntry = new TransactionEntryModel();
+                debitEntry.setParentTransaction(null);
+                debitEntry.setAccountImpacted(afterImageAccount);
+                debitEntry.setEntryType(EntryType.DEBIT);
+                debitEntry.setAmount(request.getDebit());
+                debitEntry.setIsApproved(true);
+                transactionEntryRepository.saveAndFlush(debitEntry);
+
+                eventLoggingService.logEvent(
+                    request.getUserId(),
+                    LoggingTables.TRANSACTION_ENTRIES,
+                    LoggingEvents.CREATE,
+                    null,
+                    debitEntry
+                );
+            }
+        }
+
+        // Reflect credit changes at the entry level
+        if (request.getCredit().compareTo(beforeImageAccount.getCredit()) != 0) {
+            TransactionEntryModel existingCreditEntry = transactionEntryRepository
+                .findByAccountImpactedAndEntryTypeAndParentTransactionIsNull(
+                    afterImageAccount,
+                    EntryType.CREDIT
+                )
+                .orElse(null);
+
+            if (existingCreditEntry != null) {
+                entityManager.detach(existingCreditEntry);
+
+                TransactionEntryModel afterImageCreditEntry = transactionEntryRepository
+                    .findByAccountImpactedAndEntryTypeAndParentTransactionIsNull(
+                        afterImageAccount,
+                        EntryType.CREDIT
+                    )
+                    .orElseThrow();
+
+                afterImageCreditEntry.setAmount(request.getCredit());
+                transactionEntryRepository.saveAndFlush(afterImageCreditEntry);
+
+                eventLoggingService.logEvent(
+                    request.getUserId(),
+                    LoggingTables.TRANSACTION_ENTRIES,
+                    LoggingEvents.UPDATE,
+                    existingCreditEntry,
+                    afterImageCreditEntry
+                );
+            } else if (request.getCredit().compareTo(BigDecimal.ZERO) != 0) {
+                TransactionEntryModel creditEntry = new TransactionEntryModel();
+                creditEntry.setParentTransaction(null);
+                creditEntry.setAccountImpacted(afterImageAccount);
+                creditEntry.setEntryType(EntryType.CREDIT);
+                creditEntry.setAmount(request.getCredit());
+                creditEntry.setIsApproved(true);
+                transactionEntryRepository.saveAndFlush(creditEntry);
+
+                eventLoggingService.logEvent(
+                    request.getUserId(),
+                    LoggingTables.TRANSACTION_ENTRIES,
+                    LoggingEvents.CREATE,
+                    null,
+                    creditEntry
+                );
+            }
+        }
+
+        // Log the account change
         eventLoggingService.logEvent(
             request.getUserId(),
             LoggingTables.ACCOUNTS,
@@ -239,13 +371,15 @@ public class AccountService {
             .findByAccountNumber(request.getAccountNumber())
             .orElseThrow(() -> new FinancialAccountException(errorMessageService.getError(123)));
 
+        entityManager.detach(beforeImageAccount);
+
         AccountModel afterImageAccount = accountRepository
             .findByAccountNumber(request.getAccountNumber())
             .orElseThrow(() -> new FinancialAccountException(errorMessageService.getError(123)));
 
         if (!afterImageAccount.isActive()) {
             afterImageAccount.setActive(true);
-            accountRepository.save(afterImageAccount);
+            accountRepository.saveAndFlush(afterImageAccount);
         } else throw new FinancialAccountException(errorMessageService.getError(125));
 
         eventLoggingService.logEvent(
@@ -265,13 +399,15 @@ public class AccountService {
             .findByAccountNumber(request.getAccountNumber())
             .orElseThrow(() -> new FinancialAccountException(errorMessageService.getError(123)));
 
+        entityManager.detach(beforeImageAccount);
+
         AccountModel afterImageAccount = accountRepository
             .findByAccountNumber(request.getAccountNumber())
             .orElseThrow(() -> new FinancialAccountException(errorMessageService.getError(123)));
 
         if (afterImageAccount.isActive()) {
             afterImageAccount.setActive(false);
-            accountRepository.save(afterImageAccount);
+            accountRepository.saveAndFlush(afterImageAccount);
         } else throw new FinancialAccountException(errorMessageService.getError(125));
 
         eventLoggingService.logEvent(
