@@ -18,17 +18,33 @@ function formatDate(value) {
   return String(value).slice(0, 10);
 }
 
-export default function AccountLedger({ account, onBack, onJournalPageSelect }) {
-  const { getApprovedEntriesForLedger } = useTransactionContext();
+export default function AccountLedger({ account, onBack, onJournalPageSelect, totalJournalPages }) {
+  const { getApprovedEntriesForLedger, getTotalPages } = useTransactionContext();
 
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [totalPages, setTotalPages] = useState(totalJournalPages || 1);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+
+  // Fetch total pages if not provided as prop
+  useEffect(() => {
+    const fetchTotalPages = async () => {
+      if (!totalJournalPages) {
+        try {
+          const pagesRes = await getTotalPages();
+          setTotalPages(pagesRes.data || 1);
+        } catch (err) {
+          console.error("Failed to fetch total pages:", err);
+        }
+      }
+    };
+    fetchTotalPages();
+  }, [getTotalPages, totalJournalPages]);
 
   const fetchEntries = useCallback(async () => {
     if (!account?.id) return;
@@ -85,6 +101,23 @@ export default function AccountLedger({ account, onBack, onJournalPageSelect }) 
     setSearchTerm("");
     setDateFrom("");
     setDateTo("");
+  };
+
+  // Function to convert ascending page (from backend) to descending page (frontend display)
+  const convertToDisplayPage = (ascendingPage) => {
+    if (!ascendingPage) return 1;
+    // Backend returns page based on ascending order (oldest first)
+    // Frontend displays descending order (newest first)
+    // So page 1 (oldest) becomes page totalPages (newest)
+    return totalPages - ascendingPage + 1;
+  };
+
+  // Handle journal page navigation with conversion
+  const handleJournalPageSelect = (ascendingPageRef) => {
+    if (typeof onJournalPageSelect === "function") {
+      const displayPage = convertToDisplayPage(ascendingPageRef);
+      onJournalPageSelect(displayPage);
+    }
   };
 
   if (!account) {
@@ -232,14 +265,10 @@ export default function AccountLedger({ account, onBack, onJournalPageSelect }) 
                         <button
                           type="button"
                           className={styles.prLink}
-                          title={`Go to General Journal page ${row.journalReference}`}
-                          onClick={() => {
-                            if (typeof onJournalPageSelect === "function") {
-                              onJournalPageSelect(Number(row.journalReference));
-                            }
-                          }}
+                          title={`Go to General Journal page ${convertToDisplayPage(Number(row.journalReference))}`}
+                          onClick={() => handleJournalPageSelect(Number(row.journalReference))}
                         >
-                          GJ{row.journalReference}
+                          GJ{convertToDisplayPage(Number(row.journalReference))}
                         </button>
                       ) : (
                         <span style={{ color: "#9ca3af", fontSize: 13 }}>—</span>
