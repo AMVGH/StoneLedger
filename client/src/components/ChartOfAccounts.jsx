@@ -298,7 +298,16 @@ const filteredAccounts = useMemo(() => {
 
       return true;
     })
-    .sort((a, b) => a.accountNumber - b.accountNumber)
+    .sort((a, b) => {
+      // Handle potential null/undefined values by defaulting to a large number
+      const orderA = a.order ?? Infinity;
+      const orderB = b.order ?? Infinity;
+      // If orders are equal, fallback to accountNumber to keep a deterministic order
+      if (orderA === orderB) {
+        return a.accountNumber - b.accountNumber;
+      }
+      return orderA - orderB;
+    });
 }, [accounts, searchTerm, selectedDate, filters]);
 
   const handleFilterInput = (e) => {

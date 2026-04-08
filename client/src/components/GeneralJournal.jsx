@@ -107,6 +107,7 @@ export default function GeneralJournal({ userRole, onAccountSelect }) {
   ]);
   const [transactionComment, setTransactionComment] = useState("");
   const [transactionType, setTransactionType] = useState("STANDARD");
+  const [debitCreditError, setDebitCreditError] = useState("");
 
   const [actionModal, setActionModal] = useState(null);
   const [actionComment, setActionComment] = useState("");
@@ -228,17 +229,55 @@ export default function GeneralJournal({ userRole, onAccountSelect }) {
 
   const fmt = (val) => Number(val).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+  // Helper to check if an account is already used in transaction lines
+  const isAccountUsed = (accountId, currentIndex) => {
+    if (!accountId) return false;
+    return transactionLines.some((line, idx) => idx !== currentIndex && String(line.accountId) === String(accountId));
+  };
+
+  // Function to check if there's any credit before debit in the transaction lines
+  const hasCreditBeforeDebit = (lines) => {
+    let foundCredit = false;
+    for (const line of lines) {
+      if (!line.accountId) continue;
+      const hasCredit = line.credit && parseFloat(line.credit) !== 0;
+      const hasDebit = line.debit && parseFloat(line.debit) !== 0;
+
+      if (hasCredit) {
+        foundCredit = true;
+      }
+      if (hasDebit && foundCredit) {
+        return true; // Found a debit after a credit
+      }
+    }
+    return false;
+  };
+
   const handleLineChange = (index, field, value) => {
-    setTransactionLines((prev) => prev.map((line, i) => i === index ? { ...line, [field]: value } : line));
+    setDebitCreditError("");
+    setTransactionLines((prev) => {
+      const updated = prev.map((line, i) => i === index ? { ...line, [field]: value } : line);
+
+      // Clear the debit/credit for the other field if one is set (ensure only one per line)
+      if (field === 'debit' && value && parseFloat(value) !== 0) {
+        updated[index].credit = "";
+      } else if (field === 'credit' && value && parseFloat(value) !== 0) {
+        updated[index].debit = "";
+      }
+
+      return updated;
+    });
   };
 
   const addLine = () => {
     setTransactionLines((prev) => [...prev, { accountId: "", debit: "", credit: "", description: "" }]);
+    setDebitCreditError("");
   };
 
   const removeLine = (index) => {
     if (transactionLines.length <= 2) return;
     setTransactionLines((prev) => prev.filter((_, i) => i !== index));
+    setDebitCreditError("");
   };
 
   const resetModal = () => {
@@ -250,6 +289,7 @@ export default function GeneralJournal({ userRole, onAccountSelect }) {
     setTransactionDescription("");
     setTransactionFiles([]);
     setTransactionType("STANDARD");
+    setDebitCreditError("");
     setShowAddModal(false);
   };
 
@@ -258,19 +298,55 @@ export default function GeneralJournal({ userRole, onAccountSelect }) {
       setError('User info not loaded. Please log in again or refresh the page.');
       return;
     }
+
+    // Filter out empty lines and validate
+    const filledLines = transactionLines.filter(line => line.accountId && (parseFloat(line.debit) || parseFloat(line.credit)));
+
+    if (filledLines.length === 0) {
+      setDebitCreditError("Please add at least one transaction line.");
+      return;
+    }
+
+    // Check for duplicate accounts
+    const usedAccounts = new Set();
+    for (const line of filledLines) {
+      const accountId = String(line.accountId);
+      if (usedAccounts.has(accountId)) {
+        setDebitCreditError(`Account "${getAccountName(line.accountId)}" can only be used once per transaction.`);
+        return;
+      }
+      usedAccounts.add(accountId);
+    }
+
+    // Build entries in original order
+    const entries = [];
+    for (const line of filledLines) {
+      if (parseFloat(line.debit)) {
+        entries.push({ accountId: Number(line.accountId), entryType: 'DEBIT', amount: parseFloat(line.debit) });
+      }
+      if (parseFloat(line.credit)) {
+        entries.push({ accountId: Number(line.accountId), entryType: 'CREDIT', amount: parseFloat(line.credit) });
+      }
+    }
+
+    // Validate debits come before credits
+    let foundCredit = false;
+    for (const entry of entries) {
+      if (entry.entryType === 'CREDIT') {
+        foundCredit = true;
+      } else if (entry.entryType === 'DEBIT' && foundCredit) {
+        setDebitCreditError("❌ ERROR: All debit entries must appear BEFORE credit entries in the transaction order. Please reorder your transaction lines.");
+        return;
+      }
+    }
+
     const transaction = {
       transactionType,
       transactionDescription,
       createdBy: Number(loggedInUserId),
-      accountsImpacted: transactionLines
-        .filter(line => line.accountId && (parseFloat(line.debit) || parseFloat(line.credit)))
-        .flatMap(line => {
-          const entries = [];
-          if (parseFloat(line.debit))  entries.push({ accountId: Number(line.accountId), entryType: 'DEBIT',  amount: parseFloat(line.debit)  });
-          if (parseFloat(line.credit)) entries.push({ accountId: Number(line.accountId), entryType: 'CREDIT', amount: parseFloat(line.credit) });
-          return entries;
-        })
+      accountsImpacted: entries
     };
+
     const attachment = transactionFiles.length > 0 ? transactionFiles[0].file : null;
     try {
       setLoading(true);
@@ -336,6 +412,26 @@ export default function GeneralJournal({ userRole, onAccountSelect }) {
     setTransactionFiles(files);
   };
 
+  // Function to check if a specific line has order violation (credit before debit in the sequence)
+  const isLineViolatingOrder = (index, line, allLines) => {
+    if (!line.accountId) return false;
+
+    const hasCredit = line.credit && parseFloat(line.credit) !== 0;
+    if (!hasCredit) return false;
+
+    // Check if there are any debits after this credit
+    for (let i = index + 1; i < allLines.length; i++) {
+      const nextLine = allLines[i];
+      if (!nextLine.accountId) continue;
+      const hasDebit = nextLine.debit && parseFloat(nextLine.debit) !== 0;
+      if (hasDebit) return true;
+    }
+    return false;
+  };
+
+  // Compute whether to show the warning message
+  const showOrderWarning = hasCreditBeforeDebit(transactionLines);
+
   const isManager = userRole === "MANAGER";
   const totalCols = isManager ? 10 : 9;
 
@@ -397,6 +493,45 @@ export default function GeneralJournal({ userRole, onAccountSelect }) {
               <button type="button" className={styles.modalClose} onClick={resetModal}>✕</button>
             </div>
             <div className={styles.modalBody}>
+              {/* CONDITIONAL WARNING TEXT - only shows when credit appears before debit */}
+              {showOrderWarning && (
+                <div style={{
+                  backgroundColor: "#fee2e2",
+                  border: "1px solid #ef4444",
+                  borderRadius: "6px",
+                  padding: "10px 12px",
+                  marginBottom: "16px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  fontSize: "13px"
+                }}>
+
+                  <div>
+                    <strong style={{ color: "#92400e" }}>Order Issue:</strong>
+                    <span style={{ color: "#78350f" }}> Credit entries found before debit entries. All debits must appear BEFORE credits. Please reorder your transaction lines.</span>
+                  </div>
+                </div>
+              )}
+
+              {debitCreditError && (
+                <div style={{
+                  backgroundColor: "#fee2e2",
+                  border: "1px solid #ef4444",
+                  borderRadius: "6px",
+                  padding: "10px 12px",
+                  marginBottom: "16px",
+                  color: "#b91c1c",
+                  fontSize: "13px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px"
+                }}>
+                  <span>❌</span>
+                  {debitCreditError}
+                </div>
+              )}
+
               <div className={styles.formGroup} style={{ marginBottom: 14 }}>
                 <label className={styles.formLabel}>Transaction Type</label>
                 <select className={styles.formSelect} value={transactionType} onChange={(e) => setTransactionType(e.target.value)}>
@@ -405,34 +540,90 @@ export default function GeneralJournal({ userRole, onAccountSelect }) {
                   ))}
                 </select>
               </div>
+
               <div className={styles.linesHeader}>
                 <span className={styles.linesHeaderCell}>Account</span>
                 <span className={styles.linesHeaderCell}>Debit</span>
                 <span className={styles.linesHeaderCell}>Credit</span>
                 <span className={styles.linesHeaderCellSmall}></span>
               </div>
-              {transactionLines.map((line, idx) => (
-                <div key={idx} className={styles.lineRow}>
-                  <select className={styles.formSelect} value={line.accountId} onChange={(e) => handleLineChange(idx, "accountId", e.target.value)}>
-                    <option value="">Select account</option>
-                    {accounts.map((a) => (
-                      <option key={a.id} value={a.id}>{a.accountNumber} — {a.accountName}</option>
-                    ))}
-                  </select>
-                  <input type="number" className={styles.formInput} placeholder="0.00" step="0.01" value={line.debit}  onChange={(e) => handleLineChange(idx, "debit",  e.target.value)} />
-                  <input type="number" className={styles.formInput} placeholder="0.00" step="0.01" value={line.credit} onChange={(e) => handleLineChange(idx, "credit", e.target.value)} />
-                  <button type="button" className={styles.removeLineBtn} onClick={() => removeLine(idx)} disabled={transactionLines.length <= 2} title="Remove line">✕</button>
-                </div>
-              ))}
+
+              {transactionLines.map((line, idx) => {
+                const isDuplicate = line.accountId && isAccountUsed(line.accountId, idx);
+                const violatesOrder = isLineViolatingOrder(idx, line, transactionLines);
+                const lineHasError = isDuplicate || violatesOrder;
+
+                return (
+                  <div
+                    key={idx}
+                    className={styles.lineRow}
+                    style={lineHasError ? {
+                      backgroundColor: "#fee2e2",
+                      borderRadius: "6px",
+                      padding: "4px",
+                      marginBottom: "4px",
+                      border: "1px solid #ef4444"
+                    } : {}}
+                  >
+                    <select
+                      className={styles.formSelect}
+                      style={isDuplicate ? { borderColor: "#ef4444", backgroundColor: "#fee2e2" } : {}}
+                      value={line.accountId}
+                      onChange={(e) => handleLineChange(idx, "accountId", e.target.value)}
+                    >
+                      <option value="">Select account</option>
+                      {accounts.map((a) => {
+                        const isDisabled = isAccountUsed(a.id, idx);
+                        return (
+                          <option key={a.id} value={a.id} disabled={isDisabled}>
+                            {a.accountNumber} — {a.accountName} {isDisabled ? "(Already Selected)" : ""}
+                          </option>
+                        );
+                      })}
+                    </select>
+                    <input
+                      type="number"
+                      className={styles.formInput}
+                      style={violatesOrder ? { borderColor: "#ef4444", backgroundColor: "#fee2e2" } : {}}
+                      placeholder="0.00"
+                      step="0.01"
+                      value={line.debit}
+                      onChange={(e) => handleLineChange(idx, "debit", e.target.value)}
+                    />
+                    <input
+                      type="number"
+                      className={styles.formInput}
+                      style={violatesOrder ? { borderColor: "#ef4444", backgroundColor: "#fee2e2" } : {}}
+                      placeholder="0.00"
+                      step="0.01"
+                      value={line.credit}
+                      onChange={(e) => handleLineChange(idx, "credit", e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className={styles.removeLineBtn}
+                      onClick={() => removeLine(idx)}
+                      disabled={transactionLines.length <= 2}
+                      title="Remove line"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                );
+              })}
+
               <button type="button" className={styles.addLineBtn} onClick={addLine}>+ Add Line</button>
+
               <div className={styles.formGroup} style={{ marginTop: 14 }}>
                 <label className={styles.formLabel}>Description</label>
                 <input type="text" className={styles.formInput} placeholder="Transaction description" value={transactionDescription} onChange={(e) => setTransactionDescription(e.target.value)} />
               </div>
+
               <div className={styles.formGroup} style={{ marginTop: 8 }}>
                 <label className={styles.formLabel}>Comment</label>
                 <input type="text" className={styles.formInput} placeholder="Optional comment" value={transactionComment} onChange={(e) => setTransactionComment(e.target.value)} />
               </div>
+
               <div className={styles.formGroup} style={{ marginTop: 8 }}>
                 <label className={styles.formLabel}>Attach Source Document</label>
                 <input type="file" className={styles.formInput} accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.jpg,.jpeg,.png" onChange={handleFileChange} />
