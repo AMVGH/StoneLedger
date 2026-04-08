@@ -459,6 +459,237 @@ function NotificationBell({ onNavigateToJournal }) {
   );
 }
 
+// ── Help Accordion Component ─────────────────────────────────────────────────
+function HelpAccordion() {
+  const [openSections, setOpenSections] = useState({
+    welcome: true,
+    admin: false,
+    manager: false,
+    user: false,
+    generalJournal: false,
+    accountLedger: false,
+  });
+
+  const toggleSection = (section) => {
+    setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  const accordionItemStyle = {
+    borderBottom: "0.5px solid #e5e7eb",
+    marginBottom: "0px",
+  };
+
+  const accordionHeaderStyle = {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "14px 16px",
+    cursor: "pointer",
+    background: "#f9fafb",
+    fontWeight: 600,
+    fontSize: "15px",
+    color: "#111827",
+    borderRadius: "8px",
+    marginBottom: "4px",
+  };
+
+  const accordionContentStyle = {
+    padding: "16px 20px",
+    fontSize: "13px",
+    lineHeight: "1.6",
+    color: "#374151",
+    background: "#fff",
+  };
+
+  const listStyle = {
+    marginTop: "8px",
+    marginBottom: "8px",
+    paddingLeft: "20px",
+  };
+
+  const subListStyle = {
+    marginTop: "4px",
+    marginBottom: "4px",
+    paddingLeft: "24px",
+    listStyleType: "circle",
+  };
+
+  const strongStyle = {
+    fontWeight: 600,
+    color: "#1f2937",
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+      {/* 1. Welcome */}
+      <div style={accordionItemStyle}>
+        <div style={accordionHeaderStyle} onClick={() => toggleSection("welcome")}>
+          <span>1. Welcome & Getting Started</span>
+          <span>{openSections.welcome ? "▼" : "▶"}</span>
+        </div>
+        {openSections.welcome && (
+          <div style={accordionContentStyle}>
+            <p>Upon first visiting StoneLedger, you will be met with a welcome page providing information about the platform and its tools. Click the "Go to Login" button to proceed.</p>
+            <p><strong style={strongStyle}>a. Navigating the Login Page</strong><br />
+              The login page offers three options: Log-in (for approved users), Forgot Password (to reset access), and Register Here (to create a new account).
+            </p>
+            <p><strong style={strongStyle}>b. Creating an Account</strong><br />
+              Click "Register Here" to fill out the registration form with: First Name, Last Name, Address, Date of Birth, Email, Password (min 8 chars, starts with a letter, contains letter, number & special char), and Requested Role (User/Manager/Administrator). After registering, you will set up two security questions and answers. Once submitted, an administrator must approve your request before you can log in.
+            </p>
+            <p><strong style={strongStyle}>c. Logging In</strong><br />
+              After receiving an approval email, return to the login page and enter your issued username and password. Click "Login" to access your dashboard.
+            </p>
+            <p><strong style={strongStyle}>d. Recovering an Account</strong><br />
+              Click "Forgot Password" on the login page, enter your email and user ID, then answer your security question to set a new password.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* 2. Administration */}
+      <div style={accordionItemStyle}>
+        <div style={accordionHeaderStyle} onClick={() => toggleSection("admin")}>
+          <span>2. Administrator Dashboard</span>
+          <span>{openSections.admin ? "▼" : "▶"}</span>
+        </div>
+        {openSections.admin && (
+          <div style={accordionContentStyle}>
+            <p><strong style={strongStyle}>a. Navigating the Dashboard</strong><br />
+              Top bar: Settings (dropdown with user preferences) and Help (opens this manual). Left navigation bar includes: User Management, Create User, Pending, Expired Passwords, Chart of Accounts, Event Log, and Logout.
+            </p>
+            <p><strong style={strongStyle}>b. Managing Users</strong><br />
+              Click on any user row in the User Management table to open the Manage User popup. Here you can: Update Information (edit name, email, address, DOB), Update Activity (set active/inactive with optional end date), Update Role (USER/MANAGER/ADMINISTRATOR), and Suspension Management (suspend with start/expiry date/reason, or revoke suspension).
+            </p>
+            <p><strong style={strongStyle}>c. Creating Users</strong><br />
+              Fill out the Create User form with required fields: First Name, Last Name, Email, Password, Address, Date of Birth, Role, Activity Start Date, and Activity Status. Activity End Date is optional. Click "Create User" to add them immediately to the system.
+            </p>
+            <p><strong style={strongStyle}>d. Managing Pending Requests</strong><br />
+              The Pending table shows all registration requests waiting for approval. Click "Approve" to accept or "Reject" to deny.
+            </p>
+            <p><strong style={strongStyle}>e. Expired Passwords</strong><br />
+              This report displays users with expired passwords, including counts for total expired, recently expired, warning, and critical statuses.
+            </p>
+            <p><strong style={strongStyle}>f. Chart of Accounts (Admin)</strong><br />
+              Full management: Add Account (fill out required fields: Account Name, Normal Side, Category, Subcategory, Initial Balance, Debit, Credit, Balance, Order, Statement), Edit Account (pencil icon), Deactivate/Activate accounts (non-zero balance accounts cannot be deactivated), View Account Ledger (eye icon), Filter by date or by token, and Search by name/number.
+            </p>
+            <p><strong style={strongStyle}>g. Event Log</strong><br />
+              Displays an audit trail with table impacted, operation, date, before image, and after image for all actions in the system.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* 3. Managers */}
+      <div style={accordionItemStyle}>
+        <div style={accordionHeaderStyle} onClick={() => toggleSection("manager")}>
+          <span>3. Manager Dashboard</span>
+          <span>{openSections.manager ? "▼" : "▶"}</span>
+        </div>
+        {openSections.manager && (
+          <div style={accordionContentStyle}>
+            <p><strong style={strongStyle}>a. Navigating the Dashboard</strong><br />
+              Manager dashboard includes: Settings (top bar), Help (this manual), Chart of Accounts, Event Log, and General Journal in the left navigation bar.
+            </p>
+            <p><strong style={strongStyle}>b. Chart of Accounts (Manager)</strong><br />
+              Read-only view of all financial accounts with fields: ID, Account #, Name, Description, Normal Side, Category, Subcategory, Initial Balance, Debit, Credit, Add Date, User ID, Order, Statement, Comments.
+            </p>
+            <p><strong style={strongStyle}>c. General Journal (Manager)</strong><br />
+              Managers can view all journal entries and approve or reject pending entries. To approve, click "Accept" – the entry status changes to Approved and posts to ledgers. To reject, click "Reject" and provide a required rejection reason. Filter entries by Status, Transaction Type, Value range, or date. Search by description, account name, or amount.
+            </p>
+            <p><strong style={strongStyle}>d. Event Log (Manager)</strong><br />
+              Same audit trail as Administrator, showing all system events.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* 4. Users (Accountants) */}
+      <div style={accordionItemStyle}>
+        <div style={accordionHeaderStyle} onClick={() => toggleSection("user")}>
+          <span>4. User (Accountant) Dashboard</span>
+          <span>{openSections.user ? "▼" : "▶"}</span>
+        </div>
+        {openSections.user && (
+          <div style={accordionContentStyle}>
+            <p><strong style={strongStyle}>a. Navigating the Dashboard</strong><br />
+              User dashboard includes: Settings, Help, Chart of Accounts (read-only), Event Log, and General Journal.
+            </p>
+            <p><strong style={strongStyle}>b. General Journal (User)</strong><br />
+              Users can create, view, and monitor journal entries. Click "+ Add Transaction" to open the transaction modal. Fill out: Transaction Type (Standard, Reversal, Adjustment, Closing), at least one debit and one credit line item, Description, and optional Comment. Debits and credits must balance (total debit = total credit). Attach source documents (PDF, Word, Excel, CSV, JPG, PNG) if needed. Click "Create Transaction" to submit – the entry will have a Pending status awaiting manager review. Rejected entries display a chat icon showing the rejection reason.
+            </p>
+            <p><strong style={strongStyle}>c. Viewing Entry Status</strong><br />
+              Status badges: Pending (awaiting review), Approved (posted to ledgers), Rejected (denied with reason). All entries appear in a unified table.
+            </p>
+            <p><strong style={strongStyle}>d. Filtering & Searching Journal Entries</strong><br />
+              Use the search bar (description, account name, amount) or click "Filter" to filter by Status, Transaction Type, Min/Max Value, or date range.
+            </p>
+            <p><strong style={strongStyle}>e. Account Ledger</strong><br />
+              Click any account name in Chart of Accounts or in the Account Affected column of the General Journal to view the Account Ledger. The ledger shows summary cards (Normal Side, Initial Balance, Total Debit, Total Credit, Current Balance) and a transaction table with Date, Description, Debit, Credit, Balance, and PR (Post Reference) columns. The Balance column shows a running total based on the account's normal side.
+            </p>
+            <p><strong style={strongStyle}>f. Post Reference (PR) Links</strong><br />
+              Click any "GJ#" link in the PR column to navigate directly to the specific journal entry that created that ledger posting in the General Journal.
+            </p>
+            <p><strong style={strongStyle}>g. Filtering the Ledger</strong><br />
+              Use the search bar to find entries by description or amount. Click "Filter by Date" to set a From date, To date, or both. Click "Clear All" to reset filters.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* 5. General Journal (Combined) */}
+      <div style={accordionItemStyle}>
+        <div style={accordionHeaderStyle} onClick={() => toggleSection("generalJournal")}>
+          <span>5. General Journal – Full Reference</span>
+          <span>{openSections.generalJournal ? "▼" : "▶"}</span>
+        </div>
+        {openSections.generalJournal && (
+          <div style={accordionContentStyle}>
+            <p><strong style={strongStyle}>Creating a Journal Entry</strong><br />
+              Click "+ Add Transaction". Fill in Transaction Type, debit/credit line items (add/remove lines as needed), Description, and optional Comment. The total of all debits must equal total credits. Attach a source document (optional). Click "Create Transaction" to submit. Entries cannot be deleted after submission.
+            </p>
+            <p><strong style={strongStyle}>Attaching Source Documents</strong><br />
+              Supported formats: PDF, Word (.doc, .docx), Excel (.xls, .xlsx), CSV, JPG, PNG. Attached file names appear in the Attachment column.
+            </p>
+            <p><strong style={strongStyle}>Approving & Rejecting (Managers)</strong><br />
+              Pending entries show "Accept" and "Reject" buttons in the Actions column. Accepting changes status to Approved and posts to ledgers. Rejecting requires a reason (cannot be blank) and changes status to Rejected.
+            </p>
+            <p><strong style={strongStyle}>Viewing Entry Status</strong><br />
+              Status badges: Pending (yellow), Approved (green), Rejected (red). Rejected entries show a chat icon – click to view the rejection reason.
+            </p>
+            <p><strong style={strongStyle}>Filtering & Searching</strong><br />
+              Search by description, account name, or amount. Filter by Status, Transaction Type, Min/Max Value, or date (calendar icon). Click "Clear Filters" to reset. Pagination controls allow navigation between pages.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* 6. Account Ledger (Combined) */}
+      <div style={accordionItemStyle}>
+        <div style={accordionHeaderStyle} onClick={() => toggleSection("accountLedger")}>
+          <span>6. Account Ledger – Full Reference</span>
+          <span>{openSections.accountLedger ? "▼" : "▶"}</span>
+        </div>
+        {openSections.accountLedger && (
+          <div style={accordionContentStyle}>
+            <p><strong style={strongStyle}>Viewing an Account Ledger</strong><br />
+              Navigate by clicking an account name in the Chart of Accounts or in the Account Affected column of the General Journal. Use the "← Back" button to return.
+            </p>
+            <p><strong style={strongStyle}>Ledger Content</strong><br />
+              Summary cards at the top show: Normal Side, Initial Balance, Total Debit, Total Credit, and Current Balance. The transaction table includes columns: Date, Description, Debit, Credit, Balance (running total), and PR (Post Reference).
+            </p>
+            <p><strong style={strongStyle}>Post Reference (PR) Links</strong><br />
+              Each "GJ#" link (e.g., GJ1) is clickable and opens the General Journal to the exact page containing the originating journal entry.
+            </p>
+            <p><strong style={strongStyle}>Filtering & Searching the Ledger</strong><br />
+              Use the search bar to filter entries by description or amount. Click "Filter by Date" to set a date range (From date, To date, or both). Click "Clear All" to reset date filters. The result count shows how many entries are currently visible.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Main Dashboard ─────────────────────────────────────────────────────────────
 export default function DashBoard() {
   const { user, getLoggedInUserInfo } = useUserContext();
@@ -746,16 +977,27 @@ export default function DashBoard() {
           </section>
         )}
 
+        {/* Updated Help Modal with Accordion */}
         {showHelp && (
           <div className={styles.modalOverlay} onClick={() => setShowHelp(false)}>
-            <div className={styles.resetModal} onClick={(e) => e.stopPropagation()} style={{ maxWidth: "540px" }}>
+            <div
+              className={styles.resetModal}
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: "700px", maxHeight: "85vh", display: "flex", flexDirection: "column", overflow: "hidden" }}
+            >
               <div className={styles.resetModalHeader}>
                 <h2>Official StoneLedger User Manual</h2>
                 <button className={styles.modalCloseBtn} onClick={() => setShowHelp(false)}>✕</button>
               </div>
-              <div style={{ padding: "20px 24px", fontSize: "14px", lineHeight: "1.7", color: "#374151" }}>
-                <p>Welcome to StoneLedger, a comprehensive online accounting platform designed for financial administrators, managers, and accountants alike. StoneLedger offers tailored dashboards providing only the exact tools you need, right when you need them. This manual is designed to guide you through effectively navigating and utilizing the StoneLedger platform.</p>
-                <p style={{ marginTop: "14px" }}><a href="https://kennesawedu-my.sharepoint.com/:w:/r/personal/avalen31_students_kennesaw_edu/Documents/School%20Work/Spring%202026/SWE%204713%20(SWE%20Application%20Domain)/Project%20Documents/Group%204%20User%20Manual.docx?d=w826c53ead27c44a181f78d63acd99c92&csf=1&web=1&e=8n5maV" target="_blank" rel="noopener noreferrer" style={{ color: "#4f46e5", textDecoration: "underline" }}>View Full User Manual</a></p>
+              <div style={{ padding: "0 4px", overflowY: "auto", flex: 1 }}>
+                <div style={{ padding: "20px 20px 24px 20px" }}>
+                  <p style={{ fontSize: "14px", lineHeight: "1.6", color: "#4b5563", marginBottom: "20px" }}>
+                    Welcome to StoneLedger, a comprehensive online accounting platform designed for financial administrators,
+                    managers, and accountants alike. StoneLedger offers tailored dashboards providing only the exact tools you need,
+                    right when you need them. This manual is designed to guide you through effectively navigating and utilizing the StoneLedger platform.
+                  </p>
+                  <HelpAccordion />
+                </div>
               </div>
             </div>
           </div>
