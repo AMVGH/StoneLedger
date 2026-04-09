@@ -844,7 +844,6 @@ export default function DashBoard() {
                 onClick={() => { setNav("Chart of Accounts"); setSelectedAccount(null); }}
               >Chart of Accounts</button>
               <button className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`} onClick={() => setNav("Event Logs")}>Event Logs</button>
-              <button className={`${styles.navItem} ${nav === "Email Service" ? styles.activeNav : ""}`} onClick={() => setNav("Email Service")}>Email Service</button>
             </>
           )}
           {(loggedInUser.role === "MANAGER") && (
@@ -854,8 +853,8 @@ export default function DashBoard() {
                 onClick={() => { setNav("Chart of Accounts"); setSelectedAccount(null); }}
               >Chart of Accounts</button>
               <button className={`${styles.navItem} ${nav === "General Journal" ? styles.activeNav : ""}`} onClick={() => setNav("General Journal")}>General Journal</button>
-              <button className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`} onClick={() => setNav("Event Logs")}>Event Logs</button>
               <button className={`${styles.navItem} ${nav === "Email Service" ? styles.activeNav : ""}`} onClick={() => setNav("Email Service")}>Email Service</button>
+              <button className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`} onClick={() => setNav("Event Logs")}>Event Logs</button>
             </>
           )}
           {loggedInUser.role === "USER" && (
@@ -865,8 +864,8 @@ export default function DashBoard() {
                 onClick={() => { setNav("Chart of Accounts"); setSelectedAccount(null); }}
               >Chart of Accounts</button>
               <button className={`${styles.navItem} ${nav === "General Journal" ? styles.activeNav : ""}`} onClick={() => setNav("General Journal")}>General Journal</button>
-              <button className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`} onClick={() => setNav("Event Logs")}>Event Logs</button>
               <button className={`${styles.navItem} ${nav === "Email Service" ? styles.activeNav : ""}`} onClick={() => setNav("Email Service")}>Email Service</button>
+              <button className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`} onClick={() => setNav("Event Logs")}>Event Logs</button>
             </>
           )}
         </nav>

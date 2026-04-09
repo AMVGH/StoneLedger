@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import useUserContext from "../API/UserContext";
+import loggedInUser from "../pages/dashboards/DashBoard";
 
 export default function EmailService() {
   const { getFinancialAccounts, getAllUsers, issueEmailToUser } = useUserContext();
@@ -11,6 +12,9 @@ export default function EmailService() {
   const [sending, setSending] = useState(false);
   const [sendStatus, setSendStatus] = useState({ type: "", message: "" });
   const token = localStorage.getItem("authToken");
+
+  const storedUser = (() => { try { return JSON.parse(localStorage.getItem("user")) || null; } catch { return null; } })();
+  const loggedInUserName = storedUser?.firstName ?? null;
 
   useEffect(() => {
     let mounted = true;
@@ -68,7 +72,7 @@ export default function EmailService() {
       : "selected account";
 
     setEmailBody(
-      `Hello,\n\nAn update is available regarding impacted account ${accountLabel}.\n\nPlease review and contact support if you need assistance.\n\nThanks,\nStoneLedger`
+      `Hello,\n\nI am writing with regards to the financial account ${accountLabel}.\n\n\{Write any information regarding your inquiry here\}\n\nThanks,\n${loggedInUserName}`
     );
   };
 
@@ -127,13 +131,10 @@ export default function EmailService() {
         color: "#374151",
       }}
     >
-      <h3 style={{ marginTop: 0, marginBottom: "8px", color: "#111827" }}>
-        Email Service
-      </h3>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxWidth: "460px" }}>
-        <label htmlFor="impactedAccountSelect" style={{ fontSize: "13px", fontWeight: 600, color: "#111827" }}>
-          Chart Of Accounts
+        <label htmlFor="impactedAccountSelect" style={{ fontSize: "13px", fontWeight: 450, color: "#111827" }}>
+          Select Account for Inquiry
         </label>
         <select
           id="impactedAccountSelect"
@@ -150,7 +151,7 @@ export default function EmailService() {
           }}
         >
           <option value="">
-            {loading ? "Loading chart of accounts..." : "Select a chart of accounts entry"}
+            {loading ? "Loading Accounts from Chart of Accounts..." : "Select a Financial Account"}
           </option>
           {selectableAccounts.map((account) => (
             <option key={account.id} value={account.id}>
@@ -197,7 +198,7 @@ export default function EmailService() {
             gap: "10px",
           }}
         >
-          <h4 style={{ margin: 0, color: "#111827" }}>Send Email For Selected Account</h4>
+          <h4 style={{ margin: 0, color: "#111827" }}>Creating Inquiry For Selected Account</h4>
           <p style={{ margin: 0, fontSize: "13px", color: "#374151" }}>
             {selectedAccount.accountNumber ? `${selectedAccount.accountNumber} - ` : ""}
             {selectedAccount.accountName}
