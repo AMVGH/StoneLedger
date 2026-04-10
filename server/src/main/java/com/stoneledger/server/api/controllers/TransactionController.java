@@ -27,7 +27,7 @@ public class TransactionController {
     private TransactionService transactionService;
 
     // TODO: Implement: 1) Status Updating 2) Entry Pagination 3) Interior Entry Collection 4) End to End Testing
-
+    // TODO: Closing transactions and ensuring that these are reflected properly in ledger
     @PostMapping(value = "/create-journal-transaction", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponseDTO<?>> createNewTransaction (@RequestPart("transaction") TransactionCreationDTO request,
                                                                    @RequestPart(value = "attachment", required = false) MultipartFile file)

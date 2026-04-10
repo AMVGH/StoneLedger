@@ -3,6 +3,8 @@ package com.stoneledger.server.utils;
 import com.stoneledger.server.api.dtos.requests.*;
 import com.stoneledger.server.api.enums.AccountCategory;
 import com.stoneledger.server.api.enums.AccountSubcategory;
+import com.stoneledger.server.api.enums.EntryType;
+import com.stoneledger.server.api.enums.ReportType;
 import com.stoneledger.server.api.exeptions.*;
 import com.stoneledger.server.api.models.AccountModel;
 import com.stoneledger.server.api.models.PasswordModel;
@@ -16,7 +18,11 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.security.GeneralSecurityException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.YearMonth;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -429,8 +435,12 @@ public class ValidationUtil {
             throw new TransactionValidationException(errorMessageService.getError(129));
         }
 
+        // Flag for if a credit entry is seen. Once a credit entry is seen if the flag is true and the current iteration is a debit then it is an improper transaction.
+        boolean creditEntrySeen = false;
         // Iterates over the accounts impacted and validates each one
         for (TransactionEntryDTO transactionInnerAccountEntry : request.getAccountsImpacted()) {
+
+
             if (transactionInnerAccountEntry == null) {
                 throw new TransactionValidationException(errorMessageService.getError(100));
             }
@@ -445,6 +455,11 @@ public class ValidationUtil {
             // Ensures that the inner entry has an entry type associated with it (DEBIT or CREDIT)
             if (transactionInnerAccountEntry.getEntryType() == null) {
                 throw new TransactionValidationException(errorMessageService.getError(130));
+            }
+            if (transactionInnerAccountEntry.getEntryType() == EntryType.CREDIT) creditEntrySeen = true;
+
+            if (transactionInnerAccountEntry.getEntryType() == EntryType.DEBIT && creditEntrySeen) {
+                throw new TransactionValidationException(errorMessageService.getError(135));
             }
 
             // Ensures that each inner entry has an amount associated with it
@@ -480,4 +495,77 @@ public class ValidationUtil {
         }
         return true;
     }
+
+    public boolean isValidTrialBalanceGenerationRequest(TrialBalanceReportDTO request) {
+        // Validate that no fields are null
+        if (request.getReportType() == null || request.getPeriodEnd() == null) {
+            throw new InvalidRequestException(errorMessageService.getError(100));
+        }
+
+        // Validate that the report type provided is a valid report type
+        List<ReportType> reportTypes = Arrays.stream(ReportType.values()).toList();
+        if (!reportTypes.contains(request.getReportType())) {
+            throw new InvalidRequestException(errorMessageService.getError(136));
+        }
+
+        // Validate that the date provided in the payload is no later than EOD today.
+        LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX);
+        if (request.getPeriodEnd().isAfter(endOfDay)){
+            throw new InvalidRequestException(errorMessageService.getError(114));
+        }
+
+        return true;
+    }
+
+    public boolean isValidIncomeStatementGenerationRequest(IncomeStatementReportDTO request) {
+        // Validate that no fields are null
+        if (request.getPeriodEnd() == null) {
+            throw new InvalidRequestException(errorMessageService.getError(100));
+        }
+
+        // Validate that the date provided in the payload is no later than EOD today.
+        LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX);
+        if (request.getPeriodEnd().isAfter(endOfDay)){
+            throw new InvalidRequestException(errorMessageService.getError(114));
+        }
+
+        return true;
+    }
+
+    public boolean isValidRetainedEarningsStatementGenerationRequest(RetainedEarningsStatementReportDTO request) {
+        // Validate that no fields are null
+        if (request.getPeriod() == null || request.getRetainedEarningsTargetAccount() == null) {
+            throw new InvalidRequestException(errorMessageService.getError(100));
+        }
+
+        // Ensures that the Retained Earnings target account exists
+        if (!accountRepository.existsByAccountName(request.getRetainedEarningsTargetAccount())) {
+            throw new InvalidRequestException(errorMessageService.getError(123));
+        }
+
+        // Validate that the date provided in the payload is not later than EOM.
+        YearMonth requestedPeriod = request.getPeriod();
+        YearMonth currentPeriod = YearMonth.now();
+        if (requestedPeriod.isAfter(currentPeriod)) {
+            throw new InvalidRequestException(errorMessageService.getError(114));
+        }
+
+        return true;
+    }
+
+    public boolean isValidBalanceSheetGenerationRequest(BalanceSheetReportDTO request) {
+        // Validate that no fields are null
+        if (request.getPeriodEnd() == null) {
+            throw new InvalidRequestException(errorMessageService.getError(100));
+        }
+
+        // Validate that the date provided in the payload is no later than EOD today.
+        LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX);
+        if (request.getPeriodEnd().isAfter(endOfDay)){
+            throw new InvalidRequestException(errorMessageService.getError(114));
+        }
+
+        return true;
+    }
 }
+
