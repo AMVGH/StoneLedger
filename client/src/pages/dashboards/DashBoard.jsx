@@ -13,6 +13,7 @@ import AccountLedger from "../../components/AccountLedger";
 import GeneralJournal from "../../components/GeneralJournal";
 import EmailService from "../../components/EmailService";
 import { SECURITY_QUESTIONS } from "../../utils/SecurityQuestions";
+import Reports from "../../components/Reports";
 
 const ACCOUNT_CATEGORIES = ["ASSET", "EXPENSE", "LIABILITY", "EQUITY", "REVENUE"];
 const ACCOUNT_SUBCATEGORIES = ["SHORT_TERM", "LONG_TERM", "NONE"];
@@ -853,6 +854,7 @@ export default function DashBoard() {
                 onClick={() => { setNav("Chart of Accounts"); setSelectedAccount(null); }}
               >Chart of Accounts</button>
               <button className={`${styles.navItem} ${nav === "General Journal" ? styles.activeNav : ""}`} onClick={() => setNav("General Journal")}>General Journal</button>
+              <button className={`${styles.navItem} ${nav === "Reports" ? styles.activeNav : ""}`} onClick={() => setNav("Reports")}>Reports</button>
               <button className={`${styles.navItem} ${nav === "Email Service" ? styles.activeNav : ""}`} onClick={() => setNav("Email Service")}>Email Service</button>
               <button className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`} onClick={() => setNav("Event Logs")}>Event Logs</button>
             </>
@@ -864,6 +866,7 @@ export default function DashBoard() {
                 onClick={() => { setNav("Chart of Accounts"); setSelectedAccount(null); }}
               >Chart of Accounts</button>
               <button className={`${styles.navItem} ${nav === "General Journal" ? styles.activeNav : ""}`} onClick={() => setNav("General Journal")}>General Journal</button>
+              <button className={`${styles.navItem} ${nav === "Reports" ? styles.activeNav : ""}`} onClick={() => setNav("Reports")}>Reports</button>
               <button className={`${styles.navItem} ${nav === "Email Service" ? styles.activeNav : ""}`} onClick={() => setNav("Email Service")}>Email Service</button>
               <button className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`} onClick={() => setNav("Event Logs")}>Event Logs</button>
             </>
@@ -977,6 +980,14 @@ export default function DashBoard() {
                 setNav("Account Ledger");
               }}
             />
+          </section>
+        )}
+
+        {nav === "Reports" && ["MANAGER", "USER"].includes(loggedInUser.role) && (
+          <section className={styles.content}>
+            <h2>Reports</h2>
+            <p>Generate financial reports including Trial Balance, Income Statement, Balance Sheet, and Retained Earnings Statement.</p>
+            <Reports />
           </section>
         )}
 
