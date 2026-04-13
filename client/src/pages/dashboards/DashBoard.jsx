@@ -854,7 +854,7 @@ export default function DashBoard() {
                 onClick={() => { setNav("Chart of Accounts"); setSelectedAccount(null); }}
               >Chart of Accounts</button>
               <button className={`${styles.navItem} ${nav === "General Journal" ? styles.activeNav : ""}`} onClick={() => setNav("General Journal")}>General Journal</button>
-              <button className={`${styles.navItem} ${nav === "Reports" ? styles.activeNav : ""}`} onClick={() => setNav("Reports")}>Reports</button>
+              <button className={`${styles.navItem} ${nav === "Reports" ? styles.activeNav : ""}`} onClick={() => setNav("Reports")}>Financial Reports</button>
               <button className={`${styles.navItem} ${nav === "Email Service" ? styles.activeNav : ""}`} onClick={() => setNav("Email Service")}>Email Service</button>
               <button className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`} onClick={() => setNav("Event Logs")}>Event Logs</button>
             </>
@@ -866,7 +866,6 @@ export default function DashBoard() {
                 onClick={() => { setNav("Chart of Accounts"); setSelectedAccount(null); }}
               >Chart of Accounts</button>
               <button className={`${styles.navItem} ${nav === "General Journal" ? styles.activeNav : ""}`} onClick={() => setNav("General Journal")}>General Journal</button>
-              <button className={`${styles.navItem} ${nav === "Reports" ? styles.activeNav : ""}`} onClick={() => setNav("Reports")}>Reports</button>
               <button className={`${styles.navItem} ${nav === "Email Service" ? styles.activeNav : ""}`} onClick={() => setNav("Email Service")}>Email Service</button>
               <button className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`} onClick={() => setNav("Event Logs")}>Event Logs</button>
             </>
