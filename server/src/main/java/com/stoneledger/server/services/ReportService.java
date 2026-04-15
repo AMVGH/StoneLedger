@@ -44,7 +44,7 @@ public class ReportService {
         // Gets all active financial accounts.
         List<AccountModel> activeFinancialAccounts = accountRepository.findAllByIsActive(true);
 
-        // TODO: Turn this into a MonetaryUtil, calculate account balance up to as of date ()
+        // TODO: Add Reversing
 
         switch (request.getReportType()) {
             case ADJUSTED -> {
@@ -57,6 +57,8 @@ public class ReportService {
                         request.getPeriodEnd());
 
                     BigDecimal accountBalance = monetaryUtil.calculateAccountBalanceToDate(financialAccount, postedEntries, request.getPeriodEnd());
+
+                    if (accountBalance.compareTo(BigDecimal.ZERO) == 0) continue;
 
                     BalanceLean financialAccountBalanceLean = determineBalanceLean(financialAccount, accountBalance);
                     reportEntries.add(new TrialBalanceEntryDTO(
@@ -87,6 +89,8 @@ public class ReportService {
                         TransactionType.STANDARD);
 
                     BigDecimal accountBalance = monetaryUtil.calculateAccountBalanceToDate(financialAccount, postedEntries, request.getPeriodEnd());
+
+                    if (accountBalance.compareTo(BigDecimal.ZERO) == 0) continue;
 
                     BalanceLean financialAccountBalanceLean = determineBalanceLean(financialAccount, accountBalance);
                     reportEntries.add(new TrialBalanceEntryDTO(
@@ -120,6 +124,8 @@ public class ReportService {
                         request.getPeriodEnd());
 
                     BigDecimal accountBalance = monetaryUtil.calculateAccountBalanceToDate(financialAccount, postedEntries, request.getPeriodEnd());
+
+                    if (accountBalance.compareTo(BigDecimal.ZERO) == 0) continue;
 
                     BalanceLean financialAccountBalanceLean = determineBalanceLean(financialAccount, accountBalance);
                     reportEntries.add(new TrialBalanceEntryDTO(
@@ -396,6 +402,9 @@ public class ReportService {
                 request.getPeriodEnd());
             BigDecimal accountBalance = monetaryUtil.calculateAccountBalanceToDate(assetAccount, postedEntries, request.getPeriodEnd());
 
+            // Skip 0 balance
+            if (accountBalance.compareTo(BigDecimal.ZERO) == 0) continue;
+
             if (assetAccount.getAccountSubcategory() == AccountSubcategory.SHORT_TERM) {
                 totalCurrentAssets = totalCurrentAssets.add(accountBalance);
                 currentAssetList.add(new Pair<>(assetAccount.getAccountName(), accountBalance));
@@ -430,6 +439,10 @@ public class ReportService {
                 request.getPeriodEnd());
 
             BigDecimal accountBalance = monetaryUtil.calculateAccountBalanceToDate(liabilityAccount, postedEntries, request.getPeriodEnd());
+
+            if (accountBalance.compareTo(BigDecimal.ZERO) == 0) continue;
+
+
             if (liabilityAccount.getAccountSubcategory() == AccountSubcategory.SHORT_TERM) {
                 totalCurrentLiabilities = totalCurrentLiabilities.add(accountBalance);
                 currentLiabilityList.add(new Pair<>(liabilityAccount.getAccountName(), accountBalance));
@@ -462,6 +475,9 @@ public class ReportService {
             );
 
             BigDecimal accountBalance = monetaryUtil.calculateAccountBalanceToDate(equityAccount, postedEntries, request.getPeriodEnd());
+
+            if (accountBalance.compareTo(BigDecimal.ZERO) == 0) continue;
+
             stockholderEquityList.add(new Pair<>(equityAccount.getAccountName(), accountBalance));
             totalStockholderEquity = totalStockholderEquity.add(accountBalance);
         }

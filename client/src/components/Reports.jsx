@@ -230,6 +230,7 @@ export default function Reports() {
               <select style={selectStyle} name="trialBalanceType" value={params.trialBalanceType} onChange={handleParamChange}>
                 <option value="UNADJUSTED">Unadjusted</option>
                 <option value="ADJUSTED">Adjusted</option>
+                <option value="REVERSING">Reversing</option>
                 <option value="POST_CLOSING">Post-Closing</option>
               </select>
             </div>

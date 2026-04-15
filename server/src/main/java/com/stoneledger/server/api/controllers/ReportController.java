@@ -33,6 +33,7 @@ public class ReportController {
         return ResponseEntity.ok(ApiResponseDTO.success(trialBalanceContent));
     }
 
+
     @PostMapping("/gather-income-statement-content")
     public ResponseEntity<ApiResponseDTO<?>> gatherIncomeStatementContent(@RequestBody IncomeStatementReportDTO request) {
         validationUtil.isValidIncomeStatementGenerationRequest(request);
@@ -40,6 +41,7 @@ public class ReportController {
         return ResponseEntity.ok(ApiResponseDTO.success(incomeStatementContent));
     }
 
+    // AV - Works
     @PostMapping("/gather-balance-sheet-content")
     public ResponseEntity<ApiResponseDTO<?>> gatherBalanceSheetContent(@RequestBody BalanceSheetReportDTO request) {
         validationUtil.isValidBalanceSheetGenerationRequest(request);
