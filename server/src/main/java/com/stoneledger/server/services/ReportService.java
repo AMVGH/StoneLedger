@@ -47,7 +47,7 @@ public class ReportService {
         // TODO: Add Reversing
 
         switch (request.getReportType()) {
-            case ADJUSTED -> {
+            case ADJUSTED, REVERSING -> {
                 // Gets all approved transactions up to the request date
                 for (AccountModel financialAccount:activeFinancialAccounts) {
                     // Collection of the postedEntries for a given account as of the requested period
