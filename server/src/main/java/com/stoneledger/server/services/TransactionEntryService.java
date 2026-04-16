@@ -1,7 +1,9 @@
 package com.stoneledger.server.services;
 
+import com.stoneledger.server.api.dtos.ApiResponseDTO;
 import com.stoneledger.server.api.dtos.requests.TransactionEntryDTO;
 import com.stoneledger.server.api.dtos.responses.TransactionEntryInformationDTO;
+import com.stoneledger.server.api.dtos.responses.TransactionInformationDTO;
 import com.stoneledger.server.api.enums.EntryType;
 import com.stoneledger.server.api.enums.LoggingEvents;
 import com.stoneledger.server.api.enums.LoggingTables;
@@ -12,10 +14,12 @@ import com.stoneledger.server.api.models.TransactionModel;
 import com.stoneledger.server.api.repositories.AccountRepository;
 import com.stoneledger.server.api.repositories.TransactionEntryRepository;
 import com.stoneledger.server.api.repositories.TransactionRepository;
+import jakarta.transaction.Transaction;
 import jakarta.transaction.Transactional;
 import jdk.jfr.Event;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -82,6 +86,8 @@ public class TransactionEntryService {
 
                 boolean isOpeningEntry = entry.getParentTransaction() == null;
 
+                response.setId(entry.getId());
+
                 response.setDate(isOpeningEntry
                     ? entry.getAccountImpacted().getAccountAddDate()
                     : entry.getParentTransaction().getCreatedDate());
@@ -104,5 +110,36 @@ public class TransactionEntryService {
 
                 return response;
             }).collect(Collectors.toList());
+    }
+
+    public TransactionInformationDTO getParentTransactionOfEntry(TransactionEntryModel transactionEntry) {
+        TransactionModel parentTransaction = transactionEntry.getParentTransaction();
+
+        TransactionInformationDTO parentTransactionInformation = new TransactionInformationDTO();
+        parentTransactionInformation.setId(parentTransaction.getId());
+        parentTransactionInformation.setTransactionType(parentTransaction.getTransactionType());
+        parentTransactionInformation.setTransactionDescription(parentTransaction.getTransactionDescription());
+        parentTransactionInformation.setAttachment(parentTransaction.getAttachment());
+        parentTransactionInformation.setAttachmentName(parentTransaction.getAttachmentName());
+        parentTransactionInformation.setCreatedBy(parentTransaction.getCreatedBy() != null ? parentTransaction.getCreatedBy().getId() : null);
+        parentTransactionInformation.setCreatedDate(parentTransaction.getCreatedDate());
+        parentTransactionInformation.setTransactionStatus(parentTransaction.getTransactionStatus());
+        parentTransactionInformation.setApprovedBy(parentTransaction.getUpdatedBy() != null ? parentTransaction.getUpdatedBy().getId() : null);
+        parentTransactionInformation.setApprovedDate(parentTransaction.getUpdateDate());
+        parentTransactionInformation.setApprovalComment(parentTransaction.getUpdateComment());
+
+        List<TransactionEntryDTO> entryDTOs = parentTransaction.getAccountsImpacted() == null ? List.of()
+            : parentTransaction.getAccountsImpacted().stream()
+            .map(entry -> {
+                TransactionEntryDTO entryDTO = new TransactionEntryDTO();
+                entryDTO.setAccountId(entry.getAccountImpacted() != null ? entry.getAccountImpacted().getId() : null);
+                entryDTO.setEntryType(entry.getEntryType());
+                entryDTO.setAmount(entry.getAmount());
+                return entryDTO;
+            })
+            .collect(Collectors.toList());
+
+        parentTransactionInformation.setAccountsImpacted(entryDTOs);
+        return parentTransactionInformation;
     }
 }

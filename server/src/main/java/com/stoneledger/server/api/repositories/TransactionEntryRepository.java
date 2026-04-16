@@ -43,4 +43,10 @@ public interface TransactionEntryRepository extends JpaRepository <TransactionEn
         LocalDateTime startDate,
         LocalDateTime endDate
     );
+
+    List<TransactionEntryModel> findByAccountImpactedAndIsApprovedAndParentTransactionTransactionType(
+        AccountModel accountImpacted,
+        boolean isApproved,
+        TransactionType transactionType
+    );
 }
