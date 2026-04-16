@@ -14,10 +14,10 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RatioInformationDTO {
-    private List<Pair<String, Float>> profitabilityRatios;
-    private List<Pair<String, Float>> liquidityRatios;
-    private List<Pair<String, Float>> leverageRatios;
+    private List<Pair<String, BigDecimal>> profitabilityRatios;
+    private List<Pair<String, BigDecimal>> liquidityRatios;
+    private List<Pair<String, BigDecimal>> leverageRatios;
 
-    private List<Pair<String, Float>> activityRatios;
-    private List<Pair<String, Float>> otherRatios;
+    private List<Pair<String, BigDecimal>> activityRatios;
+    private List<Pair<String, BigDecimal>> otherRatios;
 }
