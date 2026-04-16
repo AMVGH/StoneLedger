@@ -111,7 +111,7 @@ public class EmailService {
 
         helper.setFrom(fromEmail);
         helper.setTo(user.getEmail());
-        helper.setSubject("An Administrator Has Sent You A Message.");
+        helper.setSubject("You have received an email from StoneLedger.");
         helper.setText(buildIssueEmailToUserBody(user, messageContent), true);
 
         mailSender.send(message);
@@ -171,6 +171,6 @@ public class EmailService {
 
     private String buildIssueEmailToUserBody(UserModel user, String messageContent) {
         return "<h3>Hello, " + user.getFirstName() + "</h3>" +
-            "<p>An Administrator Has Sent You A Message: " + messageContent + "</p>";
+            "<p>You have received a message through StoneLedger: " + messageContent + "</p>";
     }
 }

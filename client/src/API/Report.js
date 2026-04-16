@@ -65,11 +65,13 @@ export const getBalanceSheetContent = async (periodEnd) => {
 };
 
 // retainedEarningsTargetAccount: account name string
+// dividendsDistributedTargetAccount: account name string
 // period: 'YYYY-MM' string — NOT a full datetime, just year-month
-export const getRetainedEarningsContent = async (retainedEarningsTargetAccount, period) => {
+export const getRetainedEarningsContent = async (retainedEarningsTargetAccount, dividendsDistributedTargetAccount, period) => {
   const payload = {
-    retainedEarningsTargetAccount,
-    period,
+    retainedEarningsTargetAccount: retainedEarningsTargetAccount,
+    dividendsDistributedTargetAccount: dividendsDistributedTargetAccount,
+    period: period,
   };
   console.log('[getRetainedEarningsContent] Sending payload:', payload);
 

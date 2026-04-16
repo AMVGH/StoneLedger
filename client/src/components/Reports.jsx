@@ -15,6 +15,7 @@ export default function Reports() {
     trialBalanceType: "UNADJUSTED",
     periodEnd: "",
     retainedEarningsAccount: "",
+    dividendsDistributedAccount: "",
     period: "",
   });
   const [result, setResult] = useState(null);
@@ -74,8 +75,13 @@ export default function Reports() {
           break;
         case "RETAINED_EARNINGS":
           if (!params.period) { setFetchError("Period (month) is required."); setFetching(false); return; }
-          if (!params.retainedEarningsAccount.trim()) { setFetchError("Retained earnings target account is required."); setFetching(false); return; }
-          data = await getRetainedEarningsContent(params.retainedEarningsAccount.trim(), params.period);
+          if (!params.retainedEarningsAccount) { setFetchError("Retained earnings target account is required."); setFetching(false); return; }
+          if (!params.dividendsDistributedAccount) { setFetchError("Dividends distributed account is required."); setFetching(false); return; }
+          data = await getRetainedEarningsContent(
+            params.retainedEarningsAccount,
+            params.dividendsDistributedAccount,
+            params.period
+          );
           break;
         default: break;
       }
@@ -250,7 +256,7 @@ export default function Reports() {
                 <input style={inputStyle} type="month" name="period" value={params.period} onChange={handleParamChange} />
               </div>
               <div style={groupStyle}>
-                <label style={labelStyle}>Target Account</label>
+                <label style={labelStyle}>Retained Earnings Account</label>
                 <select
                   style={selectStyle}
                   name="retainedEarningsAccount"
@@ -260,7 +266,32 @@ export default function Reports() {
                 >
                   <option value="">Select an account...</option>
                   {financialAccounts.map((account) => (
-                    <option key={account.id || account.accountId} value={account.accountName}>
+                    <option
+                      key={account.id || account.accountId}
+                      value={account.accountName}
+                      disabled={account.accountName === params.dividendsDistributedAccount}
+                    >
+                      {account.accountName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div style={groupStyle}>
+                <label style={labelStyle}>Dividends Declaration Account</label>
+                <select
+                  style={selectStyle}
+                  name="dividendsDistributedAccount"
+                  value={params.dividendsDistributedAccount}
+                  onChange={handleParamChange}
+                  disabled={loadingAccounts}
+                >
+                  <option value="">Select an account...</option>
+                  {financialAccounts.map((account) => (
+                    <option
+                      key={account.id || account.accountId}
+                      value={account.accountName}
+                      disabled={account.accountName === params.retainedEarningsAccount}
+                    >
                       {account.accountName}
                     </option>
                   ))}

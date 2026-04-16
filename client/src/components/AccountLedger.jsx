@@ -239,10 +239,10 @@ export default function AccountLedger({ account, onBack, onJournalPageSelect, to
               <tr>
                 <th>Date</th>
                 <th>Description</th>
+                <th>PR</th>
                 <th>Debit</th>
                 <th>Credit</th>
                 <th>Balance</th>
-                <th>PR</th>
               </tr>
             </thead>
             <tbody>
@@ -251,6 +251,20 @@ export default function AccountLedger({ account, onBack, onJournalPageSelect, to
                   <tr key={index}>
                     <td>{formatDate(row.date)}</td>
                     <td>{row.description || "—"}</td>
+                    <td>
+                      {row.journalReference ? (
+                        <button
+                         type="button"
+                         className={styles.prLink}
+                         title={`Go to General Journal page ${convertToDisplayPage(Number(row.journalReference))}`}
+                         onClick={() => handleJournalPageSelect(Number(row.journalReference))}
+                         >
+                         GJ-{convertToDisplayPage(Number(row.journalReference))}
+                         </button>
+                          ) : (
+                         <span style={{ color: "#9ca3af", fontSize: 13 }}>—</span>
+                         )}
+                    </td>
                     <td className={styles.money}>
                       {row.debit > 0 ? currency(row.debit) : "—"}
                     </td>
@@ -260,20 +274,7 @@ export default function AccountLedger({ account, onBack, onJournalPageSelect, to
                     <td className={styles.money}>
                       {currency(row.runningBalance)}
                     </td>
-                    <td>
-                      {row.journalReference ? (
-                        <button
-                          type="button"
-                          className={styles.prLink}
-                          title={`Go to General Journal page ${convertToDisplayPage(Number(row.journalReference))}`}
-                          onClick={() => handleJournalPageSelect(Number(row.journalReference))}
-                        >
-                          GJ{convertToDisplayPage(Number(row.journalReference))}
-                        </button>
-                      ) : (
-                        <span style={{ color: "#9ca3af", fontSize: 13 }}>—</span>
-                      )}
-                    </td>
+
                   </tr>
                 ))
               ) : (

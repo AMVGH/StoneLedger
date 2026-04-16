@@ -534,12 +534,17 @@ public class ValidationUtil {
 
     public boolean isValidRetainedEarningsStatementGenerationRequest(RetainedEarningsStatementReportDTO request) {
         // Validate that no fields are null
-        if (request.getPeriod() == null || request.getRetainedEarningsTargetAccount() == null) {
+        if (request.getPeriod() == null || request.getRetainedEarningsTargetAccount() == null || request.getDividendsDistributedTargetAccount() == null) {
             throw new InvalidRequestException(errorMessageService.getError(100));
         }
 
         // Ensures that the Retained Earnings target account exists
         if (!accountRepository.existsByAccountName(request.getRetainedEarningsTargetAccount())) {
+            throw new InvalidRequestException(errorMessageService.getError(123));
+        }
+
+        // Ensures that the Dividend Distribution target account exists
+        if (!accountRepository.existsByAccountName(request.getDividendsDistributedTargetAccount())) {
             throw new InvalidRequestException(errorMessageService.getError(123));
         }
 

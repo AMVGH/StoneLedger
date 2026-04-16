@@ -8,5 +8,6 @@ import java.time.YearMonth;
 @Data
 public class RetainedEarningsStatementReportDTO {
     private String retainedEarningsTargetAccount;
+    private String dividendsDistributedTargetAccount;
     private YearMonth period;
 }

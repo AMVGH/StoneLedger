@@ -219,6 +219,8 @@ public class ReportService {
                 }
             }
 
+            if (accountBalance.compareTo(BigDecimal.ZERO) == 0) continue;
+
             totalRevenues = totalRevenues.add(accountBalance);
             Pair<String, BigDecimal> revenuePair = new Pair<>(revenueAccount.getAccountName(), accountBalance);
             revenueList.add(revenuePair);
@@ -253,6 +255,8 @@ public class ReportService {
                     }
                 }
             }
+
+            if (accountBalance.compareTo(BigDecimal.ZERO) == 0) continue;
 
             totalExpenses = totalExpenses.add(accountBalance);
             Pair<String, BigDecimal> expensePair = new Pair<>(expenseAccount.getAccountName(), accountBalance);
@@ -302,7 +306,7 @@ public class ReportService {
 
         BigDecimal netIncome = calculateNetIncomeForPeriod(periodStart, periodEnd);
 
-        BigDecimal dividends = calculateDividendsForPeriod(periodStart, periodEnd);
+        BigDecimal dividends = calculateDividendsForPeriod(periodStart, periodEnd, request.getDividendsDistributedTargetAccount());
 
         BigDecimal endingRetainedEarnings = beginningRetainedEarnings
             .add(netIncome)
@@ -333,10 +337,10 @@ public class ReportService {
         return totalRevenue.subtract(totalExpenses);
     }
 
-    private BigDecimal calculateDividendsForPeriod(LocalDateTime periodStart, LocalDateTime periodEnd) {
+    private BigDecimal calculateDividendsForPeriod(LocalDateTime periodStart, LocalDateTime periodEnd, String targetAccountName) {
         // Find Dividends account (if it exists)
         Optional<AccountModel> dividendsAccount = accountRepository
-            .findByAccountName("Dividends Declared");
+            .findByAccountName(targetAccountName);
 
         if (dividendsAccount.isEmpty()) {
             return BigDecimal.ZERO;
