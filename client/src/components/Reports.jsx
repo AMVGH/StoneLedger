@@ -6,6 +6,7 @@ import {
   getIncomeStatementContent,
   getBalanceSheetContent,
   getRetainedEarningsContent,
+  issuePostClosingWarning,
 } from "../API/Report";
 import { getFinancialAccounts } from "../API/FinancialAccount";
 
@@ -23,6 +24,8 @@ export default function Reports() {
   const [fetching, setFetching] = useState(false);
   const [financialAccounts, setFinancialAccounts] = useState([]);
   const [loadingAccounts, setLoadingAccounts] = useState(false);
+  const [postClosingWarning, setPostClosingWarning] = useState(null);
+  const [showInfo, setShowInfo] = useState(false);
 
   // Fetch financial accounts on component mount
   useEffect(() => {
@@ -40,50 +43,161 @@ export default function Reports() {
     fetchAccounts();
   }, []);
 
+  // Fetch post-closing warning on component mount
+  useEffect(() => {
+    const fetchPostClosingWarning = async () => {
+      try {
+        const response = await issuePostClosingWarning();
+        const warningData = response?.data || response;
+        if (warningData?.issueWarning && warningData?.latestPostClosingDate) {
+          setPostClosingWarning(warningData);
+        } else {
+          setPostClosingWarning(null);
+        }
+      } catch (err) {
+        console.error("Failed to fetch post-closing warning:", err);
+      }
+    };
+
+    fetchPostClosingWarning();
+  }, []);
+
   const handleParamChange = (e) => {
     const { name, value } = e.target;
     setParams((prev) => ({ ...prev, [name]: value }));
     setResult(null);
     setFetchError("");
+    setShowInfo(false);
   };
 
   const handleReportTypeChange = (e) => {
     setReportType(e.target.value);
     setResult(null);
     setFetchError("");
+    setShowInfo(false);
+  };
+
+  // Parse date string safely without timezone shift
+  const parseLocalDate = (dateStr) => {
+    if (!dateStr) return null;
+    const [year, month, day] = dateStr.split("-").map(Number);
+    return new Date(year, month - 1, day);
+  };
+
+  // Check if info should be shown based on selected date
+  const shouldShowInfo = (selectedDateStr, warningDateStr) => {
+    if (!warningDateStr || !selectedDateStr) return false;
+
+    const selectedDate = parseLocalDate(selectedDateStr);
+    let warningDate;
+
+    if (warningDateStr.includes('T')) {
+      const datePart = warningDateStr.split('T')[0];
+      const [year, month, day] = datePart.split("-").map(Number);
+      warningDate = new Date(year, month - 1, day);
+    } else {
+      warningDate = parseLocalDate(warningDateStr);
+    }
+
+    if (!selectedDate || !warningDate) return false;
+
+    // Show info if selected date is BEFORE the closing date
+    return selectedDate < warningDate;
   };
 
   const handleGenerate = async () => {
     setFetchError("");
     setResult(null);
     setFetching(true);
+    setShowInfo(false);
+
     try {
       let data;
       const periodEndISO = params.periodEnd ? new Date(params.periodEnd).toISOString() : null;
+
       switch (reportType) {
         case "TRIAL_BALANCE":
-          if (!params.periodEnd) { setFetchError("Period end date is required."); setFetching(false); return; }
+          if (!params.periodEnd) {
+            setFetchError("Period end date is required.");
+            setFetching(false);
+            return;
+          }
+
+          // Check if info should be shown
+          if (postClosingWarning && postClosingWarning.latestPostClosingDate) {
+            const show = shouldShowInfo(
+              params.periodEnd,
+              postClosingWarning.latestPostClosingDate
+            );
+            setShowInfo(show);
+          }
+
           data = await getTrialBalanceContent(params.trialBalanceType, periodEndISO);
           break;
+
         case "INCOME_STATEMENT":
-          if (!params.periodEnd) { setFetchError("Period end date is required."); setFetching(false); return; }
+          if (!params.periodEnd) {
+            setFetchError("Period end date is required.");
+            setFetching(false);
+            return;
+          }
+
+          // Check info for income statement
+          if (postClosingWarning && postClosingWarning.latestPostClosingDate) {
+            const show = shouldShowInfo(
+              params.periodEnd,
+              postClosingWarning.latestPostClosingDate
+            );
+            setShowInfo(show);
+          }
+
           data = await getIncomeStatementContent(periodEndISO);
           break;
+
         case "BALANCE_SHEET":
-          if (!params.periodEnd) { setFetchError("Period end date is required."); setFetching(false); return; }
+          if (!params.periodEnd) {
+            setFetchError("Period end date is required.");
+            setFetching(false);
+            return;
+          }
+
+          // Check info for balance sheet
+          if (postClosingWarning && postClosingWarning.latestPostClosingDate) {
+            const show = shouldShowInfo(
+              params.periodEnd,
+              postClosingWarning.latestPostClosingDate
+            );
+            setShowInfo(show);
+          }
+
           data = await getBalanceSheetContent(periodEndISO);
           break;
+
         case "RETAINED_EARNINGS":
-          if (!params.period) { setFetchError("Period (month) is required."); setFetching(false); return; }
-          if (!params.retainedEarningsAccount) { setFetchError("Retained earnings target account is required."); setFetching(false); return; }
-          if (!params.dividendsDistributedAccount) { setFetchError("Dividends distributed account is required."); setFetching(false); return; }
+          if (!params.period) {
+            setFetchError("Period (month) is required.");
+            setFetching(false);
+            return;
+          }
+          if (!params.retainedEarningsAccount) {
+            setFetchError("Retained earnings target account is required.");
+            setFetching(false);
+            return;
+          }
+          if (!params.dividendsDistributedAccount) {
+            setFetchError("Dividends distributed account is required.");
+            setFetching(false);
+            return;
+          }
           data = await getRetainedEarningsContent(
             params.retainedEarningsAccount,
             params.dividendsDistributedAccount,
             params.period
           );
           break;
-        default: break;
+
+        default:
+          break;
       }
       setResult(data?.data ?? data);
     } catch (err) {
@@ -106,23 +220,41 @@ export default function Reports() {
     return n ? `$ ${n}` : "";
   };
 
+  const formatDisplayDate = (dateStr) => {
+    if (!dateStr) return "—";
+
+    let d;
+    if (typeof dateStr === 'string' && dateStr.includes('T')) {
+      const datePart = dateStr.split('T')[0];
+      const [year, month, day] = datePart.split("-").map(Number);
+      d = new Date(year, month - 1, day);
+    } else if (typeof dateStr === 'string' && dateStr.includes('-')) {
+      const [year, month, day] = dateStr.split("-").map(Number);
+      d = new Date(year, month - 1, day);
+    } else {
+      d = new Date(dateStr);
+    }
+
+    return d.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric"
+    });
+  };
+
   const fmtDate = (val) => {
-    if (!val) return "—";
-    const d = new Date(val);
-    return isNaN(d) ? String(val) : d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+    return formatDisplayDate(val);
   };
 
   const fmtPeriodEndHeader = (dateStr) => {
-    if (!dateStr) return "";
-    const [year, month, day] = dateStr.split("-").map(Number);
-    const d = new Date(year, month - 1, day);
-    return d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+    return formatDisplayDate(dateStr);
   };
 
   const trialBalanceSubtypeLabel = (type) => {
     switch (type) {
       case "UNADJUSTED":   return "Unadjusted Trial Balance";
       case "ADJUSTED":     return "Adjusted Trial Balance";
+      case "REVERSING":    return "Reversing Trial Balance";
       case "POST_CLOSING": return "Post-Closing Trial Balance";
       default:             return "Trial Balance";
     }
@@ -140,6 +272,24 @@ export default function Reports() {
   const selectStyle      = { ...inputStyle, cursor: "pointer" };
   const btnStyle         = { padding: "8px 0", border: "none", borderRadius: "6px", background: "#4f46e5", color: "#fff", fontSize: "13px", cursor: "pointer", fontWeight: 500, width: "100%", marginTop: "4px" };
   const errorStyle       = { background: "#fef2f2", border: "0.5px solid #fecaca", color: "#b91c1c", borderRadius: "6px", padding: "8px 12px", fontSize: "13px", marginTop: "12px" };
+
+  // Info banner style (simple blue informational)
+  const infoBannerStyle = {
+    background: "#e0f2fe",
+    border: "1px solid #0284c7",
+    borderRadius: "8px",
+    padding: "10px 16px",
+    marginBottom: "20px",
+    color: "#0c4a6e",
+    fontSize: "13px",
+    display: "flex",
+    alignItems: "center",
+    gap: "10px"
+  };
+
+  const infoIconStyle = {
+    fontSize: "16px"
+  };
 
   // ── Shared report header ──
   const reportHeaderStyle        = { textAlign: "center", marginBottom: "16px", fontFamily: "serif", borderBottom: "2px solid #111", paddingBottom: "10px" };
@@ -309,6 +459,17 @@ export default function Reports() {
 
       {result && (
         <div style={resultPanelStyle}>
+          {/* Simple informational message - shows for any report before closing date */}
+          {showInfo && postClosingWarning && (
+            <div style={infoBannerStyle}>
+              <span>
+                Closing entries for the period were applied on{" "}
+                <strong>{formatDisplayDate(postClosingWarning.latestPostClosingDate)}</strong>.
+                This report reflects data before closing entries were posted.
+              </span>
+            </div>
+          )}
+
           <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "12px" }}>
             <button style={{ ...btnStyle, width: "auto", padding: "8px 16px", marginTop: 0 }} onClick={handleDownloadPdf}>
               Download PDF
@@ -462,9 +623,7 @@ export default function Reports() {
               );
             })()}
 
-            {/* ════════════════════════════════════
-                BALANCE SHEET
-                ════════════════════════════════════ */}
+            {/* BALANCE SHEET */}
             {reportType === "BALANCE_SHEET" && (
               <>
                 <div style={reportHeaderStyle}>
@@ -650,7 +809,6 @@ export default function Reports() {
 
                 <table style={tableStyle}>
                   <tbody>
-                    {/* Beginning Retained Earnings */}
                     <tr>
                       <td style={reLabel}>
                         Retained Earnings, Beginning {fmtDate(result.periodBeginning)}
@@ -658,13 +816,11 @@ export default function Reports() {
                       <td style={reAmt}>{fmtDollar(result.retainedEarningsBeginning)}</td>
                     </tr>
 
-                    {/* Add: Net Income */}
                     <tr>
                       <td style={reLabel}>Add: Net Income</td>
                       <td style={reAmt}>{fmtNum(result.netIncome)}</td>
                     </tr>
 
-                    {/* Less: Dividends - with underline */}
                     <tr>
                       <td style={reLabel}>Less: Dividends</td>
                       <td style={reAmt}>
@@ -674,10 +830,8 @@ export default function Reports() {
                       </td>
                     </tr>
 
-                    {/* Spacer */}
                     <tr><td colSpan={2} style={{ ...noCell, padding: "4px" }}></td></tr>
 
-                    {/* Ending Retained Earnings */}
                     <tr>
                       <td style={reLabelBold}>
                         Retained Earnings, Ending {fmtDate(result.periodEnding)}

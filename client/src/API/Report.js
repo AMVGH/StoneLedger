@@ -82,3 +82,12 @@ export const getRetainedEarningsContent = async (retainedEarningsTargetAccount, 
     throw error.response?.data || error;
   }
 };
+
+export const issuePostClosingWarning = async () => {
+  try {
+    const response = await api.get('/reports/issue-post-closing-warning');
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
+};

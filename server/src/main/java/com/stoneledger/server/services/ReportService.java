@@ -6,6 +6,7 @@ import com.stoneledger.server.api.dtos.requests.RetainedEarningsStatementReportD
 import com.stoneledger.server.api.dtos.requests.TrialBalanceReportDTO;
 import com.stoneledger.server.api.dtos.responses.*;
 import com.stoneledger.server.api.enums.*;
+import com.stoneledger.server.api.exeptions.InvalidIdException;
 import com.stoneledger.server.api.exeptions.InvalidRequestException;
 import com.stoneledger.server.api.models.AccountModel;
 import com.stoneledger.server.api.models.TransactionEntryModel;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
@@ -275,38 +277,60 @@ public class ReportService {
     }
 
     public RetainedEarningsStatementContentDTO gatherRetainedEarningsReportContent(RetainedEarningsStatementReportDTO request) {
-        YearMonth period = request.getPeriod();
-        LocalDateTime periodStart = period.atDay(1).atStartOfDay();
-        LocalDateTime periodEnd = period.atEndOfMonth().atTime(23, 59, 59);
+        YearMonth requestedPeriod = request.getPeriod();
+
+        LocalDateTime latestClosingDate = findLatestClosingDateBefore(requestedPeriod);
+
+        LocalDateTime periodStart;
+        LocalDateTime periodEnd;
+
+        if (latestClosingDate != null) {
+            periodStart = latestClosingDate.plusDays(1);
+            periodEnd = latestClosingDate.plusDays(30).with(LocalTime.MAX);
+        } else {
+            periodStart = requestedPeriod.atDay(1).atStartOfDay();
+            periodEnd = requestedPeriod.atEndOfMonth().atTime(23,59,59);
+        }
 
         AccountModel retainedEarningsAccount = accountRepository
             .findByAccountName(request.getRetainedEarningsTargetAccount())
             .orElseThrow(() -> new InvalidRequestException(
-                errorMessageService.getError(123)));
+                errorMessageService.getError(123)
+            ));
 
-        List<TransactionEntryModel> allRetainedEarningsEntries = transactionEntryRepository
-            .findByAccountImpactedAndIsApprovedAndEntryDateLessThanEqual(
+        BigDecimal beginningRetainedEarnings;
+        if (latestClosingDate != null) {
+            // Get balance as of the closing date (after closing entries)
+            List<TransactionEntryModel> entriesUpToClosing = transactionEntryRepository
+                .findByAccountImpactedAndIsApprovedAndEntryDateLessThanEqual(
+                    retainedEarningsAccount,
+                    true,
+                    latestClosingDate
+                );
+            beginningRetainedEarnings = monetaryUtil.calculateAccountBalanceToDate(
                 retainedEarningsAccount,
-                true,
-                periodEnd  // All entries up to period end
+                entriesUpToClosing,
+                latestClosingDate
             );
-
-        List<TransactionEntryModel> retainedEarningsEntriesBeforePeriod = transactionEntryRepository
-            .findByAccountImpactedAndIsApprovedAndEntryDateLessThan(
+        } else {
+            // No closing entries - get balance from beginning of time
+            List<TransactionEntryModel> allEntries = transactionEntryRepository
+                .findByAccountImpactedAndIsApprovedAndEntryDateLessThanEqual(
+                    retainedEarningsAccount,
+                    true,
+                    periodStart.minusNanos(1)
+                );
+            beginningRetainedEarnings = monetaryUtil.calculateAccountBalanceToDate(
                 retainedEarningsAccount,
-                true,
-                periodStart  // Entries before period start
+                allEntries,
+                periodStart
             );
+        }
 
-        BigDecimal beginningRetainedEarnings = monetaryUtil.calculateAccountBalanceToDate(
-            retainedEarningsAccount,
-            retainedEarningsEntriesBeforePeriod,
-            periodStart
-        );
-
+        // Calculate net income and dividends for the period since last closing
         BigDecimal netIncome = calculateNetIncomeForPeriod(periodStart, periodEnd);
-
-        BigDecimal dividends = calculateDividendsForPeriod(periodStart, periodEnd, request.getDividendsDistributedTargetAccount());
+        BigDecimal dividends = calculateDividendsForPeriod(periodStart, periodEnd,
+            request.getDividendsDistributedTargetAccount());
 
         BigDecimal endingRetainedEarnings = beginningRetainedEarnings
             .add(netIncome)
@@ -322,23 +346,42 @@ public class ReportService {
         );
     }
 
-    // Helper method for net income
-    private BigDecimal calculateNetIncomeForPeriod(LocalDateTime periodStart, LocalDateTime periodEnd) {
-        List<AccountModel> revenueAccounts = accountRepository
-            .findAllByAccountCategoryAndIsActive(AccountCategory.REVENUE, true);
+    private LocalDateTime findLatestClosingDateBefore(YearMonth requestedPeriod) {
+        LocalDateTime periodEnd = requestedPeriod.atEndOfMonth().atTime(23, 59, 59);
 
-        List<AccountModel> expenseAccounts = accountRepository
-            .findAllByAccountCategoryAndIsActive(AccountCategory.EXPENSE, true);
+        // Query for the latest closing transaction entry date
+        List<AccountModel> activeAccounts = accountRepository.findAllByIsActive(true);
+        LocalDateTime latestClosingDate = null;
 
-        BigDecimal totalRevenue = calculateAccountBalancesForPeriod(revenueAccounts, periodStart, periodEnd);
+        for (AccountModel account : activeAccounts) {
+            List<TransactionEntryModel> closingEntries = transactionEntryRepository
+                .findByAccountImpactedAndIsApprovedAndParentTransactionTransactionType(
+                    account,
+                    true,
+                    TransactionType.CLOSING
+                );
 
-        BigDecimal totalExpenses = calculateAccountBalancesForPeriod(expenseAccounts, periodStart, periodEnd);
+            for (TransactionEntryModel entry : closingEntries) {
+                if (entry.getParentTransaction() != null &&
+                    entry.getParentTransaction().getCreatedDate() != null) {
+                    LocalDateTime entryDate = entry.getParentTransaction().getCreatedDate();
 
-        return totalRevenue.subtract(totalExpenses);
+                    // Only consider closing entries on or before the period end
+                    if (!entryDate.isAfter(periodEnd)) {
+                        if (latestClosingDate == null || entryDate.isAfter(latestClosingDate)) {
+                            latestClosingDate = entryDate;
+                        }
+                    }
+                }
+            }
+        }
+
+        return latestClosingDate;
     }
 
-    private BigDecimal calculateDividendsForPeriod(LocalDateTime periodStart, LocalDateTime periodEnd, String targetAccountName) {
-        // Find Dividends account (if it exists)
+    private BigDecimal calculateDividendsForPeriod(LocalDateTime periodStart,
+                                                   LocalDateTime periodEnd,
+                                                   String targetAccountName) {
         Optional<AccountModel> dividendsAccount = accountRepository
             .findByAccountName(targetAccountName);
 
@@ -346,7 +389,6 @@ public class ReportService {
             return BigDecimal.ZERO;
         }
 
-        // Get dividend entries for the period
         List<TransactionEntryModel> dividendEntries = transactionEntryRepository
             .findByAccountImpactedAndIsApprovedAndEntryDateBetween(
                 dividendsAccount.get(),
@@ -355,12 +397,25 @@ public class ReportService {
                 periodEnd
             );
 
-        // Calculate total dividends
         return monetaryUtil.calculateAccountBalanceToDate(
             dividendsAccount.get(),
             dividendEntries,
             periodEnd
         );
+    }
+
+    // Helper method to calculate net income for a period
+    private BigDecimal calculateNetIncomeForPeriod(LocalDateTime periodStart, LocalDateTime periodEnd) {
+        List<AccountModel> revenueAccounts = accountRepository
+            .findAllByAccountCategoryAndIsActive(AccountCategory.REVENUE, true);
+
+        List<AccountModel> expenseAccounts = accountRepository
+            .findAllByAccountCategoryAndIsActive(AccountCategory.EXPENSE, true);
+
+        BigDecimal totalRevenue = calculateAccountBalancesForPeriod(revenueAccounts, periodStart, periodEnd);
+        BigDecimal totalExpenses = calculateAccountBalancesForPeriod(expenseAccounts, periodStart, periodEnd);
+
+        return totalRevenue.subtract(totalExpenses);
     }
 
     private BigDecimal calculateAccountBalancesForPeriod(List<AccountModel> accounts,
@@ -493,5 +548,41 @@ public class ReportService {
         balanceSheetContent.setTotalLiabilitiesAndEquity(totalLiabilitiesAndEquity);
 
         return balanceSheetContent;
+    }
+
+    public PostClosingWarningDTO issuePostClosingWarning() {
+        PostClosingWarningDTO postClosingWarning = new PostClosingWarningDTO();
+
+        postClosingWarning.setIssueWarning(false);
+        postClosingWarning.setLatestPostClosingDate(null);
+
+        List<AccountModel> activeFinancialAccounts = accountRepository.findAllByIsActive(true);
+
+        LocalDateTime latestClosingDate = null;
+
+        for (AccountModel financialAccount : activeFinancialAccounts) {
+            List<TransactionEntryModel> postedEntries = transactionEntryRepository.findByAccountImpactedAndIsApprovedAndParentTransactionTransactionType(
+                financialAccount,
+                true,
+                TransactionType.CLOSING);
+
+            // Find the latest entry date from closing transactions
+            for (TransactionEntryModel entry : postedEntries) {
+                if (entry.getParentTransaction() != null && entry.getParentTransaction().getCreatedDate() != null) {
+                    LocalDateTime entryDate = entry.getParentTransaction().getCreatedDate();
+                    if (latestClosingDate == null || entryDate.isAfter(latestClosingDate)) {
+                        latestClosingDate = entryDate;
+                    }
+                }
+            }
+        }
+
+        // If we found any closing entries
+        if (latestClosingDate != null) {
+            postClosingWarning.setIssueWarning(true);
+            postClosingWarning.setLatestPostClosingDate(latestClosingDate);
+        }
+
+        return postClosingWarning;
     }
 }

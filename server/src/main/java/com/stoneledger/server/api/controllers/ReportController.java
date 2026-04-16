@@ -11,10 +11,7 @@ import com.stoneledger.server.utils.ValidationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -25,7 +22,13 @@ public class ReportController {
     private ValidationUtil validationUtil;
     @Autowired
     private ReportService reportService;
-    // TODO: Implement all endpoints for building reports (Trial Balance, Income Statement, Balance Sheet, Retained Earnings Statement)
+
+    @GetMapping("/issue-post-closing-warning")
+    public ResponseEntity<ApiResponseDTO<?>> issuePostClosingWarning() {
+        PostClosingWarningDTO postClosingWarning = reportService.issuePostClosingWarning();
+        return ResponseEntity.ok(ApiResponseDTO.success(postClosingWarning));
+    }
+
     @PostMapping("/gather-trial-balance-content")
     public ResponseEntity<ApiResponseDTO<?>> gatherTrialBalanceContent(@RequestBody TrialBalanceReportDTO request) {
         validationUtil.isValidTrialBalanceGenerationRequest(request);
