@@ -98,6 +98,13 @@
   border-bottom: 1px solid #eef1f6;
 }
 
+.table th:nth-child(4),
+.table th:nth-child(5),
+.table th:nth-child(6) {
+  text-align: right;
+  padding-right: 12px;
+}
+
 .money {
   text-align: right;
   font-family: "Courier New", Courier, monospace;
@@ -143,6 +150,7 @@
   cursor: pointer;
   color: #374151;
 }
+
 .filterToggleBtnActive {
   background: #f0f0ff;
   border-color: #c7d2fe;
@@ -199,7 +207,10 @@
   cursor: pointer;
   color: #374151;
 }
-.clearBtn:hover { background: #f3f4f6; }
+
+.clearBtn:hover {
+  background: #f3f4f6;
+}
 
 .resultCount {
   font-size: 12px;
@@ -216,11 +227,695 @@
 .prLink {
   background: none;
   border: none;
-  color: #4f46e5;
-  font-size: 13px;
-  font-weight: 500;
+  color: #3b82f6;
   cursor: pointer;
+  font-size: 0.875rem;
+  padding: 0;
   text-decoration: underline;
+  transition: color 0.2s;
+}
+
+.prLink:hover {
+  color: #1d4ed8;
+}
+
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modalContent {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 900px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+  border-radius: 12px 12px 0 0;
+}
+
+.modalHeader h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.modalCloseBtn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.modalCloseBtn:hover {
+  background-color: #e5e7eb;
+  color: #111827;
+}
+
+.modalBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+/* Transaction Details */
+.transactionDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Transaction Header Info */
+.transactionHeaderInfo {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+}
+
+.headerRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.headerItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.headerLabel {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  line-height: 1.3;
+}
+
+.headerValue {
+  font-size: 0.875rem;
+  color: #111827;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+/* Fix for badge - prevent full width and ensure proper display */
+.headerValue .badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-width: 70px;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Description Section - Fixed vertical alignment */
+.descriptionSection {
+  padding: 16px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.descriptionRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.descriptionRow:last-child {
+  margin-bottom: 0;
+}
+
+.descriptionLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  min-width: 110px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  line-height: 1.4;
+  padding-top: 0;
+  margin: 0;
+}
+
+.descriptionValue {
+  font-size: 0.875rem;
+  color: #374151;
+  flex: 1;
+  line-height: 1.4;
+  word-wrap: break-word;
+  white-space: normal;
+  margin: 0;
   padding: 0;
 }
-.prLink:hover { color: #3730a3; }
+
+/* Modal Table Wrapper */
+.modalTableWrapper {
+  margin: 0;
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.modalJournalTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.modalJournalTable thead {
+  background: #f9fafb;
+}
+
+.modalJournalTable th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #4b5563;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.modalJournalTable td {
+  padding: 10px 12px;
+  color: #374151;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.modalJournalTable tbody tr:hover {
+  background: #f8fafc;
+}
+
+.modalJournalTable tfoot {
+  background: #f9fafb;
+  font-weight: 600;
+}
+
+.modalJournalTable tfoot td {
+  padding: 12px;
+  border-top: 2px solid #e5e7eb;
+  border-bottom: none;
+  font-size: 0.875rem;
+}
+
+.modalJournalTable .money {
+  text-align: right;
+  font-family: "Courier New", Courier, monospace;
+}
+
+/* Link-like button for account names */
+.linkLikeBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #3b82f6;
+  text-decoration: underline;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.linkLikeBtn:hover {
+  color: #1d4ed8;
+}
+
+/* Additional Info */
+.additionalInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.infoRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.infoLabel {
+  font-weight: 600;
+  color: #6b7280;
+  min-width: 110px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.infoValue {
+  color: #374151;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* Badge Styles - Fixed sizing */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  width: auto;
+  min-width: 70px;
+  line-height: 1.2;
+}
+
+.badgePending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badgeApproved {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.badgeRejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Spinner */
+.spinner {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Modal Loading State */
+.modalLoading {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Modal Error State */
+.modalError {
+  text-align: center;
+  padding: 2rem;
+  color: #ef4444;
+}
+
+.modalError button {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.modalError button:hover {
+  background: #dc2626;
+}
+
+.modalFooter {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+  background: #f9fafb;
+  border-radius: 0 0 12px 12px;
+}
+
+.modalCloseFooterBtn {
+  padding: 0.5rem 1rem;
+  background: #1565c0;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.2s;
+}
+
+.modalCloseFooterBtn:hover {
+  background: #0d47a1;
+}
+
+/* Calculator Button Styles */
+.calculatorBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 6px;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: 0px;
+}
+
+.calculatorBtn:hover {
+  background-color: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.calculatorBtn:active {
+  transform: translateY(0);
+}
+
+.calculatorBtn svg {
+  width: 16px;
+  height: 16px;
+  stroke: white;
+}
+
+/* Calculator Modal Overlay */
+.calculatorOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+/* Calculator Modal - Smaller size */
+.calculatorModal {
+  background: white;
+  border-radius: 12px;
+  width: 280px;
+  max-width: 90%;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Calculator Header - Reduced padding */
+.calculatorHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.calculatorHeader h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.calculatorCloseBtn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.calculatorCloseBtn:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+/* Calculator Component - Reduced padding */
+.calculator {
+  padding: 16px;
+}
+
+/* Calculator Display - Single line with ellipsis */
+.calculatorDisplay {
+  background-color: #f9fafb;
+  padding: 12px 16px;
+  font-size: 24px;
+  font-weight: 600;
+  text-align: right;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border: 1px solid #e5e7eb;
+  color: #111827;
+  font-family: 'Courier New', monospace;
+  white-space: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  min-height: 52px;
+  line-height: 1.2;
+}
+
+/* Custom scrollbar for the display */
+.calculatorDisplay::-webkit-scrollbar {
+  height: 4px;
+}
+
+.calculatorDisplay::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 2px;
+}
+
+.calculatorDisplay::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 2px;
+}
+
+.calculatorDisplay::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Calculator Buttons - Slightly smaller */
+.calculatorButtons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.calculatorButtons button {
+  padding: 10px 0;
+  font-size: 16px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.calculatorNumber {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.calculatorNumber:hover {
+  background-color: #e5e7eb;
+  transform: translateY(-1px);
+}
+
+.calculatorNumber:active {
+  transform: translateY(0);
+}
+
+.calculatorNumberZero {
+  background-color: #f3f4f6;
+  color: #111827;
+  grid-column: span 2;
+}
+
+.calculatorNumberZero:hover {
+  background-color: #e5e7eb;
+  transform: translateY(-1px);
+}
+
+.calculatorNumberZero:active {
+  transform: translateY(0);
+}
+
+.calculatorOperator {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.calculatorOperator:hover {
+  background-color: #fde68a;
+  transform: translateY(-1px);
+}
+
+.calculatorOperator:active {
+  transform: translateY(0);
+}
+
+.calculatorClear {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.calculatorClear:hover {
+  background-color: #fecaca;
+  transform: translateY(-1px);
+}
+
+.calculatorClear:active {
+  transform: translateY(0);
+}
+
+.calculatorEquals {
+  background-color: #2563eb;
+  color: white;
+  grid-row: span 2;
+}
+
+.calculatorEquals:hover {
+  background-color: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.calculatorEquals:active {
+  transform: translateY(0);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .headerRow {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .descriptionRow {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .descriptionLabel {
+    min-width: auto;
+  }
+
+  .infoRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .infoLabel {
+    min-width: auto;
+  }
+
+  .badge {
+    white-space: normal;
+    word-break: keep-all;
+  }
+}

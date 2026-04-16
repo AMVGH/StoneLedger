@@ -198,7 +198,8 @@ export default function ChartOfAccounts({ onAccountSelect, onEditAccount, refres
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [selectedDate, setSelectedDate] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [showDatePopup, setShowDatePopup] = useState(false);
@@ -270,7 +271,9 @@ const filteredAccounts = useMemo(() => {
   return accounts
     .filter((acct) => {
       const dateStr = toDateStr(acct.accountAddDate);
-      if (selectedDate && dateStr > selectedDate) return false;
+      // Date range filtering
+      if (startDate && dateStr < startDate) return false;
+      if (endDate && dateStr > endDate) return false;
 
       if (query) {
         const match = [
@@ -298,8 +301,17 @@ const filteredAccounts = useMemo(() => {
 
       return true;
     })
-    .sort((a, b) => a.accountNumber - b.accountNumber)
-}, [accounts, searchTerm, selectedDate, filters]);
+    .sort((a, b) => {
+      // Handle potential null/undefined values by defaulting to a large number
+      const orderA = a.order ?? Infinity;
+      const orderB = b.order ?? Infinity;
+      // If orders are equal, fallback to accountNumber to keep a deterministic order
+      if (orderA === orderB) {
+        return a.accountNumber - b.accountNumber;
+      }
+      return orderA - orderB;
+    });
+}, [accounts, searchTerm, startDate, endDate, filters]);
 
   const handleFilterInput = (e) => {
     const { name, value } = e.target;
@@ -310,7 +322,11 @@ const filteredAccounts = useMemo(() => {
     });
   };
 
-  const clearFilters = () => setFilters({ accountName: "", accountNumber: "", category: "", subcategory: "", minBalance: "", maxBalance: "" });
+  const clearFilters = () => {
+    setFilters({ accountName: "", accountNumber: "", category: "", subcategory: "", minBalance: "", maxBalance: "" });
+    setStartDate("");
+    setEndDate("");
+  };
   const fmt = (val) => Number(val).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   if (loading) return <div className={styles.page}><section className={styles.content}><p style={{ padding: "2rem" }}>Loading accounts…</p></section></div>;
@@ -324,17 +340,39 @@ const filteredAccounts = useMemo(() => {
         <div className={styles.tableHeader}>
           <div className={styles.headerLeft}>
             <div className={styles.datePickerWrapper} ref={popupRef}>
-              <button type="button" className={`${styles.calendarBtn} ${selectedDate ? styles.calendarBtnActive : ""}`} onClick={() => setShowDatePopup((prev) => !prev)}>
+              <button type="button" className={`${styles.calendarBtn} ${(startDate || endDate) ? styles.calendarBtnActive : ""}`} onClick={() => setShowDatePopup((prev) => !prev)}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
                 </svg>
-                {selectedDate || "Select Date"}
+                {startDate && endDate ? `${startDate} → ${endDate}` : (startDate || endDate || "Select Date Range")}
               </button>
               {showDatePopup && (
                 <div className={styles.datePopup}>
-                  <input type="date" className={styles.datePopupInput} value={selectedDate}
-                    onChange={(e) => { setSelectedDate(e.target.value); setShowDatePopup(false); }} />
-                  {selectedDate && <button type="button" className={styles.datePopupClear} onClick={() => { setSelectedDate(""); setShowDatePopup(false); }}>Clear</button>}
+                  <div className={styles.dateRangeContainer}>
+                    <div>
+                      <label className={styles.dateRangeLabel}>Start Date</label>
+                      <input
+                        type="date"
+                        className={styles.datePopupInput}
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label className={styles.dateRangeLabel}>End Date</label>
+                      <input
+                        type="date"
+                        className={styles.datePopupInput}
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  {(startDate || endDate) && (
+                    <button type="button" className={styles.datePopupClear} onClick={() => { setStartDate(""); setEndDate(""); setShowDatePopup(false); }}>
+                      Clear
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -438,8 +476,8 @@ const filteredAccounts = useMemo(() => {
                     ) : (
                       <span style={{ color: "#9ca3af" }}>—</span>
                     )}
-                  </td>
-                </tr>
+                   </td>
+                 </tr>
               ))}
               {filteredAccounts.length === 0 && (
                 <tr><td colSpan={18} style={{ textAlign: "center", padding: "2rem", color: "var(--color-text-secondary,#6b7280)" }}>No accounts found.</td></tr>

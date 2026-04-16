@@ -501,6 +501,8 @@
 
 .datePickerWrapper {
   position: relative;
+  transform: translateY(-3px);
+  z-index: 100;
 }
 
 .calendarBtnActive {

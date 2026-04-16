@@ -22,6 +22,149 @@ const TRANSACTION_TYPES = [
   { value: "CLOSING",    label: "Closing"    },
 ];
 
+// Calculator Component
+function Calculator({ onClose }) {
+  const [display, setDisplay] = useState("0");
+  const [previousValue, setPreviousValue] = useState(null);
+  const [operation, setOperation] = useState(null);
+  const [waitingForOperand, setWaitingForOperand] = useState(false);
+
+  const inputDigit = (digit) => {
+    if (waitingForOperand) {
+      setDisplay(String(digit));
+      setWaitingForOperand(false);
+    } else {
+      setDisplay(display === "0" ? String(digit) : display + digit);
+    }
+  };
+
+  const inputDecimal = () => {
+    if (waitingForOperand) {
+      setDisplay("0.");
+      setWaitingForOperand(false);
+    } else if (!display.includes(".")) {
+      setDisplay(display + ".");
+    }
+  };
+
+  const clearDisplay = () => {
+    setDisplay("0");
+    setPreviousValue(null);
+    setOperation(null);
+    setWaitingForOperand(false);
+  };
+
+  const performOperation = (nextOperation) => {
+    const inputValue = parseFloat(display);
+
+    if (previousValue === null) {
+      setPreviousValue(inputValue);
+    } else if (operation) {
+      const currentValue = previousValue || 0;
+      let newValue = currentValue;
+
+      switch (operation) {
+        case "+":
+          newValue = currentValue + inputValue;
+          break;
+        case "-":
+          newValue = currentValue - inputValue;
+          break;
+        case "×":
+          newValue = currentValue * inputValue;
+          break;
+        case "÷":
+          newValue = currentValue / inputValue;
+          break;
+        default:
+          break;
+      }
+
+      setPreviousValue(newValue);
+      setDisplay(String(newValue));
+    }
+
+    setOperation(nextOperation);
+    setWaitingForOperand(true);
+  };
+
+  const calculateResult = () => {
+    if (operation && previousValue !== null) {
+      const inputValue = parseFloat(display);
+      let result = previousValue;
+
+      switch (operation) {
+        case "+":
+          result = previousValue + inputValue;
+          break;
+        case "-":
+          result = previousValue - inputValue;
+          break;
+        case "×":
+          result = previousValue * inputValue;
+          break;
+        case "÷":
+          result = previousValue / inputValue;
+          break;
+        default:
+          break;
+      }
+
+      setDisplay(String(result));
+      setPreviousValue(null);
+      setOperation(null);
+      setWaitingForOperand(true);
+    }
+  };
+
+  const handleKeyboard = (e) => {
+    if (e.key >= "0" && e.key <= "9") inputDigit(parseInt(e.key));
+    if (e.key === ".") inputDecimal();
+    if (e.key === "+") performOperation("+");
+    if (e.key === "-") performOperation("-");
+    if (e.key === "*") performOperation("×");
+    if (e.key === "/") performOperation("÷");
+    if (e.key === "Enter" || e.key === "=") calculateResult();
+    if (e.key === "Escape") clearDisplay();
+    if (e.key === "Backspace") setDisplay(display.slice(0, -1) || "0");
+  };
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyboard);
+    return () => window.removeEventListener("keydown", handleKeyboard);
+  }, [display, previousValue, operation, waitingForOperand]);
+
+  return (
+    <div className={styles.calculator}>
+      <div className={styles.calculatorDisplay}>{display}</div>
+      <div className={styles.calculatorButtons}>
+        <button onClick={clearDisplay} className={styles.calculatorClear}>C</button>
+        <button onClick={() => setDisplay(display.slice(0, -1) || "0")} className={styles.calculatorClear}>⌫</button>
+        <button onClick={() => performOperation("÷")} className={styles.calculatorOperator}>÷</button>
+        <button onClick={() => performOperation("×")} className={styles.calculatorOperator}>×</button>
+
+        <button onClick={() => inputDigit(7)} className={styles.calculatorNumber}>7</button>
+        <button onClick={() => inputDigit(8)} className={styles.calculatorNumber}>8</button>
+        <button onClick={() => inputDigit(9)} className={styles.calculatorNumber}>9</button>
+        <button onClick={() => performOperation("-")} className={styles.calculatorOperator}>-</button>
+
+        <button onClick={() => inputDigit(4)} className={styles.calculatorNumber}>4</button>
+        <button onClick={() => inputDigit(5)} className={styles.calculatorNumber}>5</button>
+        <button onClick={() => inputDigit(6)} className={styles.calculatorNumber}>6</button>
+        <button onClick={() => performOperation("+")} className={styles.calculatorOperator}>+</button>
+
+        <button onClick={() => inputDigit(1)} className={styles.calculatorNumber}>1</button>
+        <button onClick={() => inputDigit(2)} className={styles.calculatorNumber}>2</button>
+        <button onClick={() => inputDigit(3)} className={styles.calculatorNumber}>3</button>
+        <button onClick={calculateResult} className={styles.calculatorEquals}>=</button>
+
+        <button onClick={() => inputDigit(0)} className={styles.calculatorNumberZero}>0</button>
+        <button onClick={inputDecimal} className={styles.calculatorNumber}>.</button>
+      </div>
+    </div>
+  );
+}
+
 function RejectionPopover({ comment }) {
   const [open, setOpen] = useState(false);
   const [coords, setCoords] = useState({ top: 0, left: 0 });
@@ -94,11 +237,13 @@ export default function GeneralJournal({ userRole, onAccountSelect }) {
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedDate, setSelectedDate] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [showDatePopup, setShowDatePopup] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showCalculator, setShowCalculator] = useState(false); // Calculator state
   const [transactionDescription, setTransactionDescription] = useState("");
   const [transactionFiles, setTransactionFiles] = useState([]);
   const [transactionLines, setTransactionLines] = useState([
@@ -107,6 +252,7 @@ export default function GeneralJournal({ userRole, onAccountSelect }) {
   ]);
   const [transactionComment, setTransactionComment] = useState("");
   const [transactionType, setTransactionType] = useState("STANDARD");
+  const [debitCreditError, setDebitCreditError] = useState("");
 
   const [actionModal, setActionModal] = useState(null);
   const [actionComment, setActionComment] = useState("");
@@ -177,7 +323,9 @@ export default function GeneralJournal({ userRole, onAccountSelect }) {
     return transactions
       .filter((txn) => {
         const dateStr = toDateStr(txn.createdDate);
-        if (selectedDate && dateStr > selectedDate) return false;
+        // Date range filtering
+        if (startDate && dateStr < startDate) return false;
+        if (endDate && dateStr > endDate) return false;
 
         if (filters.status && txn.transactionStatus !== filters.status) return false;
         if (filters.type && txn.transactionType !== filters.type) return false;
@@ -217,28 +365,70 @@ export default function GeneralJournal({ userRole, onAccountSelect }) {
 
         return true;
       })
-  }, [transactions, searchTerm, selectedDate, filters, getAccountName]);
+  }, [transactions, searchTerm, startDate, endDate, filters, getAccountName]);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
-  const clearFilters = () => setFilters({ status: "", type: "", minValue: "", maxValue: "" });
+  const clearFilters = () => {
+    setFilters({ status: "", type: "", minValue: "", maxValue: "" });
+    setStartDate("");
+    setEndDate("");
+  };
 
   const fmt = (val) => Number(val).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+  // Helper to check if an account is already used in transaction lines
+  const isAccountUsed = (accountId, currentIndex) => {
+    if (!accountId) return false;
+    return transactionLines.some((line, idx) => idx !== currentIndex && String(line.accountId) === String(accountId));
+  };
+
+  // Function to check if there's any credit before debit in the transaction lines
+  const hasCreditBeforeDebit = (lines) => {
+    let foundCredit = false;
+    for (const line of lines) {
+      if (!line.accountId) continue;
+      const hasCredit = line.credit && parseFloat(line.credit) !== 0;
+      const hasDebit = line.debit && parseFloat(line.debit) !== 0;
+
+      if (hasCredit) {
+        foundCredit = true;
+      }
+      if (hasDebit && foundCredit) {
+        return true; // Found a debit after a credit
+      }
+    }
+    return false;
+  };
+
   const handleLineChange = (index, field, value) => {
-    setTransactionLines((prev) => prev.map((line, i) => i === index ? { ...line, [field]: value } : line));
+    setDebitCreditError("");
+    setTransactionLines((prev) => {
+      const updated = prev.map((line, i) => i === index ? { ...line, [field]: value } : line);
+
+      // Clear the debit/credit for the other field if one is set (ensure only one per line)
+      if (field === 'debit' && value && parseFloat(value) !== 0) {
+        updated[index].credit = "";
+      } else if (field === 'credit' && value && parseFloat(value) !== 0) {
+        updated[index].debit = "";
+      }
+
+      return updated;
+    });
   };
 
   const addLine = () => {
     setTransactionLines((prev) => [...prev, { accountId: "", debit: "", credit: "", description: "" }]);
+    setDebitCreditError("");
   };
 
   const removeLine = (index) => {
     if (transactionLines.length <= 2) return;
     setTransactionLines((prev) => prev.filter((_, i) => i !== index));
+    setDebitCreditError("");
   };
 
   const resetModal = () => {
@@ -250,6 +440,7 @@ export default function GeneralJournal({ userRole, onAccountSelect }) {
     setTransactionDescription("");
     setTransactionFiles([]);
     setTransactionType("STANDARD");
+    setDebitCreditError("");
     setShowAddModal(false);
   };
 
@@ -258,19 +449,55 @@ export default function GeneralJournal({ userRole, onAccountSelect }) {
       setError('User info not loaded. Please log in again or refresh the page.');
       return;
     }
+
+    // Filter out empty lines and validate
+    const filledLines = transactionLines.filter(line => line.accountId && (parseFloat(line.debit) || parseFloat(line.credit)));
+
+    if (filledLines.length === 0) {
+      setDebitCreditError("Please add at least one transaction line.");
+      return;
+    }
+
+    // Check for duplicate accounts
+    const usedAccounts = new Set();
+    for (const line of filledLines) {
+      const accountId = String(line.accountId);
+      if (usedAccounts.has(accountId)) {
+        setDebitCreditError(`Account "${getAccountName(line.accountId)}" can only be used once per transaction.`);
+        return;
+      }
+      usedAccounts.add(accountId);
+    }
+
+    // Build entries in original order
+    const entries = [];
+    for (const line of filledLines) {
+      if (parseFloat(line.debit)) {
+        entries.push({ accountId: Number(line.accountId), entryType: 'DEBIT', amount: parseFloat(line.debit) });
+      }
+      if (parseFloat(line.credit)) {
+        entries.push({ accountId: Number(line.accountId), entryType: 'CREDIT', amount: parseFloat(line.credit) });
+      }
+    }
+
+    // Validate debits come before credits
+    let foundCredit = false;
+    for (const entry of entries) {
+      if (entry.entryType === 'CREDIT') {
+        foundCredit = true;
+      } else if (entry.entryType === 'DEBIT' && foundCredit) {
+        setDebitCreditError("❌ ERROR: All debit entries must appear BEFORE credit entries in the transaction order. Please reorder your transaction lines.");
+        return;
+      }
+    }
+
     const transaction = {
       transactionType,
       transactionDescription,
       createdBy: Number(loggedInUserId),
-      accountsImpacted: transactionLines
-        .filter(line => line.accountId && (parseFloat(line.debit) || parseFloat(line.credit)))
-        .flatMap(line => {
-          const entries = [];
-          if (parseFloat(line.debit))  entries.push({ accountId: Number(line.accountId), entryType: 'DEBIT',  amount: parseFloat(line.debit)  });
-          if (parseFloat(line.credit)) entries.push({ accountId: Number(line.accountId), entryType: 'CREDIT', amount: parseFloat(line.credit) });
-          return entries;
-        })
+      accountsImpacted: entries
     };
+
     const attachment = transactionFiles.length > 0 ? transactionFiles[0].file : null;
     try {
       setLoading(true);
@@ -336,6 +563,26 @@ export default function GeneralJournal({ userRole, onAccountSelect }) {
     setTransactionFiles(files);
   };
 
+  // Function to check if a specific line has order violation (credit before debit in the sequence)
+  const isLineViolatingOrder = (index, line, allLines) => {
+    if (!line.accountId) return false;
+
+    const hasCredit = line.credit && parseFloat(line.credit) !== 0;
+    if (!hasCredit) return false;
+
+    // Check if there are any debits after this credit
+    for (let i = index + 1; i < allLines.length; i++) {
+      const nextLine = allLines[i];
+      if (!nextLine.accountId) continue;
+      const hasDebit = nextLine.debit && parseFloat(nextLine.debit) !== 0;
+      if (hasDebit) return true;
+    }
+    return false;
+  };
+
+  // Compute whether to show the warning message
+  const showOrderWarning = hasCreditBeforeDebit(transactionLines);
+
   const isManager = userRole === "MANAGER";
   const totalCols = isManager ? 10 : 9;
 
@@ -397,6 +644,44 @@ export default function GeneralJournal({ userRole, onAccountSelect }) {
               <button type="button" className={styles.modalClose} onClick={resetModal}>✕</button>
             </div>
             <div className={styles.modalBody}>
+              {/* CONDITIONAL WARNING TEXT - only shows when credit appears before debit */}
+              {showOrderWarning && (
+                <div style={{
+                  backgroundColor: "#fee2e2",
+                  border: "1px solid #ef4444",
+                  borderRadius: "6px",
+                  padding: "10px 12px",
+                  marginBottom: "16px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  fontSize: "13px"
+                }}>
+                  <div>
+                    <strong style={{ color: "#92400e" }}>Order Issue:</strong>
+                    <span style={{ color: "#78350f" }}> Credit entries found before debit entries. All debits must appear BEFORE credits. Please reorder your transaction lines.</span>
+                  </div>
+                </div>
+              )}
+
+              {debitCreditError && (
+                <div style={{
+                  backgroundColor: "#fee2e2",
+                  border: "1px solid #ef4444",
+                  borderRadius: "6px",
+                  padding: "10px 12px",
+                  marginBottom: "16px",
+                  color: "#b91c1c",
+                  fontSize: "13px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px"
+                }}>
+                  <span>❌</span>
+                  {debitCreditError}
+                </div>
+              )}
+
               <div className={styles.formGroup} style={{ marginBottom: 14 }}>
                 <label className={styles.formLabel}>Transaction Type</label>
                 <select className={styles.formSelect} value={transactionType} onChange={(e) => setTransactionType(e.target.value)}>
@@ -405,34 +690,90 @@ export default function GeneralJournal({ userRole, onAccountSelect }) {
                   ))}
                 </select>
               </div>
+
               <div className={styles.linesHeader}>
                 <span className={styles.linesHeaderCell}>Account</span>
                 <span className={styles.linesHeaderCell}>Debit</span>
                 <span className={styles.linesHeaderCell}>Credit</span>
                 <span className={styles.linesHeaderCellSmall}></span>
               </div>
-              {transactionLines.map((line, idx) => (
-                <div key={idx} className={styles.lineRow}>
-                  <select className={styles.formSelect} value={line.accountId} onChange={(e) => handleLineChange(idx, "accountId", e.target.value)}>
-                    <option value="">Select account</option>
-                    {accounts.map((a) => (
-                      <option key={a.id} value={a.id}>{a.accountNumber} — {a.accountName}</option>
-                    ))}
-                  </select>
-                  <input type="number" className={styles.formInput} placeholder="0.00" step="0.01" value={line.debit}  onChange={(e) => handleLineChange(idx, "debit",  e.target.value)} />
-                  <input type="number" className={styles.formInput} placeholder="0.00" step="0.01" value={line.credit} onChange={(e) => handleLineChange(idx, "credit", e.target.value)} />
-                  <button type="button" className={styles.removeLineBtn} onClick={() => removeLine(idx)} disabled={transactionLines.length <= 2} title="Remove line">✕</button>
-                </div>
-              ))}
+
+              {transactionLines.map((line, idx) => {
+                const isDuplicate = line.accountId && isAccountUsed(line.accountId, idx);
+                const violatesOrder = isLineViolatingOrder(idx, line, transactionLines);
+                const lineHasError = isDuplicate || violatesOrder;
+
+                return (
+                  <div
+                    key={idx}
+                    className={styles.lineRow}
+                    style={lineHasError ? {
+                      backgroundColor: "#fee2e2",
+                      borderRadius: "6px",
+                      padding: "4px",
+                      marginBottom: "4px",
+                      border: "1px solid #ef4444"
+                    } : {}}
+                  >
+                    <select
+                      className={styles.formSelect}
+                      style={isDuplicate ? { borderColor: "#ef4444", backgroundColor: "#fee2e2" } : {}}
+                      value={line.accountId}
+                      onChange={(e) => handleLineChange(idx, "accountId", e.target.value)}
+                    >
+                      <option value="">Select account</option>
+                      {accounts.map((a) => {
+                        const isDisabled = isAccountUsed(a.id, idx);
+                        return (
+                          <option key={a.id} value={a.id} disabled={isDisabled}>
+                            {a.accountNumber} — {a.accountName} {isDisabled ? "(Already Selected)" : ""}
+                          </option>
+                        );
+                      })}
+                    </select>
+                    <input
+                      type="number"
+                      className={styles.formInput}
+                      style={violatesOrder ? { borderColor: "#ef4444", backgroundColor: "#fee2e2" } : {}}
+                      placeholder="0.00"
+                      step="0.01"
+                      value={line.debit}
+                      onChange={(e) => handleLineChange(idx, "debit", e.target.value)}
+                    />
+                    <input
+                      type="number"
+                      className={styles.formInput}
+                      style={violatesOrder ? { borderColor: "#ef4444", backgroundColor: "#fee2e2" } : {}}
+                      placeholder="0.00"
+                      step="0.01"
+                      value={line.credit}
+                      onChange={(e) => handleLineChange(idx, "credit", e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className={styles.removeLineBtn}
+                      onClick={() => removeLine(idx)}
+                      disabled={transactionLines.length <= 2}
+                      title="Remove line"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                );
+              })}
+
               <button type="button" className={styles.addLineBtn} onClick={addLine}>+ Add Line</button>
+
               <div className={styles.formGroup} style={{ marginTop: 14 }}>
                 <label className={styles.formLabel}>Description</label>
                 <input type="text" className={styles.formInput} placeholder="Transaction description" value={transactionDescription} onChange={(e) => setTransactionDescription(e.target.value)} />
               </div>
+
               <div className={styles.formGroup} style={{ marginTop: 8 }}>
                 <label className={styles.formLabel}>Comment</label>
                 <input type="text" className={styles.formInput} placeholder="Optional comment" value={transactionComment} onChange={(e) => setTransactionComment(e.target.value)} />
               </div>
+
               <div className={styles.formGroup} style={{ marginTop: 8 }}>
                 <label className={styles.formLabel}>Attach Source Document</label>
                 <input type="file" className={styles.formInput} accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.jpg,.jpeg,.png" onChange={handleFileChange} />
@@ -454,25 +795,70 @@ export default function GeneralJournal({ userRole, onAccountSelect }) {
         </div>
       )}
 
+      {/* Calculator Modal */}
+      {showCalculator && (
+        <div className={styles.calculatorOverlay} onClick={(e) => {
+          if (e.target === e.currentTarget) setShowCalculator(false);
+        }}>
+          <div className={styles.calculatorModal}>
+            <div className={styles.calculatorHeader}>
+              <button
+                type="button"
+                className={styles.calculatorCloseBtn}
+                onClick={() => setShowCalculator(false)}
+              >
+                ×
+              </button>
+            </div>
+            <Calculator onClose={() => setShowCalculator(false)} />
+          </div>
+        </div>
+      )}
+
       <section className={styles.content}>
         <div className={styles.tableHeader}>
           <div className={styles.headerLeft}>
             <div className={styles.datePickerWrapper} ref={popupRef}>
               <button
                 type="button"
-                className={`${styles.calendarBtn} ${selectedDate ? styles.calendarBtnActive : ""}`}
+                className={`${styles.calendarBtn} ${(startDate || endDate) ? styles.calendarBtnActive : ""}`}
                 onClick={() => setShowDatePopup((prev) => !prev)}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
                 </svg>
-                {selectedDate || "Select Date"}
+                {startDate && endDate ? `${startDate} → ${endDate}` : (startDate || endDate || "Select Date Range")}
               </button>
               {showDatePopup && (
                 <div className={styles.datePopup}>
-                  <input type="date" className={styles.datePopupInput} value={selectedDate} onChange={(e) => { setSelectedDate(e.target.value); setShowDatePopup(false); }} />
-                  {selectedDate && (
-                    <button type="button" className={styles.datePopupClear} onClick={() => { setSelectedDate(""); setShowDatePopup(false); }}>Clear</button>
+                  <div className={styles.dateRangeContainer}>
+                    <div>
+                      <label className={styles.dateRangeLabel}>Start Date</label>
+                      <input
+                        type="date"
+                        className={styles.datePopupInput}
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label className={styles.dateRangeLabel}>End Date</label>
+                      <input
+                        type="date"
+                        className={styles.datePopupInput}
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  {(startDate || endDate) && (
+                    <button
+                      type="button"
+                      className={styles.datePopupClear}
+                      onClick={() => { setStartDate(""); setEndDate(""); setShowDatePopup(false); }}
+                    >
+                      Clear
+                    </button>
                   )}
                 </div>
               )}
@@ -496,6 +882,26 @@ export default function GeneralJournal({ userRole, onAccountSelect }) {
                 <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
               </svg>
               {showFilters ? "Hide Filters" : "Filter"}
+            </button>
+            {/* Calculator Button */}
+            <button
+              type="button"
+              className={styles.calculatorBtn}
+              onClick={() => setShowCalculator(true)}
+              aria-label="Calculator"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+                <line x1="8" y1="6" x2="16" y2="6"></line>
+                <line x1="16" y1="14" x2="16" y2="18"></line>
+                <circle cx="12" cy="12" r="1"></circle>
+                <circle cx="12" cy="16" r="1"></circle>
+                <circle cx="8" cy="16" r="1"></circle>
+                <circle cx="8" cy="12" r="1"></circle>
+                <circle cx="16" cy="12" r="1"></circle>
+                <circle cx="16" cy="16" r="1"></circle>
+              </svg>
             </button>
             <button type="button" className={styles.addEntryBtn} onClick={() => setShowAddModal(true)}>
               + Add Transaction
@@ -633,7 +1039,7 @@ export default function GeneralJournal({ userRole, onAccountSelect }) {
                             {txn.attachmentName
                               ? <span style={{ fontSize: 13, color: '#4f46e5' }}>{txn.attachmentName}</span>
                               : <span style={{ color: '#aaa', fontSize: 13 }}>—</span>}
-                          </td>
+                           </td>
                         ) : null}
 
                         {idx === 0 ? (
@@ -652,7 +1058,7 @@ export default function GeneralJournal({ userRole, onAccountSelect }) {
                                 <RejectionPopover comment={txn.approvalComment} />
                               )}
                             </div>
-                          </td>
+                           </td>
                         ) : null}
 
                         {isManager && idx === 0 ? (
@@ -665,7 +1071,7 @@ export default function GeneralJournal({ userRole, onAccountSelect }) {
                             ) : (
                               <span style={{ fontSize: 12, color: "#9ca3af" }}>—</span>
                             )}
-                          </td>
+                           </td>
                         ) : isManager && idx !== 0 ? null : null}
 
                       </tr>

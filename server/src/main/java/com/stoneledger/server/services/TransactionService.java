@@ -186,6 +186,8 @@ public class TransactionService {
 
     @Transactional
     public boolean approveTransaction(TransactionStatusUpdateDTO request) {
+        LocalDateTime currentDateTime = LocalDateTime.now();
+
         TransactionModel beforeImageTransaction = transactionRepository.findById(request.getTransactionId())
             .orElseThrow(() -> new TransactionValidationException(
                 errorMessageService.getError(132)
@@ -204,6 +206,10 @@ public class TransactionService {
         }
 
         afterImageTransaction.setTransactionStatus(TransactionStatus.APPROVED);
+        afterImageTransaction.setUpdatedBy(userRepository.findById(request.getUserId())
+            .orElseThrow(() -> new InvalidIdException(errorMessageService.getError(112))
+        ));
+        afterImageTransaction.setUpdateDate(currentDateTime);
         afterImageTransaction.setUpdateComment(request.getStatusUpdateReason());
 
         for (TransactionEntryModel entry : afterImageTransaction.getAccountsImpacted()) {
@@ -282,6 +288,8 @@ public class TransactionService {
 
     @Transactional
     public boolean rejectTransaction(TransactionStatusUpdateDTO request) {
+        LocalDateTime currentDateTime = LocalDateTime.now();
+
         TransactionModel beforeImageTransaction = transactionRepository.findById(request.getTransactionId())
             .orElseThrow(() -> new TransactionValidationException(
                 errorMessageService.getError(132)
@@ -299,6 +307,10 @@ public class TransactionService {
             throw new TransactionValidationException(errorMessageService.getError(133));
         } else {
             afterImageTransaction.setTransactionStatus(TransactionStatus.REJECTED);
+            afterImageTransaction.setUpdatedBy(userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new InvalidIdException(errorMessageService.getError(112))
+                ));
+            afterImageTransaction.setUpdateDate(currentDateTime);
             afterImageTransaction.setUpdateComment(request.getStatusUpdateReason());
         }
 
