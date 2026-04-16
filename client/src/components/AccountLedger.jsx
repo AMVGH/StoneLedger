@@ -29,6 +29,149 @@ function formatDateTime(dateString) {
   }
 }
 
+// Calculator Component
+function Calculator({ onClose }) {
+  const [display, setDisplay] = useState("0");
+  const [previousValue, setPreviousValue] = useState(null);
+  const [operation, setOperation] = useState(null);
+  const [waitingForOperand, setWaitingForOperand] = useState(false);
+
+  const inputDigit = (digit) => {
+    if (waitingForOperand) {
+      setDisplay(String(digit));
+      setWaitingForOperand(false);
+    } else {
+      setDisplay(display === "0" ? String(digit) : display + digit);
+    }
+  };
+
+  const inputDecimal = () => {
+    if (waitingForOperand) {
+      setDisplay("0.");
+      setWaitingForOperand(false);
+    } else if (!display.includes(".")) {
+      setDisplay(display + ".");
+    }
+  };
+
+  const clearDisplay = () => {
+    setDisplay("0");
+    setPreviousValue(null);
+    setOperation(null);
+    setWaitingForOperand(false);
+  };
+
+  const performOperation = (nextOperation) => {
+    const inputValue = parseFloat(display);
+
+    if (previousValue === null) {
+      setPreviousValue(inputValue);
+    } else if (operation) {
+      const currentValue = previousValue || 0;
+      let newValue = currentValue;
+
+      switch (operation) {
+        case "+":
+          newValue = currentValue + inputValue;
+          break;
+        case "-":
+          newValue = currentValue - inputValue;
+          break;
+        case "×":
+          newValue = currentValue * inputValue;
+          break;
+        case "÷":
+          newValue = currentValue / inputValue;
+          break;
+        default:
+          break;
+      }
+
+      setPreviousValue(newValue);
+      setDisplay(String(newValue));
+    }
+
+    setOperation(nextOperation);
+    setWaitingForOperand(true);
+  };
+
+  const calculateResult = () => {
+    if (operation && previousValue !== null) {
+      const inputValue = parseFloat(display);
+      let result = previousValue;
+
+      switch (operation) {
+        case "+":
+          result = previousValue + inputValue;
+          break;
+        case "-":
+          result = previousValue - inputValue;
+          break;
+        case "×":
+          result = previousValue * inputValue;
+          break;
+        case "÷":
+          result = previousValue / inputValue;
+          break;
+        default:
+          break;
+      }
+
+      setDisplay(String(result));
+      setPreviousValue(null);
+      setOperation(null);
+      setWaitingForOperand(true);
+    }
+  };
+
+  const handleKeyboard = (e) => {
+    if (e.key >= "0" && e.key <= "9") inputDigit(parseInt(e.key));
+    if (e.key === ".") inputDecimal();
+    if (e.key === "+") performOperation("+");
+    if (e.key === "-") performOperation("-");
+    if (e.key === "*") performOperation("×");
+    if (e.key === "/") performOperation("÷");
+    if (e.key === "Enter" || e.key === "=") calculateResult();
+    if (e.key === "Escape") clearDisplay();
+    if (e.key === "Backspace") setDisplay(display.slice(0, -1) || "0");
+  };
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyboard);
+    return () => window.removeEventListener("keydown", handleKeyboard);
+  }, [display, previousValue, operation, waitingForOperand]);
+
+  return (
+    <div className={styles.calculator}>
+      <div className={styles.calculatorDisplay}>{display}</div>
+      <div className={styles.calculatorButtons}>
+        <button onClick={clearDisplay} className={styles.calculatorClear}>C</button>
+        <button onClick={() => setDisplay(display.slice(0, -1) || "0")} className={styles.calculatorClear}>⌫</button>
+        <button onClick={() => performOperation("÷")} className={styles.calculatorOperator}>÷</button>
+        <button onClick={() => performOperation("×")} className={styles.calculatorOperator}>×</button>
+
+        <button onClick={() => inputDigit(7)} className={styles.calculatorNumber}>7</button>
+        <button onClick={() => inputDigit(8)} className={styles.calculatorNumber}>8</button>
+        <button onClick={() => inputDigit(9)} className={styles.calculatorNumber}>9</button>
+        <button onClick={() => performOperation("-")} className={styles.calculatorOperator}>-</button>
+
+        <button onClick={() => inputDigit(4)} className={styles.calculatorNumber}>4</button>
+        <button onClick={() => inputDigit(5)} className={styles.calculatorNumber}>5</button>
+        <button onClick={() => inputDigit(6)} className={styles.calculatorNumber}>6</button>
+        <button onClick={() => performOperation("+")} className={styles.calculatorOperator}>+</button>
+
+        <button onClick={() => inputDigit(1)} className={styles.calculatorNumber}>1</button>
+        <button onClick={() => inputDigit(2)} className={styles.calculatorNumber}>2</button>
+        <button onClick={() => inputDigit(3)} className={styles.calculatorNumber}>3</button>
+        <button onClick={calculateResult} className={styles.calculatorEquals}>=</button>
+
+        <button onClick={() => inputDigit(0)} className={styles.calculatorNumberZero}>0</button>
+        <button onClick={inputDecimal} className={styles.calculatorNumber}>.</button>
+      </div>
+    </div>
+  );
+}
+
 export default function AccountLedger({ account, onBack, onJournalPageSelect, totalJournalPages, onAccountSelect }) {
   const { getApprovedEntriesForLedger, getTotalPages, getParentTransaction } = useTransactionContext();
   const { getFinancialAccounts } = useUserContext();
@@ -43,6 +186,7 @@ export default function AccountLedger({ account, onBack, onJournalPageSelect, to
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [showCalculator, setShowCalculator] = useState(false); // Calculator state
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -281,6 +425,27 @@ export default function AccountLedger({ account, onBack, onJournalPageSelect, to
             </svg>
             {showFilters ? "Hide Filters" : "Filter by Date"}
           </button>
+
+          {/* Calculator Button */}
+          <button
+            type="button"
+            className={styles.calculatorBtn}
+            onClick={() => setShowCalculator(true)}
+            aria-label="Calculator"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+              <line x1="8" y1="6" x2="16" y2="6"></line>
+              <line x1="16" y1="14" x2="16" y2="18"></line>
+              <circle cx="12" cy="12" r="1"></circle>
+              <circle cx="12" cy="16" r="1"></circle>
+              <circle cx="8" cy="16" r="1"></circle>
+              <circle cx="8" cy="12" r="1"></circle>
+              <circle cx="16" cy="12" r="1"></circle>
+              <circle cx="16" cy="16" r="1"></circle>
+            </svg>
+          </button>
         </div>
 
         {showFilters && (
@@ -360,7 +525,7 @@ export default function AccountLedger({ account, onBack, onJournalPageSelect, to
                         ) : (
                           <span style={{ color: "#9ca3af", fontSize: 13 }}>—</span>
                         )}
-                      </td>
+                       </td>
                       <td className={styles.money}>
                         {row.debit > 0 ? currency(row.debit) : "—"}
                       </td>
@@ -632,6 +797,26 @@ export default function AccountLedger({ account, onBack, onJournalPageSelect, to
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Calculator Modal */}
+      {showCalculator && (
+        <div className={styles.calculatorOverlay} onClick={(e) => {
+          if (e.target === e.currentTarget) setShowCalculator(false);
+        }}>
+          <div className={styles.calculatorModal}>
+            <div className={styles.calculatorHeader}>
+              <button
+                type="button"
+                className={styles.calculatorCloseBtn}
+                onClick={() => setShowCalculator(false)}
+              >
+                ×
+              </button>
+            </div>
+            <Calculator onClose={() => setShowCalculator(false)} />
           </div>
         </div>
       )}
