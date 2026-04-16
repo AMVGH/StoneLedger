@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TransactionEntryInformationDTO {
+    private Long id;
     private LocalDateTime date;
     private String description;
     private BigDecimal debit;

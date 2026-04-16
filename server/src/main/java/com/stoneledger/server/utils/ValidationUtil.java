@@ -8,9 +8,11 @@ import com.stoneledger.server.api.enums.ReportType;
 import com.stoneledger.server.api.exeptions.*;
 import com.stoneledger.server.api.models.AccountModel;
 import com.stoneledger.server.api.models.PasswordModel;
+import com.stoneledger.server.api.models.TransactionEntryModel;
 import com.stoneledger.server.api.models.UserModel;
 import com.stoneledger.server.api.repositories.AccountRepository;
 import com.stoneledger.server.api.repositories.PasswordRepository;
+import com.stoneledger.server.api.repositories.TransactionEntryRepository;
 import com.stoneledger.server.api.repositories.UserRepository;
 import com.stoneledger.server.services.ErrorMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +35,8 @@ public class ValidationUtil {
     private UserRepository userRepository;
     @Autowired
     private PasswordRepository passwordRepository;
+    @Autowired
+    private TransactionEntryRepository transactionEntryRepository;
     @Autowired
     private EncryptionUtil encryptionUtil;
     @Autowired
@@ -571,6 +575,16 @@ public class ValidationUtil {
         }
 
         return true;
+    }
+
+    // TODO: At later point we need to reduce the amount of database queries, refactor code to make validation calls once here and pass objects
+    public TransactionEntryModel isValidTransactionEntryId(Long transactionEntryId) {
+        TransactionEntryModel transactionEntry = transactionEntryRepository.findById(transactionEntryId)
+            .orElseThrow(() -> new InvalidIdException(
+                errorMessageService.getError(137)
+            ));
+
+        return transactionEntry;
     }
 }
 

@@ -130,6 +130,20 @@ const useTransactionContext = create((set) => ({
     }
   },
 
+  // NEW: Get parent transaction for a transaction entry
+  getParentTransaction: async (transactionEntryId) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await api.get(`/transaction-entries/get-parent-transaction/${transactionEntryId}`);
+      set({ loading: false });
+      return response.data;
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to fetch parent transaction';
+      set({ error: errorMsg, loading: false });
+      throw error;
+    }
+  },
+
   clearError: () => set({ error: null })
 }));
 
