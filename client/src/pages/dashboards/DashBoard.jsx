@@ -14,6 +14,7 @@ import GeneralJournal from "../../components/GeneralJournal";
 import EmailService from "../../components/EmailService";
 import { SECURITY_QUESTIONS } from "../../utils/SecurityQuestions";
 import Reports from "../../components/Reports";
+import FinancialRatioDashboard from "../FinancialRatioDashboard/FinancialRatioDashboard";
 
 const ACCOUNT_CATEGORIES = ["ASSET", "EXPENSE", "LIABILITY", "EQUITY", "REVENUE"];
 const ACCOUNT_SUBCATEGORIES = ["SHORT_TERM", "LONG_TERM", "NONE"];
@@ -935,9 +936,7 @@ export default function DashBoard() {
         )}
         {nav === "Financial Ratios" && ["ADMINISTRATOR", "MANAGER", "USER", "ACCOUNTANT"].includes(loggedInUser.role) && (
           <section className={styles.content}>
-            <h2>Financial Ratios</h2>
-            <p>Generate ratio-focused financial insights from current account and report data.</p>
-            <Reports />
+            <FinancialRatioDashboard/>
           </section>
         )}
         {nav === "Create User" && loggedInUser.role === "ADMINISTRATOR" && (

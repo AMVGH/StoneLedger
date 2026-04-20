@@ -17,7 +17,6 @@ public class RatioInformationDTO {
     private List<Pair<String, BigDecimal>> profitabilityRatios;
     private List<Pair<String, BigDecimal>> liquidityRatios;
     private List<Pair<String, BigDecimal>> leverageRatios;
-
     private List<Pair<String, BigDecimal>> activityRatios;
     private List<Pair<String, BigDecimal>> otherRatios;
 }
