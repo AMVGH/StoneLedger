@@ -14,6 +14,7 @@ import GeneralJournal from "../../components/GeneralJournal";
 import EmailService from "../../components/EmailService";
 import { SECURITY_QUESTIONS } from "../../utils/SecurityQuestions";
 import Reports from "../../components/Reports";
+import FinancialRatioDashboard from "../FinancialRatioDashboard/FinancialRatioDashboard";
 
 const ACCOUNT_CATEGORIES = ["ASSET", "EXPENSE", "LIABILITY", "EQUITY", "REVENUE"];
 const ACCOUNT_SUBCATEGORIES = ["SHORT_TERM", "LONG_TERM", "NONE"];
@@ -697,7 +698,7 @@ export default function DashBoard() {
   const { user, getLoggedInUserInfo } = useUserContext();
   const token = localStorage.getItem("authToken");
   const initialUser = (() => { try { return JSON.parse(localStorage.getItem("user")) || null; } catch { return null; } })();
-  const initialNav = (initialUser?.userRole === "MANAGER" || initialUser?.userRole === "ACCOUNTANT" || initialUser?.userRole === "USER") ? "Chart of Accounts" : "User Management";
+  const initialNav = "Financial Ratios";
   const [nav, setNav] = useState(initialNav);
   const [prevNav, setPrevNav] = useState("Chart of Accounts");
 
@@ -836,6 +837,7 @@ export default function DashBoard() {
         <nav className={styles.nav}>
           {loggedInUser.role === "ADMINISTRATOR" && (
             <>
+              <button className={`${styles.navItem} ${nav === "Financial Ratios" ? styles.activeNav : ""}`} onClick={() => setNav("Financial Ratios")}>Financial Ratios</button>
               <button className={`${styles.navItem} ${nav === "User Management" ? styles.activeNav : ""}`} onClick={() => setNav("User Management")}>User Management</button>
               <button className={`${styles.navItem} ${nav === "Create User" ? styles.activeNav : ""}`} onClick={() => setNav("Create User")}>Create User</button>
               <button className={`${styles.navItem} ${nav === "Pending" ? styles.activeNav : ""}`} onClick={() => setNav("Pending")}>Pending</button>
@@ -849,6 +851,7 @@ export default function DashBoard() {
           )}
           {(loggedInUser.role === "MANAGER") && (
             <>
+              <button className={`${styles.navItem} ${nav === "Financial Ratios" ? styles.activeNav : ""}`} onClick={() => setNav("Financial Ratios")}>Financial Ratios</button>
               <button
                 className={`${styles.navItem} ${(nav === "Chart of Accounts" || nav === "Account Ledger") ? styles.activeNav : ""}`}
                 onClick={() => { setNav("Chart of Accounts"); setSelectedAccount(null); }}
@@ -861,6 +864,7 @@ export default function DashBoard() {
           )}
           {loggedInUser.role === "USER" && (
             <>
+              <button className={`${styles.navItem} ${nav === "Financial Ratios" ? styles.activeNav : ""}`} onClick={() => setNav("Financial Ratios")}>Financial Ratios</button>
               <button
                 className={`${styles.navItem} ${(nav === "Chart of Accounts" || nav === "Account Ledger") ? styles.activeNav : ""}`}
                 onClick={() => { setNav("Chart of Accounts"); setSelectedAccount(null); }}
@@ -929,6 +933,11 @@ export default function DashBoard() {
 
         {nav === "User Management" && ["ADMINISTRATOR"].includes(loggedInUser.role) && (
           <section className={styles.content}><h2>User Management</h2><p>Manage users, roles, and permissions.</p><UsersTable /></section>
+        )}
+        {nav === "Financial Ratios" && ["ADMINISTRATOR", "MANAGER", "USER", "ACCOUNTANT"].includes(loggedInUser.role) && (
+          <section className={styles.content}>
+            <FinancialRatioDashboard/>
+          </section>
         )}
         {nav === "Create User" && loggedInUser.role === "ADMINISTRATOR" && (
           <section className={styles.content}><CreateUserPage onUserCreated={handleUserCreated} standalone={true} /></section>

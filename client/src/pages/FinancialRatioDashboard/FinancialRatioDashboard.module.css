@@ -1,0 +1,550 @@
+/* FinancialRatioDashboard.module.css */
+
+/* ── Color variables using journal colors ── */
+:root {
+    --color-approved: #2e7d32;  /* Approved Green */
+    --color-pending: #e65100;   /* Pending Orange */
+    --color-rejected: #c62828;  /* Rejected Red */
+    --color-neutral: #cbd5e1;
+    --color-text-primary: #334155;
+    --color-text-secondary: #64748b;
+}
+
+/* ── Page shell ── */
+.page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 24px;
+    background: #f8fafc;
+    overflow-x: hidden;
+}
+
+/* ── Page header ── */
+.pageHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.pageTitle {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #334155;
+    margin: 0 0 4px 0;
+}
+
+.pageSubtitle {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin: 0;
+}
+
+.refreshBtn {
+    padding: 8px 16px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.refreshBtn:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+/* ── Top 3 Scorecards Row ── */
+.topScorecardRow {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.scorecard {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.2s;
+}
+
+.scorecard:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+}
+
+.scorecardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.scorecardTitle {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.scorecardStatus {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+
+.scorecardValue {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1a202c;
+    margin-bottom: 8px;
+    font-family: 'Courier New', monospace;
+}
+
+.scorecardBenchmark {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    padding-top: 8px;
+    border-top: 1px solid #f1f5f9;
+}
+
+/* ── KPI Row ── */
+.kpiRow {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.kpiRowCard {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.kpiRowCard:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+}
+
+.kpiRowLabel {
+    font-size: 0.7rem;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.kpiRowValue {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1a202c;
+    font-family: 'Courier New', monospace;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.kpiRowBadge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 8px;
+}
+
+/* ── Charts Row ── */
+.chartsRow {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-bottom: 28px;
+}
+
+.simpleBarChart, .simpleDonutChart {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px 20px;
+}
+
+.chartTitle {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #334155;
+    margin: 0 0 16px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+/* Bar Chart Styles */
+.barChartContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.barChartItem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.barChartLabel {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #475569;
+    min-width: 80px;
+}
+
+.barChartBars {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.barWrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.valueBar, .benchmarkBar {
+    height: 6px;
+    border-radius: 3px;
+    transition: width 0.4s ease;
+}
+
+.benchmarkBar {
+    background-color: #cbd5e1;
+}
+
+.barValue {
+    font-size: 0.7rem;
+    font-weight: 600;
+    min-width: 65px;
+}
+
+.benchmarkValue {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: #94a3b8;
+    min-width: 65px;
+}
+
+/* Donut Chart Styles */
+.donutContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+.scoreLegend {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.legendItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: #475569;
+}
+
+.legendDot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+}
+
+.scoreStatus {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-align: center;
+    margin-top: 8px;
+}
+
+/* ── Sections Grid - 2x2 layout ── */
+.sectionsGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.gridRow {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+/* ── Section Card - Distinct colors per section ── */
+.sectionCard {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+
+.sectionCard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--accent);
+}
+
+.sectionCard:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.sectionHeader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.sectionIconWrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    background: var(--light, #f1f5f9);
+    color: var(--accent);
+}
+
+.sectionTitle {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #334155;
+    margin: 0;
+}
+
+/* ── Horizontal bar chart ── */
+.hBarChart {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.hBarRow {
+    display: grid;
+    grid-template-columns: 1fr 120px 70px;
+    align-items: center;
+    gap: 12px;
+}
+
+.hBarLabel {
+    font-size: 0.8rem;
+    color: #475569;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.hBarTrack {
+    height: 6px;
+    background: #f1f5f9;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.hBarFill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.4s ease;
+    min-width: 2px;
+}
+
+.hBarValue {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #1a202c;
+    font-family: 'Courier New', monospace;
+    text-align: right;
+}
+
+/* ── Divider ── */
+.divider {
+    height: 1px;
+    background: #f1f5f9;
+    margin: 16px 0;
+}
+
+/* ── Gauge grid ── */
+.gaugeGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 12px;
+}
+
+.gaugeWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.gaugeName {
+    font-size: 0.7rem;
+    color: #64748b;
+    text-align: center;
+    line-height: 1.3;
+}
+
+/* ── Loading state ── */
+.loadingState {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 400px;
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e2e8f0;
+    border-top-color: #2e7d32;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ── Error state ── */
+.errorPanel {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 12px;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.errorText {
+    flex: 1;
+    font-size: 0.875rem;
+    color: #b91c1c;
+    margin: 0;
+}
+
+.retryBtn {
+    padding: 8px 20px;
+    background: #2e7d32;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.retryBtn:hover {
+    background: #1b5e20;
+}
+
+/* ── Responsive adjustments ── */
+@media (max-width: 1200px) {
+    .hBarRow {
+        grid-template-columns: 1fr 90px 60px;
+        gap: 8px;
+    }
+
+    .gaugeGrid {
+        grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+    }
+}
+
+@media (max-width: 1024px) {
+    .chartsRow {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 900px) {
+    .gridRow {
+        grid-template-columns: 1fr;
+    }
+
+    .kpiRow {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .page {
+        padding: 16px;
+    }
+
+    .topScorecardRow {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .kpiRow {
+        grid-template-columns: 1fr;
+    }
+
+    .barChartItem {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .barChartLabel {
+        min-width: auto;
+    }
+}
+
+@media (max-width: 640px) {
+    .hBarRow {
+        grid-template-columns: 1fr 70px 50px;
+        gap: 6px;
+    }
+
+    .hBarLabel {
+        font-size: 0.7rem;
+    }
+
+    .hBarValue {
+        font-size: 0.7rem;
+    }
+}
