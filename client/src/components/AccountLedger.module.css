@@ -442,6 +442,7 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.875rem;
+  table-layout: fixed;
 }
 
 .modalJournalTable thead {
@@ -450,7 +451,6 @@
 
 .modalJournalTable th {
   padding: 12px;
-  text-align: left;
   font-weight: 600;
   color: #4b5563;
   font-size: 0.75rem;
@@ -459,12 +459,80 @@
   border-bottom: 2px solid #e5e7eb;
 }
 
+/* First column (Account) - left aligned */
+.modalJournalTable th:first-child {
+  text-align: left;
+  width: 50%;
+}
+
+/* Debit column - right aligned */
+.modalJournalTable th:nth-child(2) {
+  text-align: right;
+  width: 25%;
+}
+
+/* Credit column - right aligned */
+.modalJournalTable th:nth-child(3) {
+  text-align: right;
+  width: 25%;
+}
+
 .modalJournalTable td {
   padding: 10px 12px;
   color: #374151;
   border-bottom: 1px solid #f3f4f6;
   font-size: 0.875rem;
   line-height: 1.4;
+}
+
+/* First column (Account) - left aligned */
+.modalJournalTable td:first-child {
+  text-align: left;
+}
+
+/* Debit column - right aligned */
+.modalJournalTable td:nth-child(2) {
+  text-align: right;
+  font-family: "Courier New", Courier, monospace;
+}
+
+/* Credit column - right aligned */
+.modalJournalTable td:nth-child(3) {
+  text-align: right;
+  font-family: "Courier New", Courier, monospace;
+}
+
+/* Credit account cell - additional padding for indentation */
+.creditAccountCell {
+  padding-left: 32px !important;
+}
+
+/* Debit account cell - normal padding */
+.debitAccountCell {
+  padding-left: 12px !important;
+}
+
+/* Credit account name styling */
+.creditAccountName {
+  display: inline-block;
+  position: relative;
+}
+
+/* Debit account name styling */
+.debitAccountName {
+  display: inline-block;
+}
+
+/* Link button styling with credit indentation */
+.creditLinkBtn {
+  margin-left: 20px;
+}
+
+/* Optional: Add a visual indicator for credit accounts */
+.creditAccountName::before {
+  content: "↳ ";
+  opacity: 0.6;
+  font-size: 0.875rem;
 }
 
 .modalJournalTable tbody tr:hover {
@@ -483,12 +551,27 @@
   font-size: 0.875rem;
 }
 
+/* First column in tfoot - left aligned */
+.modalJournalTable tfoot td:first-child {
+  text-align: left;
+}
+
+/* Debit column in tfoot - right aligned */
+.modalJournalTable tfoot td:nth-child(2) {
+  text-align: right;
+}
+
+/* Credit column in tfoot - right aligned */
+.modalJournalTable tfoot td:nth-child(3) {
+  text-align: right;
+}
+
 .modalJournalTable .money {
   text-align: right;
   font-family: "Courier New", Courier, monospace;
 }
 
-/* Link-like button for account names */
+/* Link-like button for account names - keep left aligned */
 .linkLikeBtn {
   background: none;
   border: none;
@@ -499,6 +582,8 @@
   line-height: 1.4;
   cursor: pointer;
   transition: color 0.2s;
+  text-align: left;
+  display: inline-block;
 }
 
 .linkLikeBtn:hover {
@@ -917,5 +1002,23 @@
   .badge {
     white-space: normal;
     word-break: keep-all;
+  }
+
+  .modalJournalTable th,
+  .modalJournalTable td {
+    padding: 8px;
+  }
+
+  .modalJournalTable th:first-child {
+    width: 40%;
+  }
+
+  .modalJournalTable th:nth-child(2),
+  .modalJournalTable th:nth-child(3) {
+    width: 30%;
+  }
+
+  .creditAccountCell {
+    padding-left: 20px !important;
   }
 }

@@ -720,73 +720,78 @@ export default function AccountLedger({ account, onBack, onJournalPageSelect, to
 
                   {/* Accounts Impacted Table - Using getAccountName like General Journal */}
                   {parentTransaction.accountsImpacted && parentTransaction.accountsImpacted.length > 0 && (
-                    <div className={styles.modalTableWrapper}>
-                      <table className={styles.modalJournalTable}>
-                        <thead>
+                      <div className={styles.modalTableWrapper}>
+                        <table className={styles.modalJournalTable}>
+                          <thead>
                           <tr>
                             <th>Account</th>
                             <th>Debit</th>
                             <th>Credit</th>
                           </tr>
-                        </thead>
-                        <tbody>
+                          </thead>
+                          <tbody>
                           {parentTransaction.accountsImpacted.map((accountItem, idx) => {
                             const accountDisplayName = getAccountName(accountItem.accountId);
                             const fullAccount = accounts.find(a => String(a.id) === String(accountItem.accountId));
+                            const isCredit = accountItem.entryType === 'CREDIT';
 
                             return (
-                              <tr key={idx}>
-                                <td>
-                                  {onAccountSelect && fullAccount ? (
-                                    <button
-                                      type="button"
-                                      className={styles.linkLikeBtn}
-                                      onClick={() => {
-                                        onAccountSelect(fullAccount);
-                                        closeModal();
-                                      }}
-                                    >
-                                      {accountDisplayName}
-                                    </button>
-                                  ) : (
-                                    <span>{accountDisplayName}</span>
-                                  )}
-                                </td>
-                                <td className={styles.money}>
-                                  {accountItem.entryType === 'DEBIT' ? currency(accountItem.amount) : "—"}
-                                </td>
-                                <td className={styles.money}>
-                                  {accountItem.entryType === 'CREDIT' ? currency(accountItem.amount) : "—"}
-                                </td>
-                              </tr>
+                                <tr key={idx}>
+                                  <td className={isCredit ? styles.creditAccountCell : styles.debitAccountCell}>
+                                    {onAccountSelect && fullAccount ? (
+                                        <button
+                                            type="button"
+                                            className={`${styles.linkLikeBtn} ${isCredit ? styles.creditLinkBtn : ''}`}
+                                            onClick={() => {
+                                              onAccountSelect(fullAccount);
+                                              closeModal();
+                                            }}
+                                        >
+                    <span className={isCredit ? styles.creditAccountName : styles.debitAccountName}>
+                      {accountDisplayName}
+                    </span>
+                                        </button>
+                                    ) : (
+                                        <span className={isCredit ? styles.creditAccountName : styles.debitAccountName}>
+                    {accountDisplayName}
+                  </span>
+                                    )}
+                                  </td>
+                                  <td className={styles.money}>
+                                    {accountItem.entryType === 'DEBIT' ? currency(accountItem.amount) : "—"}
+                                  </td>
+                                  <td className={styles.money}>
+                                    {accountItem.entryType === 'CREDIT' ? currency(accountItem.amount) : "—"}
+                                  </td>
+                                </tr>
                             );
                           })}
-                        </tbody>
-                        <tfoot>
+                          </tbody>
+                          <tfoot>
                           <tr>
                             <td><strong>Total</strong></td>
                             <td className={styles.money}>
                               <strong>
                                 {currency(
-                                  parentTransaction.accountsImpacted
-                                    .filter(a => a.entryType === 'DEBIT')
-                                    .reduce((sum, a) => sum + Number(a.amount), 0)
+                                    parentTransaction.accountsImpacted
+                                        .filter(a => a.entryType === 'DEBIT')
+                                        .reduce((sum, a) => sum + Number(a.amount), 0)
                                 )}
                               </strong>
                             </td>
                             <td className={styles.money}>
                               <strong>
                                 {currency(
-                                  parentTransaction.accountsImpacted
-                                    .filter(a => a.entryType === 'CREDIT')
-                                    .reduce((sum, a) => sum + Number(a.amount), 0)
+                                    parentTransaction.accountsImpacted
+                                        .filter(a => a.entryType === 'CREDIT')
+                                        .reduce((sum, a) => sum + Number(a.amount), 0)
                                 )}
                               </strong>
                             </td>
                           </tr>
-                        </tfoot>
-                      </table>
-                    </div>
+                          </tfoot>
+                        </table>
+                      </div>
                   )}
                 </div>
               )}
