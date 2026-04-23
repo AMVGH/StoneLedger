@@ -10,7 +10,7 @@ import {
 } from "../API/Report";
 import { getFinancialAccounts } from "../API/FinancialAccount";
 
-export default function Reports() {
+export default function Reports({ onAccountSelect }) {
   const [reportType, setReportType] = useState("TRIAL_BALANCE");
   const [params, setParams] = useState({
     trialBalanceType: "UNADJUSTED",
@@ -26,6 +26,7 @@ export default function Reports() {
   const [loadingAccounts, setLoadingAccounts] = useState(false);
   const [postClosingWarning, setPostClosingWarning] = useState(null);
   const [showInfo, setShowInfo] = useState(false);
+  const [accountsMap, setAccountsMap] = useState(new Map());
 
   // Fetch financial accounts on component mount
   useEffect(() => {
@@ -33,7 +34,15 @@ export default function Reports() {
       setLoadingAccounts(true);
       try {
         const response = await getFinancialAccounts();
-        setFinancialAccounts(response?.data || []);
+        const accounts = response?.data || [];
+        setFinancialAccounts(accounts);
+
+        // Create a map for quick lookup by account name
+        const map = new Map();
+        accounts.forEach(account => {
+          map.set(account.accountName, account);
+        });
+        setAccountsMap(map);
       } catch (err) {
         console.error("Failed to fetch financial accounts:", err);
       } finally {
@@ -222,6 +231,13 @@ export default function Reports() {
     }
   };
 
+  // Handler for clicking on account name
+  const handleAccountClick = (accountName) => {
+    if (onAccountSelect && accountsMap.has(accountName)) {
+      onAccountSelect(accountsMap.get(accountName));
+    }
+  };
+
   // Plain number — no dollar sign
   const fmtNum = (val) => {
     if (val == null || val === "") return "";
@@ -347,6 +363,14 @@ export default function Reports() {
   const reLabel         = { ...noCell };
   const reLabelBold     = { ...noCell, fontWeight: 700 };
   const reAmt           = { ...noCell, textAlign: "right", padding: "3px 12px", whiteSpace: "nowrap" };
+
+  // Clickable account name style
+  const clickableStyle = {
+    cursor: "pointer",
+    color: "#3e3a98",
+    textDecoration: "underline",
+    textDecorationStyle: "solid",
+  };
 
   const reportRef = useRef(null);
 
@@ -540,7 +564,17 @@ export default function Reports() {
                             const rowAmtStyle = { ...tbTdAmt, borderTop: isFirstRow ? "none" : "1px solid #ccc" };
                             return (
                                 <tr key={i}>
-                                  <td style={rowAcctStyle}>{entry.financialAccountName}</td>
+                                  <td style={rowAcctStyle}>
+                                    <span
+                                        style={clickableStyle}
+                                        onClick={() => handleAccountClick(entry.financialAccountName)}
+                                        role="button"
+                                        tabIndex={0}
+                                        onKeyDown={(e) => e.key === 'Enter' && handleAccountClick(entry.financialAccountName)}
+                                    >
+                                      {entry.financialAccountName}
+                                    </span>
+                                  </td>
                                   <td style={rowAmtStyle}>{debitVal}</td>
                                   <td style={rowAmtStyle}>{creditVal}</td>
                                 </tr>
@@ -586,7 +620,17 @@ export default function Reports() {
                           </tr>
                           {revenues.map((pair, i) => (
                               <tr key={i}>
-                                <td style={isLabelIndented}>{pair.a}</td>
+                                <td style={isLabelIndented}>
+                                  <span
+                                      style={clickableStyle}
+                                      onClick={() => handleAccountClick(pair.a)}
+                                      role="button"
+                                      tabIndex={0}
+                                      onKeyDown={(e) => e.key === 'Enter' && handleAccountClick(pair.a)}
+                                  >
+                                    {pair.a}
+                                  </span>
+                                </td>
                                 <td style={isAmt}>
                                   {i === lastRevIdx ? (
                                       <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
@@ -614,7 +658,17 @@ export default function Reports() {
                           </tr>
                           {expenses.map((pair, i) => (
                               <tr key={i}>
-                                <td style={isLabelIndented}>{pair.a}</td>
+                                <td style={isLabelIndented}>
+                                  <span
+                                      style={clickableStyle}
+                                      onClick={() => handleAccountClick(pair.a)}
+                                      role="button"
+                                      tabIndex={0}
+                                      onKeyDown={(e) => e.key === 'Enter' && handleAccountClick(pair.a)}
+                                  >
+                                    {pair.a}
+                                  </span>
+                                </td>
                                 <td style={isAmt}>
                                   {i === lastExpIdx ? (
                                       <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
@@ -667,7 +721,17 @@ export default function Reports() {
                           const isLast = i === result.currentAssetList.length - 1;
                           return (
                               <tr key={i}>
-                                <td style={bsThirdLevel}>{pair.a}</td>
+                                <td style={bsThirdLevel}>
+                                  <span
+                                      style={clickableStyle}
+                                      onClick={() => handleAccountClick(pair.a)}
+                                      role="button"
+                                      tabIndex={0}
+                                      onKeyDown={(e) => e.key === 'Enter' && handleAccountClick(pair.a)}
+                                  >
+                                    {pair.a}
+                                  </span>
+                                </td>
                                 <td style={bsAmtLeft}>
                                   {i === 0 ? (
                                       <span>{fmtDollar(pair.b)}</span>
@@ -696,7 +760,17 @@ export default function Reports() {
                           const isLast = i === result.propertyPlantEquipmentList.length - 1;
                           return (
                               <tr key={i}>
-                                <td style={bsThirdLevel}>{pair.a}</td>
+                                <td style={bsThirdLevel}>
+                                  <span
+                                      style={clickableStyle}
+                                      onClick={() => handleAccountClick(pair.a)}
+                                      role="button"
+                                      tabIndex={0}
+                                      onKeyDown={(e) => e.key === 'Enter' && handleAccountClick(pair.a)}
+                                  >
+                                    {pair.a}
+                                  </span>
+                                </td>
                                 <td style={bsAmtLeft}>
                                   {isLast ? (
                                       <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
@@ -727,8 +801,6 @@ export default function Reports() {
                           </td>
                         </tr>
 
-                        <tr><td colSpan={2} style={{ ...noCell, padding: "12px" }}></td></tr>
-
                         {/* LIABILITIES section */}
                         <tr><td style={bsFirstLevel} colSpan={2}>Liabilities</td></tr>
                         <tr><td style={bsSecondLevel}>Current Liabilities</td><td style={bsAmtRight}></td></tr>
@@ -736,7 +808,17 @@ export default function Reports() {
                           const isLast = i === result.currentLiabilityList.length - 1;
                           return (
                               <tr key={i}>
-                                <td style={bsThirdLevel}>{pair.a}</td>
+                                <td style={bsThirdLevel}>
+                                  <span
+                                      style={clickableStyle}
+                                      onClick={() => handleAccountClick(pair.a)}
+                                      role="button"
+                                      tabIndex={0}
+                                      onKeyDown={(e) => e.key === 'Enter' && handleAccountClick(pair.a)}
+                                  >
+                                    {pair.a}
+                                  </span>
+                                </td>
                                 <td style={bsAmtLeft}>
                                   {isLast ? (
                                       <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
@@ -774,15 +856,25 @@ export default function Reports() {
                           </td>
                         </tr>
 
-                        <tr><td colSpan={2} style={{ ...noCell, padding: "12px" }}></td></tr>
-
                         {/* STOCKHOLDERS' EQUITY section */}
                         <tr><td style={bsFirstLevel} colSpan={2}>Stockholders' Equity</td></tr>
                         {(result.stockholderEquityList || []).map((pair, i) => {
                           const isLast = i === result.stockholderEquityList.length - 1;
                           return (
                               <tr key={i}>
-                                <td style={bsSecondLevel}>{pair.a}</td>
+                                <td style={bsSecondLevel}>
+                                  <span
+                                      style={clickableStyle}
+                                      onClick={() => handleAccountClick(pair.a)}
+                                      onMouseEnter={(e) => e.currentTarget.style.color = "#4338ca"}
+                                      onMouseLeave={(e) => e.currentTarget.style.color = "#4f46e5"}
+                                      role="button"
+                                      tabIndex={0}
+                                      onKeyDown={(e) => e.key === 'Enter' && handleAccountClick(pair.a)}
+                                  >
+                                    {pair.a}
+                                  </span>
+                                </td>
                                 <td style={bsAmtRight}>
                                   {isLast ? (
                                       <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
@@ -804,8 +896,6 @@ export default function Reports() {
                           </td>
                         </tr>
 
-                        <tr><td colSpan={2} style={{ ...noCell, padding: "8px" }}></td></tr>
-
                         {/* TOTAL LIABILITIES AND EQUITY */}
                         <tr>
                           <td style={bsFirstLevel}>Total Liabilities and Stockholders' Equity</td>
@@ -821,7 +911,6 @@ export default function Reports() {
                 )}
 
                 {reportType === "RETAINED_EARNINGS" && (() => {
-                  // Safe extraction of values with defaults
                   const beginningRE = result.retainedEarningsBeginning || 0;
                   const netIncome = result.netIncome || 0;
                   const dividends = result.dividends || 0;
@@ -829,7 +918,6 @@ export default function Reports() {
                   const afterDividends = totalBeforeDividends - dividends;
                   const endingRE = result.retainedEarningsEnding || afterDividends;
 
-                  // Format the beginning date (first day of the selected month)
                   const formatBeginningDate = (period) => {
                     if (!period) return "";
                     const [year, month] = period.split("-").map(Number);
@@ -837,11 +925,10 @@ export default function Reports() {
                     return date.toLocaleDateString("en-US", { year: "numeric", month: "numeric", day: "numeric" });
                   };
 
-                  // Format the ending date (last day of the selected month)
                   const formatEndingDate = (period) => {
                     if (!period) return "";
                     const [year, month] = period.split("-").map(Number);
-                    const date = new Date(year, month, 0); // Last day of month
+                    const date = new Date(year, month, 0);
                     return date.toLocaleDateString("en-US", { year: "numeric", month: "numeric", day: "numeric" });
                   };
 
@@ -860,7 +947,6 @@ export default function Reports() {
 
                         <table style={tableStyle}>
                           <tbody>
-                          {/* Beginning Retained Earnings */}
                           <tr>
                             <td style={reLabel}>
                               Retained Earnings, Beginning {beginningDate}
@@ -868,14 +954,11 @@ export default function Reports() {
                             <td style={reAmt}>{fmtDollar(beginningRE)}</td>
                           </tr>
 
-                          {/* Add: Net Income */}
                           <tr>
                             <td style={reLabel}>Add: Net Income</td>
                             <td style={reAmt}>{fmtNum(netIncome)}</td>
-                            <span style={{ borderBottom: "1px solid #111", display: "inline-block", fontWeight: 700 }}/>
                           </tr>
 
-                          {/* Total line (Beginning RE + Net Income) */}
                           <tr>
                             <td style={reLabel}>Total (Before Dividends)</td>
                             <td style={reAmt}>
@@ -885,14 +968,11 @@ export default function Reports() {
                             </td>
                           </tr>
 
-                          {/* Less: Dividends */}
                           <tr>
                             <td style={reLabel}>Less: Dividends</td>
                             <td style={reAmt}>{fmtNum(dividends)}</td>
                           </tr>
 
-
-                          {/* Ending Retained Earnings */}
                           <tr>
                             <td style={reLabelBold}>
                               Retained Earnings, Ending {endingDate}

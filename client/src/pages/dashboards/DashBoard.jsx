@@ -819,6 +819,12 @@ export default function DashBoard() {
 
   const handleUserCreated = () => notify("success", "User created successfully!");
 
+  const handleAccountSelect = (account) => {
+    setSelectedAccount(account);
+    setPrevNav("Reports");
+    setNav("Account Ledger");
+  };
+
   return (
     <div className={styles.page}>
       {editingAccount && (
@@ -995,7 +1001,7 @@ export default function DashBoard() {
           <section className={styles.content}>
             <h2>Reports</h2>
             <p>Generate financial reports including Trial Balance, Income Statement, Balance Sheet, and Retained Earnings Statement.</p>
-            <Reports />
+            <Reports onAccountSelect={handleAccountSelect} />
           </section>
         )}
 
