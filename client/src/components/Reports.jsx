@@ -126,8 +126,8 @@ export default function Reports() {
           // Check if info should be shown
           if (postClosingWarning && postClosingWarning.latestPostClosingDate) {
             const show = shouldShowInfo(
-              params.periodEnd,
-              postClosingWarning.latestPostClosingDate
+                params.periodEnd,
+                postClosingWarning.latestPostClosingDate
             );
             setShowInfo(show);
           }
@@ -145,8 +145,8 @@ export default function Reports() {
           // Check info for income statement
           if (postClosingWarning && postClosingWarning.latestPostClosingDate) {
             const show = shouldShowInfo(
-              params.periodEnd,
-              postClosingWarning.latestPostClosingDate
+                params.periodEnd,
+                postClosingWarning.latestPostClosingDate
             );
             setShowInfo(show);
           }
@@ -164,8 +164,8 @@ export default function Reports() {
           // Check info for balance sheet
           if (postClosingWarning && postClosingWarning.latestPostClosingDate) {
             const show = shouldShowInfo(
-              params.periodEnd,
-              postClosingWarning.latestPostClosingDate
+                params.periodEnd,
+                postClosingWarning.latestPostClosingDate
             );
             setShowInfo(show);
           }
@@ -189,10 +189,24 @@ export default function Reports() {
             setFetching(false);
             return;
           }
+
+          // Check if closing entries were applied mid-period for retained earnings
+          if (postClosingWarning && postClosingWarning.latestPostClosingDate) {
+            // For retained earnings, we need to check if the selected period's end date is before the closing date
+            // Let's assume the period end is the last day of the selected month
+            const selectedDate = parseLocalDate(params.period + "-01");
+            const closingDate = postClosingWarning.latestPostClosingDate.split('T')[0];
+            const closingDateParsed = parseLocalDate(closingDate);
+
+            if (selectedDate && closingDateParsed && selectedDate < closingDateParsed) {
+              setShowInfo(true);
+            }
+          }
+
           data = await getRetainedEarningsContent(
-            params.retainedEarningsAccount,
-            params.dividendsDistributedAccount,
-            params.period
+              params.retainedEarningsAccount,
+              params.dividendsDistributedAccount,
+              params.period
           );
           break;
 
@@ -201,6 +215,7 @@ export default function Reports() {
       }
       setResult(data?.data ?? data);
     } catch (err) {
+      console.error("Error generating report:", err);
       setFetchError(err.response?.data?.message || err.message || "Failed to generate report.");
     } finally {
       setFetching(false);
@@ -209,7 +224,7 @@ export default function Reports() {
 
   // Plain number — no dollar sign
   const fmtNum = (val) => {
-    if (val == null) return "";
+    if (val == null || val === "") return "";
     const num = Number(val);
     return isNaN(num) ? String(val) : num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
@@ -217,7 +232,7 @@ export default function Reports() {
   // With leading "$ "
   const fmtDollar = (val) => {
     const n = fmtNum(val);
-    return n ? `$ ${n}` : "";
+    return n ? `$ ${n}` : "$ 0.00";
   };
 
   const formatDisplayDate = (dateStr) => {
@@ -243,6 +258,7 @@ export default function Reports() {
   };
 
   const fmtDate = (val) => {
+    if (!val) return "";
     return formatDisplayDate(val);
   };
 
@@ -285,10 +301,6 @@ export default function Reports() {
     display: "flex",
     alignItems: "center",
     gap: "10px"
-  };
-
-  const infoIconStyle = {
-    fontSize: "16px"
   };
 
   // ── Shared report header ──
@@ -341,515 +353,565 @@ export default function Reports() {
   const handleDownloadPdf = async () => {
     const content = reportRef.current;
     if (!content) return;
-    const canvas = await html2canvas(content, { scale: 2, useCORS: true });
-    const imgData = canvas.toDataURL("image/png");
-    const pdfDoc = new jsPDF("p", "mm", "letter");
-    const pageWidth  = pdfDoc.internal.pageSize.getWidth();
-    const pageHeight = pdfDoc.internal.pageSize.getHeight();
-    const margin = 10;
-    const imgWidth  = pageWidth - margin * 2;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    let yOffset = margin;
-    let remainingHeight = imgHeight;
-    pdfDoc.addImage(imgData, "PNG", margin, yOffset, imgWidth, imgHeight);
-    remainingHeight -= (pageHeight - margin * 2);
-    while (remainingHeight > 0) {
-      pdfDoc.addPage();
-      yOffset -= (pageHeight - margin * 2);
+    try {
+      const canvas = await html2canvas(content, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL("image/png");
+      const pdfDoc = new jsPDF("p", "mm", "letter");
+      const pageWidth  = pdfDoc.internal.pageSize.getWidth();
+      const pageHeight = pdfDoc.internal.pageSize.getHeight();
+      const margin = 10;
+      const imgWidth  = pageWidth - margin * 2;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let yOffset = margin;
+      let remainingHeight = imgHeight;
       pdfDoc.addImage(imgData, "PNG", margin, yOffset, imgWidth, imgHeight);
       remainingHeight -= (pageHeight - margin * 2);
+      while (remainingHeight > 0) {
+        pdfDoc.addPage();
+        yOffset -= (pageHeight - margin * 2);
+        pdfDoc.addImage(imgData, "PNG", margin, yOffset, imgWidth, imgHeight);
+        remainingHeight -= (pageHeight - margin * 2);
+      }
+      pdfDoc.save(`${reportType.toLowerCase().replace(/_/g, "-")}-${params.periodEnd || params.period || "report"}.pdf`);
+    } catch (err) {
+      console.error("Error generating PDF:", err);
     }
-    pdfDoc.save(`${reportType.toLowerCase().replace(/_/g, "-")}-${params.periodEnd || params.period || "report"}.pdf`);
+  };
+
+  // Format month for display
+  const formatMonthDisplay = (period) => {
+    if (!period) return "";
+    const [year, month] = period.split("-").map(Number);
+    const date = new Date(year, month - 1, 1);
+    return date.toLocaleDateString("en-US", { year: "numeric", month: "long" });
   };
 
   return (
-    <div style={panelStyle}>
+      <div style={panelStyle}>
 
-      <div style={filterPanelStyle}>
-        <p style={{ margin: 0, fontSize: "12px", color: "#6b7280", lineHeight: "1.5" }}>
-          Select a report type and fill in the required parameters.
-        </p>
-        <div style={rowStyle}>
-          <div style={groupStyle}>
-            <label style={labelStyle}>Report Type</label>
-            <select style={selectStyle} value={reportType} onChange={handleReportTypeChange}>
-              <option value="TRIAL_BALANCE">Trial Balance</option>
-              <option value="INCOME_STATEMENT">Income Statement</option>
-              <option value="BALANCE_SHEET">Balance Sheet</option>
-              <option value="RETAINED_EARNINGS">Retained Earnings</option>
-            </select>
-          </div>
-
-          {reportType === "TRIAL_BALANCE" && (
+        <div style={filterPanelStyle}>
+          <p style={{ margin: 0, fontSize: "12px", color: "#6b7280", lineHeight: "1.5" }}>
+            Select a report type and fill in the required parameters.
+          </p>
+          <div style={rowStyle}>
             <div style={groupStyle}>
-              <label style={labelStyle}>Balance Type</label>
-              <select style={selectStyle} name="trialBalanceType" value={params.trialBalanceType} onChange={handleParamChange}>
-                <option value="UNADJUSTED">Unadjusted</option>
-                <option value="ADJUSTED">Adjusted</option>
-                <option value="REVERSING">Reversing</option>
-                <option value="POST_CLOSING">Post-Closing</option>
+              <label style={labelStyle}>Report Type</label>
+              <select style={selectStyle} value={reportType} onChange={handleReportTypeChange}>
+                <option value="TRIAL_BALANCE">Trial Balance</option>
+                <option value="INCOME_STATEMENT">Income Statement</option>
+                <option value="BALANCE_SHEET">Balance Sheet</option>
+                <option value="RETAINED_EARNINGS">Retained Earnings</option>
               </select>
             </div>
-          )}
 
-          {(reportType === "TRIAL_BALANCE" || reportType === "INCOME_STATEMENT" || reportType === "BALANCE_SHEET") && (
-            <div style={groupStyle}>
-              <label style={labelStyle}>Period End Date</label>
-              <input style={inputStyle} type="date" name="periodEnd" value={params.periodEnd} onChange={handleParamChange} />
-            </div>
-          )}
-
-          {reportType === "RETAINED_EARNINGS" && (
-            <>
-              <div style={groupStyle}>
-                <label style={labelStyle}>Period (Month)</label>
-                <input style={inputStyle} type="month" name="period" value={params.period} onChange={handleParamChange} />
-              </div>
-              <div style={groupStyle}>
-                <label style={labelStyle}>Retained Earnings Account</label>
-                <select
-                  style={selectStyle}
-                  name="retainedEarningsAccount"
-                  value={params.retainedEarningsAccount}
-                  onChange={handleParamChange}
-                  disabled={loadingAccounts}
-                >
-                  <option value="">Select an account...</option>
-                  {financialAccounts.map((account) => (
-                    <option
-                      key={account.id || account.accountId}
-                      value={account.accountName}
-                      disabled={account.accountName === params.dividendsDistributedAccount}
-                    >
-                      {account.accountName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div style={groupStyle}>
-                <label style={labelStyle}>Dividends Declaration Account</label>
-                <select
-                  style={selectStyle}
-                  name="dividendsDistributedAccount"
-                  value={params.dividendsDistributedAccount}
-                  onChange={handleParamChange}
-                  disabled={loadingAccounts}
-                >
-                  <option value="">Select an account...</option>
-                  {financialAccounts.map((account) => (
-                    <option
-                      key={account.id || account.accountId}
-                      value={account.accountName}
-                      disabled={account.accountName === params.retainedEarningsAccount}
-                    >
-                      {account.accountName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </>
-          )}
-
-          <button style={btnStyle} onClick={handleGenerate} disabled={fetching}>
-            {fetching ? "Generating…" : "Generate Report"}
-          </button>
-        </div>
-        {fetchError && <div style={errorStyle}>{fetchError}</div>}
-      </div>
-
-      {result && (
-        <div style={resultPanelStyle}>
-          {/* Simple informational message - shows for any report before closing date */}
-          {showInfo && postClosingWarning && (
-            <div style={infoBannerStyle}>
-              <span>
-                Closing entries for the period were applied on{" "}
-                <strong>{formatDisplayDate(postClosingWarning.latestPostClosingDate)}</strong>.
-                This report reflects data before closing entries were posted.
-              </span>
-            </div>
-          )}
-
-          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "12px" }}>
-            <button style={{ ...btnStyle, width: "auto", padding: "8px 16px", marginTop: 0 }} onClick={handleDownloadPdf}>
-              Download PDF
-            </button>
-          </div>
-
-          <div ref={reportRef}>
-
-            {reportType === "TRIAL_BALANCE" && (() => {
-              const entries = result.trialBalanceEntries || [];
-              const firstDebitIdx  = entries.findIndex(e => e.balanceLean === "DEBIT");
-              const firstCreditIdx = entries.findIndex(e => e.balanceLean === "CREDIT");
-
-              return (
-                <>
-                  <div style={reportHeaderStyle}>
-                    <p style={reportCompanyNameStyle}>StoneLedger Accounting</p>
-                    <p style={reportStatementNameStyle}>{trialBalanceSubtypeLabel(params.trialBalanceType)}</p>
-                    <p style={reportPeriodStyle}>For the Year Ended {fmtPeriodEndHeader(params.periodEnd)}</p>
-                  </div>
-
-                  <table style={tableStyle}>
-                    <thead>
-                      <tr>
-                        <th style={tbThEmpty}></th>
-                        <th style={tbThCol}>Debit</th>
-                        <th style={tbThCol}>Credit</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {entries.map((entry, i) => {
-                        const isDebit  = entry.balanceLean === "DEBIT";
-                        const isCredit = entry.balanceLean === "CREDIT";
-                        const debitVal  = isDebit
-                          ? (i === firstDebitIdx  ? fmtDollar(entry.amount) : fmtNum(entry.amount))
-                          : "";
-                        const creditVal = isCredit
-                          ? (i === firstCreditIdx ? fmtDollar(entry.amount) : fmtNum(entry.amount))
-                          : "";
-                        const isFirstRow = i === 0;
-                        const rowAcctStyle = { ...tbTdAcct, borderTop: isFirstRow ? "none" : "1px solid #ccc" };
-                        const rowAmtStyle = { ...tbTdAmt, borderTop: isFirstRow ? "none" : "1px solid #ccc" };
-                        return (
-                          <tr key={i}>
-                            <td style={rowAcctStyle}>{entry.financialAccountName}</td>
-                            <td style={rowAmtStyle}>{debitVal}</td>
-                            <td style={rowAmtStyle}>{creditVal}</td>
-                          </tr>
-                        );
-                      })}
-                      <tr>
-                        <td style={tbTdTotAcct}></td>
-                        <td style={tbTdTotAmt}>
-                          <span style={{ borderBottom: "3px double #111", display: "inline-block" }}>
-                            $ {fmtNum(result.totalDebit)}
-                          </span>
-                        </td>
-                        <td style={tbTdTotAmt}>
-                          <span style={{ borderBottom: "3px double #111", display: "inline-block" }}>
-                            $ {fmtNum(result.totalCredit)}
-                          </span>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </>
-              );
-            })()}
-
-            {reportType === "INCOME_STATEMENT" && (() => {
-              const revenues   = result.revenueList || [];
-              const expenses   = result.expenseList || [];
-              const lastRevIdx = revenues.length - 1;
-              const lastExpIdx = expenses.length - 1;
-
-              return (
-                <>
-                  <div style={reportHeaderStyle}>
-                    <p style={reportCompanyNameStyle}>StoneLedger Accounting</p>
-                    <p style={reportStatementNameStyle}>Income Statement</p>
-                    <p style={reportPeriodStyle}>For the Year Ended {fmtPeriodEndHeader(params.periodEnd)}</p>
-                  </div>
-
-                  <table style={tableStyle}>
-                    <tbody>
-                      <tr>
-                        <td style={isSectionHdr} colSpan={2}>Revenues</td>
-                      </tr>
-                      {revenues.map((pair, i) => (
-                        <tr key={i}>
-                          <td style={isLabelIndented}>{pair.a}</td>
-                          <td style={isAmt}>
-                            {i === lastRevIdx ? (
-                              <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
-                                {i === 0 ? fmtDollar(pair.b) : fmtNum(pair.b)}
-                              </span>
-                            ) : (
-                              <span>{i === 0 ? fmtDollar(pair.b) : fmtNum(pair.b)}</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                      <tr>
-                        <td style={isLabel}>Total Revenues</td>
-                        <td style={isAmt}>
-                          <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
-                            {fmtNum(result.totalRevenues)}
-                          </span>
-                        </td>
-                      </tr>
-
-                      <tr><td colSpan={2} style={{ ...noCell, padding: "5px" }}></td></tr>
-
-                      <tr>
-                        <td style={isSectionHdr} colSpan={2}>Expenses</td>
-                      </tr>
-                      {expenses.map((pair, i) => (
-                        <tr key={i}>
-                          <td style={isLabelIndented}>{pair.a}</td>
-                          <td style={isAmt}>
-                            {i === lastExpIdx ? (
-                              <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
-                                {fmtNum(pair.b)}
-                              </span>
-                            ) : (
-                              <span>{fmtNum(pair.b)}</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                      <tr>
-                        <td style={isLabel}>Total Expenses</td>
-                        <td style={isAmt}>
-                          <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
-                            {fmtNum(result.totalExpenses)}
-                          </span>
-                        </td>
-                      </tr>
-
-                      <tr>
-                        <td style={isLabelBold}>Net Income</td>
-                        <td style={isAmt}>
-                          <span style={{ borderBottom: "3px double #111", display: "inline-block", fontWeight: 700 }}>
-                            {fmtDollar(result.netIncome)}
-                          </span>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </>
-              );
-            })()}
-
-            {/* BALANCE SHEET */}
-            {reportType === "BALANCE_SHEET" && (
-              <>
-                <div style={reportHeaderStyle}>
-                  <p style={reportCompanyNameStyle}>StoneLedger Accounting</p>
-                  <p style={reportStatementNameStyle}>Balance Sheet</p>
-                  <p style={reportPeriodStyle}>At {fmtPeriodEndHeader(params.periodEnd)}</p>
+            {reportType === "TRIAL_BALANCE" && (
+                <div style={groupStyle}>
+                  <label style={labelStyle}>Balance Type</label>
+                  <select style={selectStyle} name="trialBalanceType" value={params.trialBalanceType} onChange={handleParamChange}>
+                    <option value="UNADJUSTED">Unadjusted</option>
+                    <option value="ADJUSTED">Adjusted</option>
+                    <option value="REVERSING">Reversing</option>
+                    <option value="POST_CLOSING">Post-Closing</option>
+                  </select>
                 </div>
+            )}
 
-                <table style={tableStyle}>
-                  <tbody>
-                    {/* ASSETS section */}
-                    <tr><td style={bsFirstLevel} colSpan={2}>Assets</td></tr>
-                    <tr><td style={bsSecondLevel}>Current Assets</td><td style={bsAmtRight}></td></tr>
-                    {(result.currentAssetList || []).map((pair, i) => {
-                      const isLast = i === result.currentAssetList.length - 1;
-                      return (
-                        <tr key={i}>
-                          <td style={bsThirdLevel}>{pair.a}</td>
-                          <td style={bsAmtLeft}>
-                            {i === 0 ? (
-                              <span>{fmtDollar(pair.b)}</span>
-                            ) : isLast ? (
-                              <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
-                                {fmtNum(pair.b)}
-                              </span>
-                            ) : (
-                              <span>{fmtNum(pair.b)}</span>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                    <tr>
-                      <td style={bsSecondLevel}>Total Current Assets</td>
-                      <td style={bsAmtRight}>
-                        <span style={{ borderTop: "1px solid #111", display: "inline-block", paddingTop: "2px" }}>
-                          {fmtDollar(result.totalCurrentAssets)}
-                        </span>
-                      </td>
-                    </tr>
-
-                    <tr><td style={bsSecondLevel}>Property, Plant &amp; Equipment</td><td style={bsAmtRight}></td></tr>
-                    {(result.propertyPlantEquipmentList || []).map((pair, i) => {
-                      const isLast = i === result.propertyPlantEquipmentList.length - 1;
-                      return (
-                        <tr key={i}>
-                          <td style={bsThirdLevel}>{pair.a}</td>
-                          <td style={bsAmtLeft}>
-                            {isLast ? (
-                              <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
-                                {fmtNum(pair.b)}
-                              </span>
-                            ) : (
-                              <span>{fmtNum(pair.b)}</span>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                    <tr>
-                      <td style={bsSecondLevel}>Property, Plant &amp; Equipment, Net</td>
-                      <td style={bsAmtRight}>
-                        <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
-                          {fmtNum(result.totalPropertyPlantEquipment)}
-                        </span>
-                      </td>
-                    </tr>
-
-                    <tr>
-                      <td style={bsFirstLevel}>Total Assets</td>
-                      <td style={bsAmtRight}>
-                        <span style={{ borderBottom: "3px double #111", display: "inline-block", fontWeight: 700 }}>
-                          {fmtNum(result.totalAssets)}
-                        </span>
-                      </td>
-                    </tr>
-
-                    <tr><td colSpan={2} style={{ ...noCell, padding: "12px" }}></td></tr>
-
-                    {/* LIABILITIES section */}
-                    <tr><td style={bsFirstLevel} colSpan={2}>Liabilities</td></tr>
-                    <tr><td style={bsSecondLevel}>Current Liabilities</td><td style={bsAmtRight}></td></tr>
-                    {(result.currentLiabilityList || []).map((pair, i) => {
-                      const isLast = i === result.currentLiabilityList.length - 1;
-                      return (
-                        <tr key={i}>
-                          <td style={bsThirdLevel}>{pair.a}</td>
-                          <td style={bsAmtLeft}>
-                            {isLast ? (
-                              <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
-                                {fmtDollar(pair.b)}
-                              </span>
-                            ) : (
-                              <span>{fmtNum(pair.b)}</span>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                    <tr>
-                      <td style={bsSecondLevel}>Total Current Liabilities</td>
-                      <td style={bsAmtRight}>
-                        <span style={{ borderTop: "1px solid #111", display: "inline-block", paddingTop: "2px" }}>
-                          {fmtNum(result.totalCurrentLiabilities)}
-                        </span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style={bsSecondLevel}>Unearned Revenue</td>
-                      <td style={bsAmtRight}>
-                        <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
-                          {fmtNum(result.unearnedRevenue)}
-                        </span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style={bsFirstLevel}>Total Liabilities</td>
-                      <td style={bsAmtRight}>
-                        <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
-                          {fmtNum(result.totalLiabilities)}
-                        </span>
-                      </td>
-                    </tr>
-
-                    <tr><td colSpan={2} style={{ ...noCell, padding: "12px" }}></td></tr>
-
-                    {/* STOCKHOLDERS' EQUITY section */}
-                    <tr><td style={bsFirstLevel} colSpan={2}>Stockholders' Equity</td></tr>
-                    {(result.stockholderEquityList || []).map((pair, i) => {
-                      const isLast = i === result.stockholderEquityList.length - 1;
-                      return (
-                        <tr key={i}>
-                          <td style={bsSecondLevel}>{pair.a}</td>
-                          <td style={bsAmtRight}>
-                            {isLast ? (
-                              <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
-                                {fmtNum(pair.b)}
-                              </span>
-                            ) : (
-                              <span>{fmtNum(pair.b)}</span>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                    <tr>
-                      <td style={bsFirstLevel}>Total Stockholders' Equity</td>
-                      <td style={bsAmtRight}>
-                        <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
-                          {fmtNum(result.totalStockHolderEquity)}
-                        </span>
-                      </td>
-                    </tr>
-
-                    <tr><td colSpan={2} style={{ ...noCell, padding: "8px" }}></td></tr>
-
-                    {/* TOTAL LIABILITIES AND EQUITY */}
-                    <tr>
-                      <td style={bsFirstLevel}>Total Liabilities and Stockholders' Equity</td>
-                      <td style={bsAmtRight}>
-                        <span style={{ borderBottom: "3px double #111", display: "inline-block", fontWeight: 700 }}>
-                          {fmtDollar(result.totalLiabilitiesAndEquity)}
-                        </span>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </>
+            {(reportType === "TRIAL_BALANCE" || reportType === "INCOME_STATEMENT" || reportType === "BALANCE_SHEET") && (
+                <div style={groupStyle}>
+                  <label style={labelStyle}>Period End Date</label>
+                  <input style={inputStyle} type="date" name="periodEnd" value={params.periodEnd} onChange={handleParamChange} />
+                </div>
             )}
 
             {reportType === "RETAINED_EARNINGS" && (
-              <>
-                <div style={reportHeaderStyle}>
-                  <p style={reportCompanyNameStyle}>StoneLedger Accounting</p>
-                  <p style={reportStatementNameStyle}>Statement of Retained Earnings</p>
-                  <p style={reportPeriodStyle}>
-                    For the Month Ended{" "}
-                    {params.period
-                      ? new Date(params.period + "-01").toLocaleDateString("en-US", { year: "numeric", month: "long" })
-                      : ""}
-                  </p>
-                </div>
-
-                <table style={tableStyle}>
-                  <tbody>
-                    <tr>
-                      <td style={reLabel}>
-                        Retained Earnings, Beginning {fmtDate(result.periodBeginning)}
-                      </td>
-                      <td style={reAmt}>{fmtDollar(result.retainedEarningsBeginning)}</td>
-                    </tr>
-
-                    <tr>
-                      <td style={reLabel}>Add: Net Income</td>
-                      <td style={reAmt}>{fmtNum(result.netIncome)}</td>
-                    </tr>
-
-                    <tr>
-                      <td style={reLabel}>Less: Dividends</td>
-                      <td style={reAmt}>
-                        <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
-                          {fmtNum(result.dividends)}
-                        </span>
-                      </td>
-                    </tr>
-
-                    <tr><td colSpan={2} style={{ ...noCell, padding: "4px" }}></td></tr>
-
-                    <tr>
-                      <td style={reLabelBold}>
-                        Retained Earnings, Ending {fmtDate(result.periodEnding)}
-                      </td>
-                      <td style={reAmt}>
-                        <span style={{ borderBottom: "3px double #111", display: "inline-block", fontWeight: 700 }}>
-                          {fmtDollar(result.retainedEarningsEnding)}
-                        </span>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </>
+                <>
+                  <div style={groupStyle}>
+                    <label style={labelStyle}>Period (Month)</label>
+                    <input style={inputStyle} type="month" name="period" value={params.period} onChange={handleParamChange} />
+                  </div>
+                  <div style={groupStyle}>
+                    <label style={labelStyle}>Retained Earnings Account</label>
+                    <select
+                        style={selectStyle}
+                        name="retainedEarningsAccount"
+                        value={params.retainedEarningsAccount}
+                        onChange={handleParamChange}
+                        disabled={loadingAccounts}
+                    >
+                      <option value="">Select an account...</option>
+                      {financialAccounts.map((account) => (
+                          <option
+                              key={account.id || account.accountId}
+                              value={account.accountName}
+                              disabled={account.accountName === params.dividendsDistributedAccount}
+                          >
+                            {account.accountName}
+                          </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div style={groupStyle}>
+                    <label style={labelStyle}>Dividends Declaration Account</label>
+                    <select
+                        style={selectStyle}
+                        name="dividendsDistributedAccount"
+                        value={params.dividendsDistributedAccount}
+                        onChange={handleParamChange}
+                        disabled={loadingAccounts}
+                    >
+                      <option value="">Select an account...</option>
+                      {financialAccounts.map((account) => (
+                          <option
+                              key={account.id || account.accountId}
+                              value={account.accountName}
+                              disabled={account.accountName === params.retainedEarningsAccount}
+                          >
+                            {account.accountName}
+                          </option>
+                      ))}
+                    </select>
+                  </div>
+                </>
             )}
 
+            <button style={btnStyle} onClick={handleGenerate} disabled={fetching}>
+              {fetching ? "Generating…" : "Generate Report"}
+            </button>
           </div>
+          {fetchError && <div style={errorStyle}>{fetchError}</div>}
         </div>
-      )}
-    </div>
+
+        {result && (
+            <div style={resultPanelStyle}>
+              {/* Simple informational message - shows for any report before closing date */}
+              {showInfo && postClosingWarning && (
+                  <div style={infoBannerStyle}>
+              <span>
+                {reportType === "RETAINED_EARNINGS" ? (
+                    <>Closing entries were applied on <strong>{formatDisplayDate(postClosingWarning.latestPostClosingDate)}</strong>, mid-period. This report reflects data after closing entries were posted.</>
+                ) : (
+                    <>Closing entries were applied on <strong>{formatDisplayDate(postClosingWarning.latestPostClosingDate)}</strong>. This report reflects data before closing entries were posted.</>
+                )}
+              </span>
+                  </div>
+              )}
+
+              <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "12px" }}>
+                <button style={{ ...btnStyle, width: "auto", padding: "8px 16px", marginTop: 0 }} onClick={handleDownloadPdf}>
+                  Download PDF
+                </button>
+              </div>
+
+              <div ref={reportRef}>
+
+                {reportType === "TRIAL_BALANCE" && (() => {
+                  const entries = result.trialBalanceEntries || [];
+                  const firstDebitIdx  = entries.findIndex(e => e.balanceLean === "DEBIT");
+                  const firstCreditIdx = entries.findIndex(e => e.balanceLean === "CREDIT");
+
+                  return (
+                      <>
+                        <div style={reportHeaderStyle}>
+                          <p style={reportCompanyNameStyle}>StoneLedger Accounting</p>
+                          <p style={reportStatementNameStyle}>{trialBalanceSubtypeLabel(params.trialBalanceType)}</p>
+                          <p style={reportPeriodStyle}>As of {fmtPeriodEndHeader(params.periodEnd)}</p>
+                        </div>
+
+                        <table style={tableStyle}>
+                          <thead>
+                          <tr>
+                            <th style={tbThEmpty}></th>
+                            <th style={tbThCol}>Debit</th>
+                            <th style={tbThCol}>Credit</th>
+                          </tr>
+                          </thead>
+                          <tbody>
+                          {entries.map((entry, i) => {
+                            const isDebit  = entry.balanceLean === "DEBIT";
+                            const isCredit = entry.balanceLean === "CREDIT";
+                            const debitVal  = isDebit
+                                ? (i === firstDebitIdx  ? fmtDollar(entry.amount) : fmtNum(entry.amount))
+                                : "";
+                            const creditVal = isCredit
+                                ? (i === firstCreditIdx ? fmtDollar(entry.amount) : fmtNum(entry.amount))
+                                : "";
+                            const isFirstRow = i === 0;
+                            const rowAcctStyle = { ...tbTdAcct, borderTop: isFirstRow ? "none" : "1px solid #ccc" };
+                            const rowAmtStyle = { ...tbTdAmt, borderTop: isFirstRow ? "none" : "1px solid #ccc" };
+                            return (
+                                <tr key={i}>
+                                  <td style={rowAcctStyle}>{entry.financialAccountName}</td>
+                                  <td style={rowAmtStyle}>{debitVal}</td>
+                                  <td style={rowAmtStyle}>{creditVal}</td>
+                                </tr>
+                            );
+                          })}
+                          <tr>
+                            <td style={tbTdTotAcct}></td>
+                            <td style={tbTdTotAmt}>
+                          <span style={{ borderBottom: "3px double #111", display: "inline-block" }}>
+                            $ {fmtNum(result.totalDebit)}
+                          </span>
+                            </td>
+                            <td style={tbTdTotAmt}>
+                          <span style={{ borderBottom: "3px double #111", display: "inline-block" }}>
+                            $ {fmtNum(result.totalCredit)}
+                          </span>
+                            </td>
+                          </tr>
+                          </tbody>
+                        </table>
+                      </>
+                  );
+                })()}
+
+                {reportType === "INCOME_STATEMENT" && (() => {
+                  const revenues   = result.revenueList || [];
+                  const expenses   = result.expenseList || [];
+                  const lastRevIdx = revenues.length - 1;
+                  const lastExpIdx = expenses.length - 1;
+
+                  return (
+                      <>
+                        <div style={reportHeaderStyle}>
+                          <p style={reportCompanyNameStyle}>StoneLedger Accounting</p>
+                          <p style={reportStatementNameStyle}>Income Statement</p>
+                          <p style={reportPeriodStyle}>For the Period Ending {fmtPeriodEndHeader(params.periodEnd)}</p>
+                        </div>
+
+                        <table style={tableStyle}>
+                          <tbody>
+                          <tr>
+                            <td style={isSectionHdr} colSpan={2}>Revenues</td>
+                          </tr>
+                          {revenues.map((pair, i) => (
+                              <tr key={i}>
+                                <td style={isLabelIndented}>{pair.a}</td>
+                                <td style={isAmt}>
+                                  {i === lastRevIdx ? (
+                                      <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
+                                {i === 0 ? fmtDollar(pair.b) : fmtNum(pair.b)}
+                              </span>
+                                  ) : (
+                                      <span>{i === 0 ? fmtDollar(pair.b) : fmtNum(pair.b)}</span>
+                                  )}
+                                </td>
+                              </tr>
+                          ))}
+                          <tr>
+                            <td style={isLabel}>Total Revenues</td>
+                            <td style={isAmt}>
+                          <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
+                            {fmtNum(result.totalRevenues)}
+                          </span>
+                            </td>
+                          </tr>
+
+                          <tr><td colSpan={2} style={{ ...noCell, padding: "5px" }}></td></tr>
+
+                          <tr>
+                            <td style={isSectionHdr} colSpan={2}>Expenses</td>
+                          </tr>
+                          {expenses.map((pair, i) => (
+                              <tr key={i}>
+                                <td style={isLabelIndented}>{pair.a}</td>
+                                <td style={isAmt}>
+                                  {i === lastExpIdx ? (
+                                      <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
+                                {fmtNum(pair.b)}
+                              </span>
+                                  ) : (
+                                      <span>{fmtNum(pair.b)}</span>
+                                  )}
+                                </td>
+                              </tr>
+                          ))}
+                          <tr>
+                            <td style={isLabel}>Total Expenses</td>
+                            <td style={isAmt}>
+                          <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
+                            {fmtNum(result.totalExpenses)}
+                          </span>
+                            </td>
+                          </tr>
+
+                          <tr>
+                            <td style={isLabelBold}>Net Income</td>
+                            <td style={isAmt}>
+                          <span style={{ borderBottom: "3px double #111", display: "inline-block", fontWeight: 700 }}>
+                            {fmtDollar(result.netIncome)}
+                          </span>
+                            </td>
+                          </tr>
+                          </tbody>
+                        </table>
+                      </>
+                  );
+                })()}
+
+                {/* BALANCE SHEET */}
+                {reportType === "BALANCE_SHEET" && (
+                    <>
+                      <div style={reportHeaderStyle}>
+                        <p style={reportCompanyNameStyle}>StoneLedger Accounting</p>
+                        <p style={reportStatementNameStyle}>Balance Sheet</p>
+                        <p style={reportPeriodStyle}>As of {fmtPeriodEndHeader(params.periodEnd)}</p>
+                      </div>
+
+                      <table style={tableStyle}>
+                        <tbody>
+                        {/* ASSETS section */}
+                        <tr><td style={bsFirstLevel} colSpan={2}>Assets</td></tr>
+                        <tr><td style={bsSecondLevel}>Current Assets</td><td style={bsAmtRight}></td></tr>
+                        {(result.currentAssetList || []).map((pair, i) => {
+                          const isLast = i === result.currentAssetList.length - 1;
+                          return (
+                              <tr key={i}>
+                                <td style={bsThirdLevel}>{pair.a}</td>
+                                <td style={bsAmtLeft}>
+                                  {i === 0 ? (
+                                      <span>{fmtDollar(pair.b)}</span>
+                                  ) : isLast ? (
+                                      <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
+                                {fmtNum(pair.b)}
+                              </span>
+                                  ) : (
+                                      <span>{fmtNum(pair.b)}</span>
+                                  )}
+                                </td>
+                              </tr>
+                          );
+                        })}
+                        <tr>
+                          <td style={bsSecondLevel}>Total Current Assets</td>
+                          <td style={bsAmtRight}>
+                        <span style={{ borderTop: "1px solid #111", display: "inline-block", paddingTop: "2px" }}>
+                          {fmtDollar(result.totalCurrentAssets)}
+                        </span>
+                          </td>
+                        </tr>
+
+                        <tr><td style={bsSecondLevel}>Property, Plant &amp; Equipment</td><td style={bsAmtRight}></td></tr>
+                        {(result.propertyPlantEquipmentList || []).map((pair, i) => {
+                          const isLast = i === result.propertyPlantEquipmentList.length - 1;
+                          return (
+                              <tr key={i}>
+                                <td style={bsThirdLevel}>{pair.a}</td>
+                                <td style={bsAmtLeft}>
+                                  {isLast ? (
+                                      <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
+                                {fmtNum(pair.b)}
+                              </span>
+                                  ) : (
+                                      <span>{fmtNum(pair.b)}</span>
+                                  )}
+                                </td>
+                              </tr>
+                          );
+                        })}
+                        <tr>
+                          <td style={bsSecondLevel}>Property, Plant &amp; Equipment, Net</td>
+                          <td style={bsAmtRight}>
+                        <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
+                          {fmtNum(result.totalPropertyPlantEquipment)}
+                        </span>
+                          </td>
+                        </tr>
+
+                        <tr>
+                          <td style={bsFirstLevel}>Total Assets</td>
+                          <td style={bsAmtRight}>
+                        <span style={{ borderBottom: "3px double #111", display: "inline-block", fontWeight: 700 }}>
+                          {fmtNum(result.totalAssets)}
+                        </span>
+                          </td>
+                        </tr>
+
+                        <tr><td colSpan={2} style={{ ...noCell, padding: "12px" }}></td></tr>
+
+                        {/* LIABILITIES section */}
+                        <tr><td style={bsFirstLevel} colSpan={2}>Liabilities</td></tr>
+                        <tr><td style={bsSecondLevel}>Current Liabilities</td><td style={bsAmtRight}></td></tr>
+                        {(result.currentLiabilityList || []).map((pair, i) => {
+                          const isLast = i === result.currentLiabilityList.length - 1;
+                          return (
+                              <tr key={i}>
+                                <td style={bsThirdLevel}>{pair.a}</td>
+                                <td style={bsAmtLeft}>
+                                  {isLast ? (
+                                      <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
+                                {fmtDollar(pair.b)}
+                              </span>
+                                  ) : (
+                                      <span>{fmtNum(pair.b)}</span>
+                                  )}
+                                </td>
+                              </tr>
+                          );
+                        })}
+                        <tr>
+                          <td style={bsSecondLevel}>Total Current Liabilities</td>
+                          <td style={bsAmtRight}>
+                        <span style={{ borderTop: "1px solid #111", display: "inline-block", paddingTop: "2px" }}>
+                          {fmtNum(result.totalCurrentLiabilities)}
+                        </span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={bsSecondLevel}>Unearned Revenue</td>
+                          <td style={bsAmtRight}>
+                        <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
+                          {fmtNum(result.unearnedRevenue)}
+                        </span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={bsFirstLevel}>Total Liabilities</td>
+                          <td style={bsAmtRight}>
+                        <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
+                          {fmtNum(result.totalLiabilities)}
+                        </span>
+                          </td>
+                        </tr>
+
+                        <tr><td colSpan={2} style={{ ...noCell, padding: "12px" }}></td></tr>
+
+                        {/* STOCKHOLDERS' EQUITY section */}
+                        <tr><td style={bsFirstLevel} colSpan={2}>Stockholders' Equity</td></tr>
+                        {(result.stockholderEquityList || []).map((pair, i) => {
+                          const isLast = i === result.stockholderEquityList.length - 1;
+                          return (
+                              <tr key={i}>
+                                <td style={bsSecondLevel}>{pair.a}</td>
+                                <td style={bsAmtRight}>
+                                  {isLast ? (
+                                      <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
+                                {fmtNum(pair.b)}
+                              </span>
+                                  ) : (
+                                      <span>{fmtNum(pair.b)}</span>
+                                  )}
+                                </td>
+                              </tr>
+                          );
+                        })}
+                        <tr>
+                          <td style={bsFirstLevel}>Total Stockholders' Equity</td>
+                          <td style={bsAmtRight}>
+                        <span style={{ borderBottom: "1px solid #111", display: "inline-block" }}>
+                          {fmtNum(result.totalStockHolderEquity)}
+                        </span>
+                          </td>
+                        </tr>
+
+                        <tr><td colSpan={2} style={{ ...noCell, padding: "8px" }}></td></tr>
+
+                        {/* TOTAL LIABILITIES AND EQUITY */}
+                        <tr>
+                          <td style={bsFirstLevel}>Total Liabilities and Stockholders' Equity</td>
+                          <td style={bsAmtRight}>
+                        <span style={{ borderBottom: "3px double #111", display: "inline-block", fontWeight: 700 }}>
+                          {fmtDollar(result.totalLiabilitiesAndEquity)}
+                        </span>
+                          </td>
+                        </tr>
+                        </tbody>
+                      </table>
+                    </>
+                )}
+
+                {reportType === "RETAINED_EARNINGS" && (() => {
+                  // Safe extraction of values with defaults
+                  const beginningRE = result.retainedEarningsBeginning || 0;
+                  const netIncome = result.netIncome || 0;
+                  const dividends = result.dividends || 0;
+                  const totalBeforeDividends = beginningRE + netIncome;
+                  const afterDividends = totalBeforeDividends - dividends;
+                  const endingRE = result.retainedEarningsEnding || afterDividends;
+
+                  // Format the beginning date (first day of the selected month)
+                  const formatBeginningDate = (period) => {
+                    if (!period) return "";
+                    const [year, month] = period.split("-").map(Number);
+                    const date = new Date(year, month - 1, 1);
+                    return date.toLocaleDateString("en-US", { year: "numeric", month: "numeric", day: "numeric" });
+                  };
+
+                  // Format the ending date (last day of the selected month)
+                  const formatEndingDate = (period) => {
+                    if (!period) return "";
+                    const [year, month] = period.split("-").map(Number);
+                    const date = new Date(year, month, 0); // Last day of month
+                    return date.toLocaleDateString("en-US", { year: "numeric", month: "numeric", day: "numeric" });
+                  };
+
+                  const beginningDate = formatBeginningDate(params.period);
+                  const endingDate = formatEndingDate(params.period);
+
+                  return (
+                      <>
+                        <div style={reportHeaderStyle}>
+                          <p style={reportCompanyNameStyle}>StoneLedger Accounting</p>
+                          <p style={reportStatementNameStyle}>Statement of Retained Earnings</p>
+                          <p style={reportPeriodStyle}>
+                            For the Month Ended {formatMonthDisplay(params.period)}
+                          </p>
+                        </div>
+
+                        <table style={tableStyle}>
+                          <tbody>
+                          {/* Beginning Retained Earnings */}
+                          <tr>
+                            <td style={reLabel}>
+                              Retained Earnings, Beginning {beginningDate}
+                            </td>
+                            <td style={reAmt}>{fmtDollar(beginningRE)}</td>
+                          </tr>
+
+                          {/* Add: Net Income */}
+                          <tr>
+                            <td style={reLabel}>Add: Net Income</td>
+                            <td style={reAmt}>{fmtNum(netIncome)}</td>
+                            <span style={{ borderBottom: "1px solid #111", display: "inline-block", fontWeight: 700 }}/>
+                          </tr>
+
+                          {/* Total line (Beginning RE + Net Income) */}
+                          <tr>
+                            <td style={reLabel}>Total (Before Dividends)</td>
+                            <td style={reAmt}>
+                          <span style={{ borderBottom: "1px solid #111", display: "inline-block", fontWeight: 700 }}>
+                            {fmtDollar(totalBeforeDividends)}
+                          </span>
+                            </td>
+                          </tr>
+
+                          {/* Less: Dividends */}
+                          <tr>
+                            <td style={reLabel}>Less: Dividends</td>
+                            <td style={reAmt}>{fmtNum(dividends)}</td>
+                          </tr>
+
+
+                          {/* Ending Retained Earnings */}
+                          <tr>
+                            <td style={reLabelBold}>
+                              Retained Earnings, Ending {endingDate}
+                            </td>
+                            <td style={reAmt}>
+                          <span style={{ borderBottom: "3px double #111", display: "inline-block", fontWeight: 700 }}>
+                            {fmtDollar(endingRE)}
+                          </span>
+                            </td>
+                          </tr>
+                          </tbody>
+                        </table>
+                      </>
+                  );
+                })()}
+
+              </div>
+            </div>
+        )}
+      </div>
   );
 }

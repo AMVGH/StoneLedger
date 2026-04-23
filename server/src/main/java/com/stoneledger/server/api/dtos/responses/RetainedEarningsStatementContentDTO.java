@@ -13,8 +13,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RetainedEarningsStatementContentDTO {
-    private LocalDateTime periodBeginning;
-    private LocalDateTime periodEnding;
     private BigDecimal retainedEarningsBeginning;
     private BigDecimal retainedEarningsEnding;
     private BigDecimal netIncome;
