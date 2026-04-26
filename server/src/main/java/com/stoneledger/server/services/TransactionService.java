@@ -8,6 +8,7 @@ import com.stoneledger.server.api.dtos.responses.TransactionInformationDTO;
 import com.stoneledger.server.api.dtos.responses.TransactionPendingEntryDTO;
 import com.stoneledger.server.api.enums.*;
 import com.stoneledger.server.api.exeptions.FinancialAccountException;
+import com.stoneledger.server.api.exeptions.InvalidFileException;
 import com.stoneledger.server.api.exeptions.InvalidIdException;
 import com.stoneledger.server.api.exeptions.TransactionValidationException;
 import com.stoneledger.server.api.models.AccountModel;
@@ -22,6 +23,7 @@ import com.stoneledger.server.utils.MonetaryUtil;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -53,6 +55,8 @@ public class TransactionService {
     private EmailService emailService;
     @Autowired
     private EntityManager entityManager;
+    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; //5MB
+    private static final int MAX_FILE_NAME_LENGTH = 255;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -112,7 +116,7 @@ public class TransactionService {
             .toList();
     }
 
-    // TODO: (Test) Transactional Logging, Business Logic on values, entry service to record each individual entry
+    // TODO: Fix logging for after images crashing on attachment send.
     @Transactional
     public boolean createJournalTransaction(TransactionCreationDTO request, MultipartFile file) throws IOException, MessagingException {
         TransactionModel transaction = new TransactionModel();
@@ -121,8 +125,14 @@ public class TransactionService {
         // Ensures total DEBIT == total CREDIT
         monetaryUtil.validateIncomingTransaction(request.getAccountsImpacted());
 
+        // TODO: Refine and add fixes and messages for size and attachment name length.
         // Attach a file to the transaction if provided
         if (file != null && !file.isEmpty()) {
+            if (file.getSize() > MAX_FILE_SIZE) {
+                throw new InvalidFileException(errorMessageService.getError(138));
+            } else if (file.getOriginalFilename() != null && file.getOriginalFilename().length() > MAX_FILE_NAME_LENGTH) {
+                throw new InvalidFileException(errorMessageService.getError(139));
+            }
             transaction.setAttachment(file.getBytes());
             transaction.setAttachmentName(file.getOriginalFilename());
         }
@@ -164,6 +174,8 @@ public class TransactionService {
         // Sets the accounts impacted to entries
         transaction.setAccountsImpacted(entries);
         transactionRepository.saveAndFlush(transaction);
+        entityManager.detach(transaction);
+        transaction.setAttachment(null);
 
         eventLoggingService.logEvent(
             request.getCreatedBy(),
@@ -193,7 +205,9 @@ public class TransactionService {
                 errorMessageService.getError(132)
             ));
 
-        // Serialize BEFORE detaching
+        Hibernate.initialize(beforeImageTransaction.getAccountsImpacted());
+        entityManager.detach(beforeImageTransaction);
+        beforeImageTransaction.setAttachment(null);
         String beforeImageTransactionJson = objectMapper.writeValueAsString(beforeImageTransaction);
 
         TransactionModel afterImageTransaction = transactionRepository.findById(request.getTransactionId())
@@ -208,7 +222,7 @@ public class TransactionService {
         afterImageTransaction.setTransactionStatus(TransactionStatus.APPROVED);
         afterImageTransaction.setUpdatedBy(userRepository.findById(request.getUserId())
             .orElseThrow(() -> new InvalidIdException(errorMessageService.getError(112))
-        ));
+            ));
         afterImageTransaction.setUpdateDate(currentDateTime);
         afterImageTransaction.setUpdateComment(request.getStatusUpdateReason());
 
@@ -218,7 +232,6 @@ public class TransactionService {
                     errorMessageService.getError(123)
                 ));
 
-            // Serialize BEFORE detaching
             String beforeImageAccountJson = objectMapper.writeValueAsString(beforeImageAccount);
 
             AccountModel afterImageAccount = accountRepository.findById(entry.getAccountImpacted().getId())
@@ -245,7 +258,6 @@ public class TransactionService {
             afterImageAccount.setBalance(newBalance);
             accountRepository.saveAndFlush(afterImageAccount);
 
-            // Serialize BEFORE detaching
             String beforeImageEntryJson = objectMapper.writeValueAsString(entry);
 
             TransactionEntryModel afterImageEntry = transactionEntryRepository.findById(entry.getId())
@@ -260,7 +272,7 @@ public class TransactionService {
                 request.getUserId(),
                 LoggingTables.ACCOUNTS,
                 LoggingEvents.UPDATE,
-                beforeImageAccountJson,   // pre-serialized
+                beforeImageAccountJson,
                 afterImageAccount
             );
 
@@ -268,18 +280,21 @@ public class TransactionService {
                 request.getUserId(),
                 LoggingTables.TRANSACTION_ENTRIES,
                 LoggingEvents.UPDATE,
-                beforeImageEntryJson,     // pre-serialized
+                beforeImageEntryJson,
                 afterImageEntry
             );
         }
 
         transactionRepository.saveAndFlush(afterImageTransaction);
+        Hibernate.initialize(afterImageTransaction.getAccountsImpacted());
+        entityManager.detach(afterImageTransaction);
+        afterImageTransaction.setAttachment(null);
 
         eventLoggingService.logEvent(
             request.getUserId(),
             LoggingTables.TRANSACTIONS,
             LoggingEvents.UPDATE,
-            beforeImageTransactionJson,   // pre-serialized
+            beforeImageTransactionJson,
             afterImageTransaction
         );
 
@@ -295,15 +310,17 @@ public class TransactionService {
                 errorMessageService.getError(132)
             ));
 
-        String beforeImageJson = objectMapper.writeValueAsString(beforeImageTransaction);
+        Hibernate.initialize(beforeImageTransaction.getAccountsImpacted());
         entityManager.detach(beforeImageTransaction);
+        beforeImageTransaction.setAttachment(null);
+        String beforeImageJson = objectMapper.writeValueAsString(beforeImageTransaction);
 
         TransactionModel afterImageTransaction = transactionRepository.findById(request.getTransactionId())
             .orElseThrow(() -> new TransactionValidationException(
                 errorMessageService.getError(132)
             ));
 
-        if (afterImageTransaction.getTransactionStatus() == TransactionStatus.REJECTED || afterImageTransaction.getTransactionStatus() != TransactionStatus.PENDING ) {
+        if (afterImageTransaction.getTransactionStatus() == TransactionStatus.REJECTED || afterImageTransaction.getTransactionStatus() != TransactionStatus.PENDING) {
             throw new TransactionValidationException(errorMessageService.getError(133));
         } else {
             afterImageTransaction.setTransactionStatus(TransactionStatus.REJECTED);
@@ -315,6 +332,9 @@ public class TransactionService {
         }
 
         transactionRepository.saveAndFlush(afterImageTransaction);
+        Hibernate.initialize(afterImageTransaction.getAccountsImpacted());
+        entityManager.detach(afterImageTransaction);
+        afterImageTransaction.setAttachment(null);
 
         eventLoggingService.logEvent(
             request.getUserId(),

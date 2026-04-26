@@ -1037,8 +1037,15 @@ export default function GeneralJournal({ userRole, onAccountSelect }) {
                         {idx === 0 ? (
                           <td rowSpan={txn.accountsImpacted.length}>
                             {txn.attachmentName
-                              ? <span style={{ fontSize: 13, color: '#4f46e5' }}>{txn.attachmentName}</span>
-                              : <span style={{ color: '#aaa', fontSize: 13 }}>—</span>}
+                                ? (
+                                    <span
+                                        onClick={() => window.open(`http://localhost:8080/api/general-journal/get-attachment/transaction/${txn.id}`, '_blank')}
+                                        style={{ fontSize: 13, color: '#4f46e5', textDecoration: 'underline', cursor: 'pointer' }}
+                                    >
+                                      {txn.attachmentName}
+                                    </span>
+                                )
+                                : <span style={{ color: '#aaa', fontSize: 13 }}>—</span>}
                            </td>
                         ) : null}
 
