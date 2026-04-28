@@ -55,7 +55,7 @@ public class TransactionService {
     private EmailService emailService;
     @Autowired
     private EntityManager entityManager;
-    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; //5MB
+    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; //10MB
     private static final int MAX_FILE_NAME_LENGTH = 255;
 
     @Autowired
