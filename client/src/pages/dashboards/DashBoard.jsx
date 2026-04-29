@@ -467,10 +467,9 @@ function HelpAccordion() {
   const [openSections, setOpenSections] = useState({
     welcome: true,
     admin: false,
-    manager: false,
-    user: false,
-    generalJournal: false,
-    accountLedger: false,
+    managers: false,
+    users: false,
+    sharedFeatures: false,
   });
 
   const toggleSection = (section) => {
@@ -504,17 +503,10 @@ function HelpAccordion() {
     background: "#fff",
   };
 
-  const listStyle = {
-    marginTop: "8px",
+  const subsectionStyle = {
+    marginTop: "12px",
     marginBottom: "8px",
     paddingLeft: "20px",
-  };
-
-  const subListStyle = {
-    marginTop: "4px",
-    marginBottom: "4px",
-    paddingLeft: "24px",
-    listStyleType: "circle",
   };
 
   const strongStyle = {
@@ -522,174 +514,281 @@ function HelpAccordion() {
     color: "#1f2937",
   };
 
+  const romanBoldStyle = {
+    fontWeight: 600,
+    color: "#1f2937",
+  };
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-      {/* 1. Welcome */}
-      <div style={accordionItemStyle}>
-        <div style={accordionHeaderStyle} onClick={() => toggleSection("welcome")}>
-          <span>1. Welcome & Getting Started</span>
-          <span>{openSections.welcome ? "▼" : "▶"}</span>
-        </div>
-        {openSections.welcome && (
-          <div style={accordionContentStyle}>
-            <p>Upon first visiting StoneLedger, you will be met with a welcome page providing information about the platform and its tools. Click the "Go to Login" button to proceed.</p>
-            <p><strong style={strongStyle}>a. Navigating the Login Page</strong><br />
-              The login page offers three options: Log-in (for approved users), Forgot Password (to reset access), and Register Here (to create a new account).
-            </p>
-            <p><strong style={strongStyle}>b. Creating an Account</strong><br />
-              Click "Register Here" to fill out the registration form with: First Name, Last Name, Address, Date of Birth, Email, Password (min 8 chars, starts with a letter, contains letter, number & special char), and Requested Role (User/Manager/Administrator). After registering, you will set up two security questions and answers. Once submitted, an administrator must approve your request before you can log in.
-            </p>
-            <p><strong style={strongStyle}>c. Logging In</strong><br />
-              After receiving an approval email, return to the login page and enter your issued username and password. Click "Login" to access your dashboard.
-            </p>
-            <p><strong style={strongStyle}>d. Recovering an Account</strong><br />
-              Click "Forgot Password" on the login page, enter your email and user ID, then answer your security question to set a new password.
-            </p>
+      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+        {/* 2. Welcome */}
+        <div style={accordionItemStyle}>
+          <div style={accordionHeaderStyle} onClick={() => toggleSection("welcome")}>
+            <span>2. Welcome</span>
+            <span>{openSections.welcome ? "▼" : "▶"}</span>
           </div>
-        )}
-      </div>
+          {openSections.welcome && (
+              <div style={accordionContentStyle}>
+                <p>Upon first visiting the StoneLedger application, you will be met with a welcome page in which you will be provided with information about the StoneLedger application and the different tools the platform offers for its users. To navigate to the login page, please click the "Go to Login" button.</p>
 
-      {/* 2. Administration */}
-      <div style={accordionItemStyle}>
-        <div style={accordionHeaderStyle} onClick={() => toggleSection("admin")}>
-          <span>2. Administrator Dashboard</span>
-          <span>{openSections.admin ? "▼" : "▶"}</span>
-        </div>
-        {openSections.admin && (
-          <div style={accordionContentStyle}>
-            <p><strong style={strongStyle}>a. Navigating the Dashboard</strong><br />
-              Top bar: Settings (dropdown with user preferences) and Help (opens this manual). Left navigation bar includes: User Management, Create User, Pending, Expired Passwords, Chart of Accounts, Event Log, and Logout.
-            </p>
-            <p><strong style={strongStyle}>b. Managing Users</strong><br />
-              Click on any user row in the User Management table to open the Manage User popup. Here you can: Update Information (edit name, email, address, DOB), Update Activity (set active/inactive with optional end date), Update Role (USER/MANAGER/ADMINISTRATOR), and Suspension Management (suspend with start/expiry date/reason, or revoke suspension).
-            </p>
-            <p><strong style={strongStyle}>c. Creating Users</strong><br />
-              Fill out the Create User form with required fields: First Name, Last Name, Email, Password, Address, Date of Birth, Role, Activity Start Date, and Activity Status. Activity End Date is optional. Click "Create User" to add them immediately to the system.
-            </p>
-            <p><strong style={strongStyle}>d. Managing Pending Requests</strong><br />
-              The Pending table shows all registration requests waiting for approval. Click "Approve" to accept or "Reject" to deny.
-            </p>
-            <p><strong style={strongStyle}>e. Expired Passwords</strong><br />
-              This report displays users with expired passwords, including counts for total expired, recently expired, warning, and critical statuses.
-            </p>
-            <p><strong style={strongStyle}>f. Chart of Accounts (Admin)</strong><br />
-              Full management: Add Account (fill out required fields: Account Name, Normal Side, Category, Subcategory, Initial Balance, Debit, Credit, Balance, Order, Statement), Edit Account (pencil icon), Deactivate/Activate accounts (non-zero balance accounts cannot be deactivated), View Account Ledger (eye icon), Filter by date or by token, and Search by name/number.
-            </p>
-            <p><strong style={strongStyle}>g. Event Log</strong><br />
-              Displays an audit trail with table impacted, operation, date, before image, and after image for all actions in the system.
-            </p>
-          </div>
-        )}
-      </div>
+                <div style={subsectionStyle}>
+                  <strong style={strongStyle}>2.1 Navigating the Login Page</strong>
+                  <p style={{ marginTop: "4px", marginBottom: "4px" }}>Once on the login page, you will be greeted with the following:</p>
+                  <div style={{ paddingLeft: "20px" }}>
+                    <div><span style={romanBoldStyle}>i. Log-in:</span> This form allows you to log in to the StoneLedger application once you have received an approval email.</div>
+                    <div><span style={romanBoldStyle}>ii. Forgot Password:</span> This form allows you to reset your password in the event that you are no longer able to access your account.</div>
+                    <div><span style={romanBoldStyle}>iii. Register Here:</span> This form allows you to Register with the StoneLedger application.</div>
+                  </div>
+                </div>
 
-      {/* 3. Managers */}
-      <div style={accordionItemStyle}>
-        <div style={accordionHeaderStyle} onClick={() => toggleSection("manager")}>
-          <span>3. Manager Dashboard</span>
-          <span>{openSections.manager ? "▼" : "▶"}</span>
-        </div>
-        {openSections.manager && (
-          <div style={accordionContentStyle}>
-            <p><strong style={strongStyle}>a. Navigating the Dashboard</strong><br />
-              Manager dashboard includes: Settings (top bar), Help (this manual), Chart of Accounts, Event Log, and General Journal in the left navigation bar.
-            </p>
-            <p><strong style={strongStyle}>b. Chart of Accounts (Manager)</strong><br />
-              Read-only view of all financial accounts with fields: ID, Account #, Name, Description, Normal Side, Category, Subcategory, Initial Balance, Debit, Credit, Add Date, User ID, Order, Statement, Comments.
-            </p>
-            <p><strong style={strongStyle}>c. General Journal (Manager)</strong><br />
-              Managers can view all journal entries and approve or reject pending entries. To approve, click "Accept" – the entry status changes to Approved and posts to ledgers. To reject, click "Reject" and provide a required rejection reason. Filter entries by Status, Transaction Type, Value range, or date. Search by description, account name, or amount.
-            </p>
-            <p><strong style={strongStyle}>d. Event Log (Manager)</strong><br />
-              Same audit trail as Administrator, showing all system events.
-            </p>
-          </div>
-        )}
-      </div>
+                <div style={subsectionStyle}>
+                  <strong style={strongStyle}>2.2 Creating an Account</strong>
+                  <p style={{ marginTop: "4px", marginBottom: "4px" }}>In order to create an account, click on the "Register Here" hyperlink to be taken to a registration form. Once on the registration form, please fill out the form with the following information:</p>
+                  <div style={{ paddingLeft: "20px" }}>
+                    <div><span style={romanBoldStyle}>i. First Name</span></div>
+                    <div><span style={romanBoldStyle}>ii. Last Name</span></div>
+                    <div><span style={romanBoldStyle}>iii. Address</span></div>
+                    <div><span style={romanBoldStyle}>iv. Date of Birth (mm/dd/yyyy)</span></div>
+                    <div><span style={romanBoldStyle}>v. Email</span></div>
+                    <div><span style={romanBoldStyle}>vi. Password / Password Confirmation</span></div>
+                    <div style={{ paddingLeft: "20px" }}>
+                      <div><span style={romanBoldStyle}>a. Password must:</span></div>
+                      <div style={{ paddingLeft: "20px" }}>
+                        <div><span style={romanBoldStyle}>i. Be at least 8 characters</span></div>
+                        <div><span style={romanBoldStyle}>ii. Start with a letter</span></div>
+                        <div><span style={romanBoldStyle}>iii. Contain at least 1 letter</span></div>
+                        <div><span style={romanBoldStyle}>iv. Contain at least 1 number</span></div>
+                        <div><span style={romanBoldStyle}>v. Contain at least 1 special character</span></div>
+                      </div>
+                    </div>
+                    <div><span style={romanBoldStyle}>vii. Request Role (User/Manager/Administrator)</span></div>
+                  </div>
+                  <p style={{ marginTop: "8px", marginBottom: "4px" }}>If you wish to clear your responses at any time, click the "Clear All Fields" button in the bottom left of the form. If you wish to return to the login screen, click the "Back to Login" hyperlink in order to return to the registration form. Upon filling out this form, you will be redirected to a Security Questions form, on this form, please fill out the following information:</p>
+                  <div style={{ paddingLeft: "20px" }}>
+                    <div><span style={romanBoldStyle}>i. Security Question #1</span></div>
+                    <div><span style={romanBoldStyle}>ii. Security Question #1 Answer</span></div>
+                  </div>
+                  <p style={{ marginTop: "4px", marginBottom: "4px" }}>If you wish to cancel this process at any point, click the "Back to Login" hyperlink to return to the login page. This information will be utilized in order to recover your account at any point. Once these fields are filled out, click the "Request Access" button. After clicking the "Request Access" button, you will receive a notification that your registration was received and will be redirected back to the login page.</p>
+                </div>
 
-      {/* 4. Users (Accountants) */}
-      <div style={accordionItemStyle}>
-        <div style={accordionHeaderStyle} onClick={() => toggleSection("user")}>
-          <span>4. User (Accountant) Dashboard</span>
-          <span>{openSections.user ? "▼" : "▶"}</span>
-        </div>
-        {openSections.user && (
-          <div style={accordionContentStyle}>
-            <p><strong style={strongStyle}>a. Navigating the Dashboard</strong><br />
-              User dashboard includes: Settings, Help, Chart of Accounts (read-only), Event Log, and General Journal.
-            </p>
-            <p><strong style={strongStyle}>b. General Journal (User)</strong><br />
-              Users can create, view, and monitor journal entries. Click "+ Add Transaction" to open the transaction modal. Fill out: Transaction Type (Standard, Reversal, Adjustment, Closing), at least one debit and one credit line item, Description, and optional Comment. Debits and credits must balance (total debit = total credit). Attach source documents (PDF, Word, Excel, CSV, JPG, PNG) if needed. Click "Create Transaction" to submit – the entry will have a Pending status awaiting manager review. Rejected entries display a chat icon showing the rejection reason.
-            </p>
-            <p><strong style={strongStyle}>c. Viewing Entry Status</strong><br />
-              Status badges: Pending (awaiting review), Approved (posted to ledgers), Rejected (denied with reason). All entries appear in a unified table.
-            </p>
-            <p><strong style={strongStyle}>d. Filtering & Searching Journal Entries</strong><br />
-              Use the search bar (description, account name, amount) or click "Filter" to filter by Status, Transaction Type, Min/Max Value, or date range.
-            </p>
-            <p><strong style={strongStyle}>e. Account Ledger</strong><br />
-              Click any account name in Chart of Accounts or in the Account Affected column of the General Journal to view the Account Ledger. The ledger shows summary cards (Normal Side, Initial Balance, Total Debit, Total Credit, Current Balance) and a transaction table with Date, Description, Debit, Credit, Balance, and PR (Post Reference) columns. The Balance column shows a running total based on the account's normal side.
-            </p>
-            <p><strong style={strongStyle}>f. Post Reference (PR) Links</strong><br />
-              Click any "GJ#" link in the PR column to navigate directly to the specific journal entry that created that ledger posting in the General Journal.
-            </p>
-            <p><strong style={strongStyle}>g. Filtering the Ledger</strong><br />
-              Use the search bar to find entries by description or amount. Click "Filter by Date" to set a From date, To date, or both. Click "Clear All" to reset filters.
-            </p>
-          </div>
-        )}
-      </div>
+                <div style={subsectionStyle}>
+                  <strong style={strongStyle}>2.3 Logging into the StoneLedger Application</strong>
+                  <p style={{ marginTop: "4px", marginBottom: "4px" }}>In order to login to the StoneLedger application, please ensure that an approval email was issued to the email you requested access to. If you have not received an approval email, you will not be able to access the StoneLedger application. If you believe this is a mistake and have received confirmation that you should have access to the system by an administrator within your organization, please contact ashtonsingleton125@gmail.com, a StoneLedger Support Administrator.</p>
+                  <p style={{ marginTop: "4px", marginBottom: "4px" }}>Upon receiving an approval email, visit the StoneLedger login page. On the login page, enter the username that was issued to you in your approval email in the "Username" field. Next, supply the password associated with your account in the "Password" field. After supplying both the username and password for the authenticated account, click the "Login" button to access the system.</p>
+                </div>
 
-      {/* 5. General Journal (Combined) */}
-      <div style={accordionItemStyle}>
-        <div style={accordionHeaderStyle} onClick={() => toggleSection("generalJournal")}>
-          <span>5. General Journal – Full Reference</span>
-          <span>{openSections.generalJournal ? "▼" : "▶"}</span>
+                <div style={subsectionStyle}>
+                  <strong style={strongStyle}>2.4 Recovering an Account</strong>
+                  <p style={{ marginTop: "4px", marginBottom: "4px" }}>In order to recover a StoneLedger account, visit the login page and click the "Forgot Password" hyperlink below the "Login" button. On this page, please supply the email address associated with the account in the "Email" field, and the user ID in the "ID" field. Upon hitting next, you will be taken to a Security Questions form. Please enter the answer to the question in the "Security Question Answer" field. If the answer provided is correct, you will be taken to a page to update the password associated with the account, please provide the new password in the "New Password" field and hit the "Submit" button.</p>
+                </div>
+              </div>
+          )}
         </div>
-        {openSections.generalJournal && (
-          <div style={accordionContentStyle}>
-            <p><strong style={strongStyle}>Creating a Journal Entry</strong><br />
-              Click "+ Add Transaction". Fill in Transaction Type, debit/credit line items (add/remove lines as needed), Description, and optional Comment. The total of all debits must equal total credits. Attach a source document (optional). Click "Create Transaction" to submit. Entries cannot be deleted after submission.
-            </p>
-            <p><strong style={strongStyle}>Attaching Source Documents</strong><br />
-              Supported formats: PDF, Word (.doc, .docx), Excel (.xls, .xlsx), CSV, JPG, PNG. Attached file names appear in the Attachment column.
-            </p>
-            <p><strong style={strongStyle}>Approving & Rejecting (Managers)</strong><br />
-              Pending entries show "Accept" and "Reject" buttons in the Actions column. Accepting changes status to Approved and posts to ledgers. Rejecting requires a reason (cannot be blank) and changes status to Rejected.
-            </p>
-            <p><strong style={strongStyle}>Viewing Entry Status</strong><br />
-              Status badges: Pending (yellow), Approved (green), Rejected (red). Rejected entries show a chat icon – click to view the rejection reason.
-            </p>
-            <p><strong style={strongStyle}>Filtering & Searching</strong><br />
-              Search by description, account name, or amount. Filter by Status, Transaction Type, Min/Max Value, or date (calendar icon). Click "Clear Filters" to reset. Pagination controls allow navigation between pages.
-            </p>
-          </div>
-        )}
-      </div>
 
-      {/* 6. Account Ledger (Combined) */}
-      <div style={accordionItemStyle}>
-        <div style={accordionHeaderStyle} onClick={() => toggleSection("accountLedger")}>
-          <span>6. Account Ledger – Full Reference</span>
-          <span>{openSections.accountLedger ? "▼" : "▶"}</span>
-        </div>
-        {openSections.accountLedger && (
-          <div style={accordionContentStyle}>
-            <p><strong style={strongStyle}>Viewing an Account Ledger</strong><br />
-              Navigate by clicking an account name in the Chart of Accounts or in the Account Affected column of the General Journal. Use the "← Back" button to return.
-            </p>
-            <p><strong style={strongStyle}>Ledger Content</strong><br />
-              Summary cards at the top show: Normal Side, Initial Balance, Total Debit, Total Credit, and Current Balance. The transaction table includes columns: Date, Description, Debit, Credit, Balance (running total), and PR (Post Reference).
-            </p>
-            <p><strong style={strongStyle}>Post Reference (PR) Links</strong><br />
-              Each "GJ#" link (e.g., GJ1) is clickable and opens the General Journal to the exact page containing the originating journal entry.
-            </p>
-            <p><strong style={strongStyle}>Filtering & Searching the Ledger</strong><br />
-              Use the search bar to filter entries by description or amount. Click "Filter by Date" to set a date range (From date, To date, or both). Click "Clear All" to reset date filters. The result count shows how many entries are currently visible.
-            </p>
+        {/* 3. Administration */}
+        <div style={accordionItemStyle}>
+          <div style={accordionHeaderStyle} onClick={() => toggleSection("admin")}>
+            <span>3. Administration</span>
+            <span>{openSections.admin ? "▼" : "▶"}</span>
           </div>
-        )}
+          {openSections.admin && (
+              <div style={accordionContentStyle}>
+                <p>As an Administrator, you are responsible for creating new users, suspending new users, and managing all things pertaining to user information.</p>
+
+                <div style={subsectionStyle}>
+                  <strong style={strongStyle}>3.1 Navigating the Dashboard</strong>
+                  <p style={{ marginTop: "4px", marginBottom: "4px" }}>Upon logging into the administrative dashboard, you will be greeted with the following:</p>
+                  <div style={{ paddingLeft: "20px" }}>
+                    <div><span style={romanBoldStyle}>i. Finance Dashboard:</span> Upon immediately logging into the StoneLedger application, a dashboard will appear will all relevant financial ratios according to the balances derived from active financial accounts. In order to refresh the dashboard information, click the "Refresh" button found at the top right of the dashboard.</div>
+                    <div><span style={romanBoldStyle}>ii. Settings Button:</span> Located at the top Information Bar, this will provide a dropdown menu housing all settings information with regards to the user.</div>
+                    <div><span style={romanBoldStyle}>iii. Help Button:</span> Located at the top Information Bar, this will open a new popup providing information about the entire StoneLedger platform organized by topic.</div>
+                    <div><span style={romanBoldStyle}>iv. User Management:</span> Located at the top of the Left Navigation Bar, this report lists all users associated with the StoneLedger platform and houses all user management functions.</div>
+                    <div><span style={romanBoldStyle}>v. Create User:</span> Located in the Left Navigation Bar, this form allows administrators to create new users with the StoneLedger application.</div>
+                    <div><span style={romanBoldStyle}>vi. Pending:</span> Located in the Left Navigation Bar, this report lists all pending users and houses the approval and rejection functions.</div>
+                    <div><span style={romanBoldStyle}>vii. Expired Passwords:</span> Located in the Left Navigation Bar, this report provides all users with expired passwords with the StoneLedger platform.</div>
+                    <div><span style={romanBoldStyle}>viii. Chart of Accounts:</span> Located in the Left Navigation Bar, this report lists all the financial accounts associated with the StoneLedger platform and houses all of account management functions.</div>
+                    <div><span style={romanBoldStyle}>ix. Event Log:</span> Located in the Left Navigation Bar, this report lists all events associated with actions performed within the StoneLedger application.</div>
+                    <div><span style={romanBoldStyle}>x. Logout:</span> Located at the bottom of the left Navigation Bar, this will log you out of the StoneLedger system.</div>
+                  </div>
+                </div>
+
+                <div style={subsectionStyle}>
+                  <strong style={strongStyle}>3.2 Managing Users</strong>
+                  <p style={{ marginTop: "4px", marginBottom: "4px" }}>In order to manage users, visit the User Management form at the top of the left Navigation Bar. Upon visiting the form, a table will serialize in the center of the screen showing all users registered with the application by ID, Name, Email, Role, Status, Date of Birth, Address, and any associated Actions. To manage a given user, hover over the user you wish to manage and click the entry. Upon clicking the entry, a Manage User pop-up will appear with the following features:</p>
+                  <div style={{ paddingLeft: "20px" }}>
+                    <div><span style={romanBoldStyle}>i. Update Information</span></div>
+                    <div style={{ paddingLeft: "20px" }}>To update the information associated with the user, click on the "Edit" button at the top right of the Update Information card. Upon clicking this button, you will be able to update the information for the following fields: First Name, Last Name, Email, Address, and Date of Birth. Click on the field(s) you wish to update and provide the updated information. Clicking the "Cancel" button at any time will nullify any changes and close the Update Information form. In order to save the changes, click the "Save Changes" button at the bottom left of the Update Information form. Changes should be reflected immediately in the User Management table.</div>
+                    <div><span style={romanBoldStyle}>ii. Update Activity</span></div>
+                    <div style={{ paddingLeft: "20px" }}>To update the activity associated with the user, click on the "Edit" button at the top right of the Update Activity card. Upon clicking this button, you will be able to update the following fields: Active User, and Activity End Date (Optional). For activity status, a checked-in check box means the user will be active, while an unchecked box means the user will be inactive. For the activity end date, leaving it blank means that the update will be indefinite, while assigning a date to the field means that there is an end date associated with the activity status. Clicking the "Cancel" button at any time will nullify any changes and close the Update Activity form. In order to save the changes, click the "Save Changes" button at the bottom left of the Update Activity form. Changes should be reflected immediately in the User Management table.</div>
+                    <div><span style={romanBoldStyle}>iii. Update Role</span></div>
+                    <div style={{ paddingLeft: "20px" }}>To update the role associated with the user, click on the "Edit" button at the top right of the Update Role card. Upon clicking this button, you will be able to update the User Role field, with a drop-down menu with the following options: USER, MANAGER, ADMINISTRATOR. To change the role, click the role you wish to assign to the user from the drop down, then click the "Update Role" button. Changes should be reflected immediately in the User Management Table. To nullify changes made, click the "Cancel" button to close the Update Role form.</div>
+                    <div><span style={romanBoldStyle}>iv. Suspension Management</span></div>
+                    <div style={{ paddingLeft: "20px" }}>To suspend a user, click the "Suspend User" button at the top of the Suspension Management form. Upon clicking this button, you will be able to suspend the user by defining the following fields: Start Date, Expiry Date, and Reason for Suspension. Clicking the "Cancel" button at any time will nullify changes and return you to the User Management form. In order to save changes, click the "Save Changes" button at the bottom left of the Suspend User form. Changes should be reflected immediately in the User Management table.</div>
+                    <div style={{ paddingLeft: "20px", marginTop: "4px" }}>To revoke a user's suspension, click the "Revoke Suspension" button below the "Suspend User" button. This will revoke any suspensions currently associated with the user's account. Changes should be reflected immediately in the User Management table.</div>
+                  </div>
+                </div>
+
+                <div style={subsectionStyle}>
+                  <strong style={strongStyle}>3.3 Creating Users</strong>
+                  <p style={{ marginTop: "4px", marginBottom: "4px" }}>In order to create users, visit the Create User form below "User Management" in the left Navigation Bar. Upon visiting the page, a form will appear in the center of the page to create a new user. To create a new user, please fill out the following required fields: First Name, Last Name, Email, Password, Address, Date of Birth, Role, Activity Start Date, and Activity Status. Activity End Date is not required for users whose access should be indefinite. The active user checkbox indicates whether a user is active (checked) or inactive (unchecked). To create a new user, click the "Create User" button in the bottom left of the Create User form. All changes should be reflected immediately in the User Management Table. To reset the form entries, click the "Reset Form" button in the bottom right of the Create User form.</p>
+                </div>
+
+                <div style={subsectionStyle}>
+                  <strong style={strongStyle}>3.4 Managing Pending Requests</strong>
+                  <p style={{ marginTop: "4px", marginBottom: "4px" }}>In order to manage pending access requests, visit the Pending form below "Create User" in the left Navigation Bar. Any pending requests to the StoneLedger system will serialize in the center area. To approve a request, click the "Approve" button on the right side of the request entry. To deny a request, click the "Reject" button to the right of the "Approve" button.</p>
+                </div>
+
+                <div style={subsectionStyle}>
+                  <strong style={strongStyle}>3.5 Viewing Expired Passwords</strong>
+                  <p style={{ marginTop: "4px", marginBottom: "4px" }}>In order to view users with expired passwords with the StoneLedger application, visit the Expired Passwords form found in the left navigation bar. Upon visiting this form, a table will serialize in the center of the screen in which any user with an expired password on the platform will be listed, and the associated restoration functions will be provided.</p>
+                </div>
+
+                <div style={subsectionStyle}>
+                  <strong style={strongStyle}>3.6 Chart of Accounts</strong>
+                  <p style={{ marginTop: "4px", marginBottom: "4px" }}>In order to view and manage the financial accounts, visit the Chart of Accounts form found in the left Navigation Bar. Upon visiting this form, a table will series in the center of the screen showing all financial accounts registered with the application. The table will contain the following fields with regards to the financial accounts: ID, Account #, Account Name, Account Description, Normal Side, Account Category, Account Subcategory, Initial Balance, Debit, Credi, Account Add Date, User ID, Order, Statement, Comments, and any associated actions. On this page you will be able to perform the following actions:</p>
+                  <div style={{ paddingLeft: "20px" }}>
+                    <div><span style={romanBoldStyle}>i. Adding Accounts</span></div>
+                    <div style={{ paddingLeft: "20px" }}>In order to create a new financial account, click the "Add Account" button in the top right of the Chart of Accounts page. Upon clicking this button, a form will appear in the center of the page to create a new financial account. To create a new financial account, please fill out the following required fields: Account Name, Normal Side, Account Category, Account Subcategory, Initial Balance, Debit, Credit, Balance, Order, and Associated Statement. Descriptions and comments for an account are optional. To create the new financial account, click the "Create Account" button in the bottom right of the Create Account form. All changes should be reflected immediately in the Chart of Accounts. To return to the Chart of Accounts form, click the "Cancel" button to the left of the "Create Account" button and all changes will immediately be mitigated.</div>
+                    <div><span style={romanBoldStyle}>ii. Editing Accounts</span></div>
+                    <div style={{ paddingLeft: "20px" }}>In order to edit the information associated with a financial account, navigate to the table located in the center of the Chart of Accounts form, and scroll to the right until the "Actions" column appears. In the "Actions" column, click the "Edit" button indicated by a pencil symbol. Upon clicking this button, a form will appear in the center of the page to edit an existing financial account. On this form, you will be able to update information for the following fields: Account Name, Account Description, Normal Side, Account Category, Account Subcategory, Initial Balance, Debit, Credit, Balance, Order, Associated Statement, and Comment. Click on the field(s) you wish to update and provide the updated information. Clicking the "Cancel" button at any time will nullify any changes and close the Edit Account form. In order to save changes, click the "Save Changes" button at the bottom right of the Edit Account Form. Changes should be reflected immediately in the Chart of Accounts form.</div>
+                    <div><span style={romanBoldStyle}>iii. Deactivating Accounts</span></div>
+                    <div style={{ paddingLeft: "20px" }}>To deactivate a financial account, navigate to the table located in the center of the Chart of Accounts form, and scroll to the right until the "Actions" column appears. In the "Actions" column, click the "Deactivate" button indicated by a red stop icon. Upon clicking this button, the account status should read INACTIVE. Accounts that are either already deactivated or have a non-zero balance cannot be deactivated.</div>
+                    <div><span style={romanBoldStyle}>iv. Activating Accounts</span></div>
+                    <div style={{ paddingLeft: "20px" }}>To activate a deactivated financial account, navigate to the table located in the center of the Chart of Accounts form, and scroll to the right until the "Actions" column appears. In the "Actions" column, click the "Activate" button indicated by a check icon. Upon clicking this button, the account status should read ACTIVE. Accounts that are already active cannot be activated.</div>
+                    <div><span style={romanBoldStyle}>v. Viewing Account Ledgers</span></div>
+                    <div style={{ paddingLeft: "20px" }}>To view an account's ledger, navigate to the table located in the center of the Chart of Accounts form and click on either the Account # or Account Name associated with the account.</div>
+                    <div><span style={romanBoldStyle}>vi. Filtering Accounts by Date</span></div>
+                    <div style={{ paddingLeft: "20px" }}>To filter financial accounts by date, click the calendar icon located at the top left and a series of calendar pickers will appear. Accounts shown in the Chart of Accounts will only appear up to the filtered date, after a filtered date, or between selected dates(s).</div>
+                    <div><span style={romanBoldStyle}>vii. Filtering Accounts by Token</span></div>
+                    <div style={{ paddingLeft: "20px" }}>To filter financial accounts by Account Name, Account Number, Account Category, Account Subcategory, or Amount, click the "Filter" button to the left of the "Add Account" button. Upon clicking the "Filter" button, a drop down will appear where the accounts shown in the Chart of Accounts can be filtered by the aforementioned tokens.</div>
+                    <div><span style={romanBoldStyle}>viii. Searching Accounts by Name or Number</span></div>
+                    <div style={{ paddingLeft: "20px" }}>To search financial accounts by Account Name or Account Number, click the Search Bar found to the right of the "Calendar" button. Typing either an Account Name or Account Number into this field will filter the accounts shown in the Chart of Accounts.</div>
+                  </div>
+                </div>
+
+                <div style={subsectionStyle}>
+                  <strong style={strongStyle}>3.7 Event Log</strong>
+                  <p style={{ marginTop: "4px", marginBottom: "4px" }}>The Event Log provides an audit trail for actions performed within the StoneLedger application. On this form, key event information such as the table impacted, event operation, date of event, before image, and after image is displayed. In order to view the Event Log, click the Event Log button in the Left Navigation Bar and a table will serialize in the viewing area with events.</p>
+                </div>
+              </div>
+          )}
+        </div>
+
+        {/* 4. Managers */}
+        <div style={accordionItemStyle}>
+          <div style={accordionHeaderStyle} onClick={() => toggleSection("managers")}>
+            <span>4. Managers</span>
+            <span>{openSections.managers ? "▼" : "▶"}</span>
+          </div>
+          {openSections.managers && (
+              <div style={accordionContentStyle}>
+                <p>As a Manager, you are responsible for generating financial statements in addition to reviewing and managing journal entries submitted by accountants.</p>
+
+                <div style={subsectionStyle}>
+                  <strong style={strongStyle}>4.1 Navigating the Dashboard</strong>
+                  <p style={{ marginTop: "4px", marginBottom: "4px" }}>Upon logging into the Manager dashboard, you will be greeted with the following:</p>
+                  <div style={{ paddingLeft: "20px" }}>
+                    <div><span style={romanBoldStyle}>i. Finance Dashboard:</span> Upon immediately logging into the StoneLedger application, a dashboard will appear will all relevant financial ratios according to the balances derived from active financial accounts. In order to refresh the dashboard information, click the "Refresh" button found at the top right of the dashboard.</div>
+                    <div><span style={romanBoldStyle}>ii. Settings Button:</span> Located at the top Information Bar, this will provide a dropdown menu housing all settings information with regards to the user.</div>
+                    <div><span style={romanBoldStyle}>iii. Help Button:</span> Located at the top Information Bar, this will open a new popup providing information about the entire StoneLedger platform organized by topic.</div>
+                    <div><span style={romanBoldStyle}>iv. Notification Button:</span> Located at the top Information Bar, this will open a new popup providing information about any pending General Journal transactions.</div>
+                    <div><span style={romanBoldStyle}>v. Chart of Accounts:</span> Located in the Left Navigation Bar, this report lists all the financial accounts associated with the StoneLedger platform and houses all of account management functions.</div>
+                    <div><span style={romanBoldStyle}>vi. General Journal:</span> Located in the Left Navigation Bar, this page allows accountants and managers managers to view, create, and manage journal entries.</div>
+                    <div><span style={romanBoldStyle}>vii. Reports:</span> Located in the Left Navigation Bar, this page allows you to generate financial reports such as a Trial Balance, Income Statement, Balance Sheet, and Retained Earnings Statement for a particular date or date range.</div>
+                    <div><span style={romanBoldStyle}>viii. Email Service:</span> Located in the Left Navigation Bar, this page allows accountants and managers to send emails with regards to financial accounts listed in the Chart of Accounts.</div>
+                    <div><span style={romanBoldStyle}>ix. Event Log:</span> Located in the Left Navigation Bar, this report lists all events associated with actions performed within the StoneLedger application.</div>
+                  </div>
+                </div>
+
+                <div style={subsectionStyle}>
+                  <strong style={strongStyle}>4.2 Reports</strong>
+                  <p style={{ marginTop: "4px", marginBottom: "4px" }}>In order to generate a financial report, visit the Financial Reports page found in the Left Navigation Bar. Upon visiting this form, a window will appear in the right side of the screen, providing a preview of the form to be generated. On the left side of the screen, a series of dropdown fields will appear, allowing you to select the type of statement, any subtypes of a given statement, the date/period of information you wish to receive, and finally a download button to download the final report. To generate a financial report, select all of the required fields and click the 'Download' button.</p>
+                </div>
+              </div>
+          )}
+        </div>
+
+        {/* 5. Users */}
+        <div style={accordionItemStyle}>
+          <div style={accordionHeaderStyle} onClick={() => toggleSection("users")}>
+            <span>5. Users</span>
+            <span>{openSections.users ? "▼" : "▶"}</span>
+          </div>
+          {openSections.users && (
+              <div style={accordionContentStyle}>
+                <p>As a User, you are responsible for journalizing transactions for approval.</p>
+
+                <div style={subsectionStyle}>
+                  <strong style={strongStyle}>5.1 Navigating the Dashboard</strong>
+                  <p style={{ marginTop: "4px", marginBottom: "4px" }}>Upon logging into the User dashboard, you will be greeted with the following:</p>
+                  <div style={{ paddingLeft: "20px" }}>
+                    <div><span style={romanBoldStyle}>i. Finance Dashboard:</span> Upon immediately logging into the StoneLedger application, a dashboard will appear will all relevant financial ratios according to the balances derived from active financial accounts. In order to refresh the dashboard information, click the "Refresh" button found at the top right of the dashboard.</div>
+                    <div><span style={romanBoldStyle}>ii. Settings Button:</span> Located at the top Information Bar, this will provide a dropdown menu housing all settings information with regards to the user.</div>
+                    <div><span style={romanBoldStyle}>iii. Help Button:</span> Located at the top Information Bar, this will open a new popup providing information about the entire StoneLedger platform organized by topic.</div>
+                    <div><span style={romanBoldStyle}>iv. Chart of Accounts:</span> Located in the Left Navigation Bar, this report lists all the financial accounts associated with the StoneLedger platform and houses all of account management functions.</div>
+                    <div><span style={romanBoldStyle}>v. Email Service:</span> Located in the Left Navigation Bar, this page allows accountants and managers to send emails with regards to financial accounts listed in the Chart of Accounts.</div>
+                    <div><span style={romanBoldStyle}>vi. Event Log:</span> Located in the Left Navigation Bar, this report lists all events associated with actions performed within the StoneLedger application.</div>
+                  </div>
+                </div>
+              </div>
+          )}
+        </div>
+
+        {/* 6. User and Manager Shared Features */}
+        <div style={accordionItemStyle}>
+          <div style={accordionHeaderStyle} onClick={() => toggleSection("sharedFeatures")}>
+            <span>6. User and Manager Shared Features</span>
+            <span>{openSections.sharedFeatures ? "▼" : "▶"}</span>
+          </div>
+          {openSections.sharedFeatures && (
+              <div style={accordionContentStyle}>
+                <div style={subsectionStyle}>
+                  <strong style={strongStyle}>6.1 Chart of Accounts</strong>
+                  <p style={{ marginTop: "4px", marginBottom: "4px" }}>In order to view financial accounts, visit the Chart of Accounts form found in the left Navigation Bar. Upon visiting this form, a table will series in the center of the screen showing all financial accounts registered with the application. The table will contain the following fields with regards to the financial accounts: ID, Account #, Account Name, Account Description, Normal Side, Account Category, Account Subcategory, Initial Balance, Debit, Credi, Account Add Date, User ID, Order, Statement, and Comments.</p>
+                  <div style={{ paddingLeft: "20px" }}>
+                    <div><span style={romanBoldStyle}>i. Viewing Account Ledgers</span></div>
+                    <div style={{ paddingLeft: "20px" }}>To view an account's ledger, navigate to the table located in the center of the Chart of Accounts form and click on either the Account # or Account Name associated with the account.</div>
+                    <div><span style={romanBoldStyle}>ii. Filtering Accounts by Date</span></div>
+                    <div style={{ paddingLeft: "20px" }}>To filter financial accounts by date, click the calendar icon located at the top left and a series of calendar pickers will appear. Accounts shown in the Chart of Accounts will only appear up to the filtered date, after a filtered date, or between selected dates(s).</div>
+                    <div><span style={romanBoldStyle}>iii. Filtering Accounts by Token</span></div>
+                    <div style={{ paddingLeft: "20px" }}>To filter financial accounts by Account Name, Account Number, Account Category, Account Subcategory, or Amount, click the "Filter" button to the left of the "Add Account" button. Upon clicking the "Filter" button, a drop down will appear where the accounts shown in the Chart of Accounts can be filtered by the aforementioned tokens.</div>
+                    <div><span style={romanBoldStyle}>iv. Searching Accounts by Name or Number</span></div>
+                    <div style={{ paddingLeft: "20px" }}>To search financial accounts by Account Name or Account Number, click the Search Bar found to the right of the "Calendar" button. Typing either an Account Name or Account Number into this field will filter the accounts shown in the Chart of Accounts.</div>
+                  </div>
+                </div>
+
+                <div style={subsectionStyle}>
+                  <strong style={strongStyle}>6.2 General Journal</strong>
+                  <p style={{ marginTop: "4px", marginBottom: "4px" }}>The General Journal page allows managers to view, create, approve, and reject journal entries. To access the General Journal, click the General Journal button in the Left Navigation Bar.</p>
+                  <div style={{ paddingLeft: "20px" }}>
+                    <div><span style={romanBoldStyle}>i. Creating a Journal Entry</span></div>
+                    <div style={{ paddingLeft: "20px" }}>To create a new journal entry, click the "+ Add Transaction" button in the upper right area of the General Journal page. An Add Transaction modal will appear. Fill out the following fields: Transaction Type (Standard, Reversal, Adjustment, or Closing), one or more debit line items, one or more credit line items, a Description, and an optional Comment. Each line item requires selecting an account from the Chart of Accounts and entering either a debit or credit amount. Additional line items can be added by clicking "+ Add Line" and removed using the "✕" button on each row. The total of all debit amounts must equal the total of all credit amounts before the entry can be submitted. To cancel the entry at any time, click the "Cancel" button or the "✕" at the top right of the modal to dismiss it without saving. To submit the entry, click the "Create Transaction" button. The new entry will appear in the journal table with a status of Pending.</div>
+                    <div><span style={romanBoldStyle}>ii. Managing Journal Entries</span></div>
+                    <div style={{ paddingLeft: "20px" }}>Managers are responsible for reviewing journal entries submitted by accountants. While accountants can view the status of a specific journal entry, they cannot manage entries beyond submitting them. When viewing the journal as a Manager, in the Actions column of the journal table, entries with a Pending status will display an "Accept" button and a "Reject" button. To approve a pending entry, click the "Accept" button. The entry status will update to Approved, and the entry will be posted to the corresponding account ledgers. To reject a pending entry, click the "Reject" button. A modal will appear requiring a rejection reason to be entered in the Comment field. This comment is required and cannot be left blank. Click "Reject" in the modal to confirm. The entry status will update to Rejected. A rejected entry's reason can be viewed by clicking the chat icon that appears alongside the Rejected status badge.</div>
+                    <div><span style={romanBoldStyle}>iii. Filtering and Searching Journal Entries</span></div>
+                    <div style={{ paddingLeft: "20px" }}>To search journal entries, use the search bar at the top of the page. Entries can be searched by description, account name, or amount. To filter entries, click the "Filter" button to expand the filter panel. The available filters are Status (Pending, Approved, Rejected), Transaction Type (Standard, Reversal, Adjustment, Closing), Minimum Value, and Maximum Value. To filter by date, click the calendar icon and select a date; only entries on or before the selected date will be shown. To clear all filters, click "Clear Filters" within the filter panel. Pagination controls at the bottom of the page allow navigation between pages of entries.</div>
+                    <div><span style={romanBoldStyle}>iv. Account Ledger</span></div>
+                    <div style={{ paddingLeft: "20px" }}>The Account Ledger displays all approved journal entries posted to a specific account, showing a running balance after each transaction. To navigate to an account's ledger, click the account name in the Chart of Accounts or in the Account Affected column of the General Journal. The ledger displays the following columns: Date, Description, Debit, Credit, Balance, and PR (Post Reference). The Balance column reflects a running total calculated against the account's normal side. To return to the previous page, click the "← Back" button at the top left of the ledger page.</div>
+                    <div><span style={romanBoldStyle}>v. Filtering and Searching the Ledger</span></div>
+                    <div style={{ paddingLeft: "20px" }}>To search ledger entries, use the search bar at the top of the ledger page. Entries can be searched by description or amount. To filter by date range, click the "Filter by Date" button to expand the filter panel, then supply a From date, a To date, or both. Click "Clear All" to reset the date filters. The result count shown in the filter panel reflects the number of entries currently visible after filtering.</div>
+                    <div><span style={romanBoldStyle}>vi. Using the Post Reference (PR) Link</span></div>
+                    <div style={{ paddingLeft: "20px" }}>Each entry in the Account Ledger table contains a clickable Post Reference (PR) in the rightmost column. The PR is displayed as a link in the format "GJ#" (e.g., GJ2). Clicking this link will open a pop-up where all of the transaction information is displayed.</div>
+                  </div>
+                </div>
+
+                <div style={subsectionStyle}>
+                  <strong style={strongStyle}>6.3 Email Service</strong>
+                  <p style={{ marginTop: "4px", marginBottom: "4px" }}>The Email Service allows both managers and administrators to send inquiries with regards to financial accounts. In order to send an email regarding a financial account, use the 'Select a Financial Account' dropdown to select the account to create an inquiry for. Once selected, a text box will appear in which any information with regards to this inquiry can be entered. Select the 'Clear' button to clear any text within the box, and the 'Send Email' button to send an email to a system administrator.</p>
+                </div>
+
+                <div style={subsectionStyle}>
+                  <strong style={strongStyle}>6.4 Event Log</strong>
+                  <p style={{ marginTop: "4px", marginBottom: "4px" }}>The Event Log provides an audit trail for actions performed within the StoneLedger application. On this form, key event information such as the table impacted, event operation, date of event, before image, and after image is displayed. In order to view the Event Log, click the Event Log button in the Left Navigation Bar and a table will serialize in the viewing area with events.</p>
+                </div>
+              </div>
+          )}
+        </div>
       </div>
-    </div>
   );
 }
 
