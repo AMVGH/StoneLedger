@@ -6,14 +6,8 @@ import com.stoneledger.server.api.enums.AccountSubcategory;
 import com.stoneledger.server.api.enums.EntryType;
 import com.stoneledger.server.api.enums.ReportType;
 import com.stoneledger.server.api.exeptions.*;
-import com.stoneledger.server.api.models.AccountModel;
-import com.stoneledger.server.api.models.PasswordModel;
-import com.stoneledger.server.api.models.TransactionEntryModel;
-import com.stoneledger.server.api.models.UserModel;
-import com.stoneledger.server.api.repositories.AccountRepository;
-import com.stoneledger.server.api.repositories.PasswordRepository;
-import com.stoneledger.server.api.repositories.TransactionEntryRepository;
-import com.stoneledger.server.api.repositories.UserRepository;
+import com.stoneledger.server.api.models.*;
+import com.stoneledger.server.api.repositories.*;
 import com.stoneledger.server.services.ErrorMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,6 +31,8 @@ public class ValidationUtil {
     private PasswordRepository passwordRepository;
     @Autowired
     private TransactionEntryRepository transactionEntryRepository;
+    @Autowired
+    private TransactionRepository transactionRepository;
     @Autowired
     private EncryptionUtil encryptionUtil;
     @Autowired
@@ -585,6 +581,15 @@ public class ValidationUtil {
             ));
 
         return transactionEntry;
+    }
+
+    public TransactionModel isValidTransactionId(Long transactionId) {
+        TransactionModel transaction = transactionRepository.findById(transactionId)
+            .orElseThrow(() -> new InvalidIdException(
+                errorMessageService.getError(132)
+            ));
+
+        return transaction;
     }
 }
 

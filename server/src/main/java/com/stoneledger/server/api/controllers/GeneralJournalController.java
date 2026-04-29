@@ -1,13 +1,15 @@
 package com.stoneledger.server.api.controllers;
 
 import com.stoneledger.server.api.dtos.ApiResponseDTO;
-import com.stoneledger.server.api.dtos.requests.TransactionEntryDTO;
 import com.stoneledger.server.api.dtos.responses.TransactionInformationDTO;
 import com.stoneledger.server.api.models.TransactionModel;
 import com.stoneledger.server.api.repositories.TransactionRepository;
+import com.stoneledger.server.services.ErrorMessageService;
 import com.stoneledger.server.services.GeneralJournalService;
 import com.stoneledger.server.utils.ValidationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.MediaTypeFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,6 +28,8 @@ public class GeneralJournalController {
     private GeneralJournalService generalJournalService;
     @Autowired
     private ValidationUtil validationUtil;
+    @Autowired
+    private ErrorMessageService errorMessageService;
 
     @GetMapping("/get-total-pages")
     public ResponseEntity<ApiResponseDTO<?>> getTotalJournalPages() {
@@ -44,5 +48,19 @@ public class GeneralJournalController {
     public ResponseEntity<ApiResponseDTO<?>> getTransactionPage(@PathVariable Long transactionId) {
         int pageReference = generalJournalService.calculateTransactionPage(transactionId);
         return ResponseEntity.ok(ApiResponseDTO.success(pageReference));
+    }
+
+    @GetMapping("/get-attachment/transaction/{transactionId}")
+    public ResponseEntity<byte[]> getAttachment(@PathVariable Long transactionId) {
+        TransactionModel transaction = validationUtil.isValidTransactionId(transactionId);
+        byte[] transactionAttachment = generalJournalService.retrieveTransactionAttachment(transaction);
+
+        MediaType mediaType = MediaTypeFactory
+            .getMediaType(transaction.getAttachmentName())
+            .orElse(MediaType.APPLICATION_OCTET_STREAM);
+
+        return ResponseEntity.ok()
+            .contentType(mediaType)
+            .body(transactionAttachment);
     }
 }

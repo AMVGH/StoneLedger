@@ -521,7 +521,7 @@ export default function Reports({ onAccountSelect }) {
               )}
 
               <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "12px" }}>
-                <button style={{ ...btnStyle, width: "auto", padding: "8px 16px", marginTop: 0 }} onClick={handleDownloadPdf}>
+                <button title="Download Financial Report as PDF Document" style={{ ...btnStyle, width: "auto", padding: "8px 16px", marginTop: 0 }} onClick={handleDownloadPdf}>
                   Download PDF
                 </button>
               </div>
@@ -571,6 +571,7 @@ export default function Reports({ onAccountSelect }) {
                                         role="button"
                                         tabIndex={0}
                                         onKeyDown={(e) => e.key === 'Enter' && handleAccountClick(entry.financialAccountName)}
+                                        title="View Account Ledger"
                                     >
                                       {entry.financialAccountName}
                                     </span>
@@ -627,6 +628,7 @@ export default function Reports({ onAccountSelect }) {
                                       role="button"
                                       tabIndex={0}
                                       onKeyDown={(e) => e.key === 'Enter' && handleAccountClick(pair.a)}
+                                      title="View Account Ledger"
                                   >
                                     {pair.a}
                                   </span>
@@ -665,6 +667,7 @@ export default function Reports({ onAccountSelect }) {
                                       role="button"
                                       tabIndex={0}
                                       onKeyDown={(e) => e.key === 'Enter' && handleAccountClick(pair.a)}
+                                      title="View Account Ledger"
                                   >
                                     {pair.a}
                                   </span>
@@ -728,6 +731,7 @@ export default function Reports({ onAccountSelect }) {
                                       role="button"
                                       tabIndex={0}
                                       onKeyDown={(e) => e.key === 'Enter' && handleAccountClick(pair.a)}
+                                      title="View Account Ledger"
                                   >
                                     {pair.a}
                                   </span>
@@ -767,6 +771,7 @@ export default function Reports({ onAccountSelect }) {
                                       role="button"
                                       tabIndex={0}
                                       onKeyDown={(e) => e.key === 'Enter' && handleAccountClick(pair.a)}
+                                      title="View Account Ledger"
                                   >
                                     {pair.a}
                                   </span>
@@ -815,6 +820,7 @@ export default function Reports({ onAccountSelect }) {
                                       role="button"
                                       tabIndex={0}
                                       onKeyDown={(e) => e.key === 'Enter' && handleAccountClick(pair.a)}
+                                      title="View Account Ledger"
                                   >
                                     {pair.a}
                                   </span>
@@ -871,6 +877,7 @@ export default function Reports({ onAccountSelect }) {
                                       role="button"
                                       tabIndex={0}
                                       onKeyDown={(e) => e.key === 'Enter' && handleAccountClick(pair.a)}
+                                      title="View Account Ledger"
                                   >
                                     {pair.a}
                                   </span>

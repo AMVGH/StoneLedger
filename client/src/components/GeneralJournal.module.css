@@ -1019,3 +1019,81 @@
 .calculatorEquals:active {
   transform: translateY(0);
 }
+
+/* Credit account styling for journal entries - keeps same style as normal accounts */
+.creditAccountCell {
+  padding-left: 24px !important;
+}
+
+.debitAccountCell {
+  padding-left: 0 !important;
+}
+
+/* Make credit account button look exactly like linkLikeBtn */
+.creditAccountBtn {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  color: #0d47a1 !important;
+  text-decoration: underline !important;
+  font: inherit !important;
+  cursor: pointer !important;
+  display: inline-block !important;
+  width: auto !important;
+  text-align: left !important;
+}
+
+.creditAccountBtn:hover {
+  color: #1565c0 !important;
+  background: transparent !important;
+  text-decoration: underline !important;
+}
+
+/* Remove any box or background that might appear */
+.creditAccountBtn:focus,
+.creditAccountBtn:active {
+  outline: none;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Add arrow for credit account names - make it blue and keep underline */
+.creditAccountName {
+  position: relative;
+  display: inline-block;
+  text-decoration: inherit;
+}
+
+.creditAccountName::before {
+  content: "↳ ";
+  position: absolute;
+  left: -18px;
+  top: 0;
+  opacity: 0.8;
+  font-size: 0.875rem;
+  color: #0d47a1 !important; /* Make arrow blue to match the link */
+  text-decoration: none !important; /* Ensure arrow itself doesn't get underlined */
+  pointer-events: none; /* Prevent arrow from interfering with clicks */
+}
+
+/* Optional: Use → instead of ↳ */
+.creditAccountNameArrow::before {
+  content: "→ ";
+  position: absolute;
+  left: -18px;
+  top: 0;
+  opacity: 0.8;
+  font-size: 0.875rem;
+  color: #0d47a1 !important;
+  text-decoration: none !important;
+  pointer-events: none;
+}
+
+/* Ensure the underline applies to the text only, not the arrow */
+.creditAccountBtn {
+  position: relative;
+}
+
+.creditAccountBtn .creditAccountName {
+  text-decoration: underline;
+}

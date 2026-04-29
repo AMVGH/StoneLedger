@@ -90,4 +90,8 @@ public class GeneralJournalService {
 
         throw new TransactionValidationException(errorMessageService.getError(132));
     }
+
+    public byte[] retrieveTransactionAttachment(TransactionModel transaction) {
+        return transaction.getAttachment();
+    }
 }

@@ -364,7 +364,7 @@ export default function AccountLedger({ account, onBack, onJournalPageSelect, to
       <section className={styles.wrapper}>
         {/* ── Header ── */}
         <div className={styles.header}>
-          <button type="button" className={styles.backBtn} onClick={onBack}>
+          <button type="button" title="Return to Previous Page" className={styles.backBtn} onClick={onBack}>
             ← Back
           </button>
           <div>
@@ -417,6 +417,7 @@ export default function AccountLedger({ account, onBack, onJournalPageSelect, to
           <button
             type="button"
             className={`${styles.filterToggleBtn} ${showFilters ? styles.filterToggleBtnActive : ""}`}
+            title="Filter Transactions by Date"
             onClick={() => setShowFilters((p) => !p)}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
@@ -432,6 +433,7 @@ export default function AccountLedger({ account, onBack, onJournalPageSelect, to
             className={styles.calculatorBtn}
             onClick={() => setShowCalculator(true)}
             aria-label="Calculator"
+            title="Open Calculator"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
               fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -561,6 +563,7 @@ export default function AccountLedger({ account, onBack, onJournalPageSelect, to
                 className={styles.modalCloseBtn}
                 onClick={closeModal}
                 aria-label="Close"
+                title="Close"
               >
                 ×
               </button>
@@ -627,7 +630,7 @@ export default function AccountLedger({ account, onBack, onJournalPageSelect, to
                         </span>
                       </div>
                       <div className={styles.headerItem}>
-                        <span className={styles.headerLabel}>Created Date:</span>
+                        <span className={styles.headerLabel}>Creation Date:</span>
                         <span className={styles.headerValue}>{formatDateTime(parentTransaction.createdDate)}</span>
                       </div>
                     </div>
@@ -716,6 +719,55 @@ export default function AccountLedger({ account, onBack, onJournalPageSelect, to
                         </span>
                       </div>
                     )}
+                    <div
+                        className={styles.descriptionRow}
+                        style={{
+                          display: "flex",
+                          alignItems: "flex-start",
+                          gap: "12px",
+                          marginBottom: "-1px"
+                        }}
+                    >
+                      <span
+                          className={styles.descriptionLabel}
+                          style={{
+                            fontSize: "0.75rem",
+                            fontWeight: 600,
+                            color: "#6b7280",
+                            minWidth: "130px",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.4px",
+                            lineHeight: "1.4",
+                            paddingTop: "2px"
+                          }}
+                      >
+                        Transaction Attachment:
+                      </span>
+                      <span
+                          className={styles.descriptionValue}
+                          style={{
+                            fontSize: "0.875rem",
+                            color: "#374151",
+                            flex: 1,
+                            lineHeight: "1.4",
+                            wordWrap: "break-word",
+                            whiteSpace: "normal",
+                            margin: 0,
+                            padding: 0
+                          }}
+                      >
+                        {parentTransaction.attachmentName ? (
+                            <span
+                                onClick={() => window.open(`http://localhost:8080/api/general-journal/get-attachment/transaction/${parentTransaction.id}`, '_blank')}
+                                style={{ fontSize: 13, color: '#4f46e5', textDecoration: 'underline', cursor: 'pointer' }}
+                            >
+                            {parentTransaction.attachmentName}
+                          </span>
+                        ) : (
+                            <span style={{ color: '#9ca3af', fontSize: 13 }}>—</span>
+                        )}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Accounts Impacted Table - Using getAccountName like General Journal */}
@@ -798,7 +850,7 @@ export default function AccountLedger({ account, onBack, onJournalPageSelect, to
             </div>
 
             <div className={styles.modalFooter}>
-              <button type="button" className={styles.modalCloseFooterBtn} onClick={closeModal}>
+              <button type="button" title="Close Transaction Details" className={styles.modalCloseFooterBtn} onClick={closeModal}>
                 Close
               </button>
             </div>

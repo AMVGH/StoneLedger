@@ -130,7 +130,6 @@ const useTransactionContext = create((set) => ({
     }
   },
 
-  // NEW: Get parent transaction for a transaction entry
   getParentTransaction: async (transactionEntryId) => {
     set({ loading: true, error: null });
     try {
