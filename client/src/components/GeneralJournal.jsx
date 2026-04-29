@@ -232,7 +232,7 @@ function RejectionPopover({ comment }) {
 
 export default function GeneralJournal({ userRole, onAccountSelect }) {
   const { getFinancialAccounts } = useUserContext();
-  const { createNewTransaction, getTransactionsForPage, getTotalPages, approveTransaction, rejectTransaction } = useTransactionContext();
+  const { createNewTransaction, getTransactionsForPage, getTotalPages, approveTransaction, rejectTransaction, getAttachment } = useTransactionContext();
 
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -577,6 +577,18 @@ export default function GeneralJournal({ userRole, onAccountSelect }) {
 
   if (loading) return <div className={styles.page}><section className={styles.content}><p style={{ padding: "2rem" }}>Loading journal entries…</p></section></div>;
   if (error)   return <div className={styles.page}><section className={styles.content}><p style={{ padding: "2rem", color: "red" }}>{error}</p><button onClick={() => fetchJournalData(currentPage)}>Retry</button></section></div>;
+
+  const downloadAttachment = async (transactionId) => {
+    try {
+      const response = await getAttachment(transactionId);
+      // Handle the response - open in new tab or download
+      if (response.url) {
+        window.open(response.url, '_blank');
+      }
+    } catch (err) {
+      console.error('Failed to download attachment:', err);
+    }
+  };
 
   return (
       <div className={styles.page}>
@@ -1030,16 +1042,14 @@ export default function GeneralJournal({ userRole, onAccountSelect }) {
 
                                   {idx === 0 ? (
                                       <td rowSpan={txn.accountsImpacted.length}>
-                                        {txn.attachmentName
-                                            ? (
-                                                <span
-                                                    onClick={() => window.open(`http://localhost:8080/api/general-journal/get-attachment/transaction/${txn.id}`, '_blank')}
-                                                    style={{ fontSize: 13, color: '#4f46e5', textDecoration: 'underline', cursor: 'pointer' }}
-                                                >
-                                      {txn.attachmentName}
-                                    </span>
-                                            )
-                                            : <span style={{ color: '#aaa', fontSize: 13 }}>—</span>}
+                                        {txn.attachmentName ? (
+                                            <button
+                                                onClick={() => downloadAttachment(txn.id)}
+                                                style={{ fontSize: 13, color: '#4f46e5', textDecoration: 'underline', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
+                                            >
+                                              {txn.attachmentName}
+                                            </button>
+                                        ) : <span style={{ color: '#aaa', fontSize: 13 }}>—</span>}
                                       </td>
                                   ) : null}
 

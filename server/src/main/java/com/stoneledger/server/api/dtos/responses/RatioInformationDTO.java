@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.antlr.v4.runtime.misc.Pair;
+import org.antlr.v4.runtime.misc.Triple;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -14,9 +15,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RatioInformationDTO {
-    private List<Pair<String, BigDecimal>> profitabilityRatios;
-    private List<Pair<String, BigDecimal>> liquidityRatios;
-    private List<Pair<String, BigDecimal>> leverageRatios;
-    private List<Pair<String, BigDecimal>> activityRatios;
-    private List<Pair<String, BigDecimal>> otherRatios;
+    private List<Triple<String, BigDecimal, BigDecimal>> profitabilityRatios;
+    private List<Triple<String, BigDecimal, BigDecimal>> liquidityRatios;
+    private List<Triple<String, BigDecimal, BigDecimal>> leverageRatios;
+    private List<Triple<String, BigDecimal, BigDecimal>> activityRatios;
 }

@@ -97,7 +97,7 @@
 }
 
 .scorecardStatus {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 600;
     padding: 2px 8px;
     border-radius: 6px;
@@ -107,8 +107,14 @@
     font-size: 2rem;
     font-weight: 800;
     color: #1a202c;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
     font-family: 'Courier New', monospace;
+}
+
+.scorecardTarget {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    margin-bottom: 8px;
 }
 
 .scorecardBenchmark {
@@ -118,10 +124,10 @@
     border-top: 1px solid #f1f5f9;
 }
 
-/* ── KPI Row ── */
+/* ── KPI Row - 5 columns max ── */
 .kpiRow {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
     gap: 16px;
     margin-bottom: 28px;
 }
@@ -153,8 +159,14 @@
 .kpiRowValue {
     font-size: 1.25rem;
     font-weight: 700;
-    color: #1a202c;
     font-family: 'Courier New', monospace;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.kpiRowTarget {
+    font-size: 0.65rem;
+    color: #94a3b8;
     display: block;
     margin-bottom: 8px;
 }
@@ -232,7 +244,11 @@
 }
 
 .benchmarkBar {
-    background-color: #cbd5e1;
+    background-color: #e2e8f0;
+}
+
+.valueBar {
+    background-color: #3b82f6;
 }
 
 .barValue {
@@ -254,6 +270,7 @@
     align-items: center;
     justify-content: center;
     gap: 20px;
+    flex-wrap: wrap;
 }
 
 .scoreLegend {
@@ -353,15 +370,23 @@
 .hBarChart {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
     margin-bottom: 20px;
 }
 
 .hBarRow {
-    display: grid;
-    grid-template-columns: 1fr 120px 70px;
+    display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 12px;
+}
+
+.hBarHeader {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-shrink: 0;
+    width: 130px;
 }
 
 .hBarLabel {
@@ -369,15 +394,37 @@
     color: #475569;
     font-weight: 500;
     white-space: nowrap;
-    overflow: hidden;
     text-overflow: ellipsis;
 }
 
+.hBarTarget {
+    font-size: 0.65rem;
+    color: #94a3b8;
+}
+
+.hBarRight {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 0 1 auto;
+}
+
+.hBarValue {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #1a202c;
+    font-family: 'Courier New', monospace;
+    min-width: 65px;
+    text-align: right;
+}
+
 .hBarTrack {
+    width: 120px;
     height: 6px;
     background: #f1f5f9;
     border-radius: 3px;
     overflow: hidden;
+    flex-shrink: 0;
 }
 
 .hBarFill {
@@ -385,14 +432,6 @@
     border-radius: 3px;
     transition: width 0.4s ease;
     min-width: 2px;
-}
-
-.hBarValue {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #1a202c;
-    font-family: 'Courier New', monospace;
-    text-align: right;
 }
 
 /* ── Divider ── */
@@ -406,7 +445,8 @@
 .gaugeGrid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    gap: 12px;
+    gap: 16px;
+    margin-top: 8px;
 }
 
 .gaugeWrapper {
@@ -485,12 +525,13 @@
 /* ── Responsive adjustments ── */
 @media (max-width: 1200px) {
     .hBarRow {
-        grid-template-columns: 1fr 90px 60px;
+        grid-template-columns: 1fr 80px 70px;
         gap: 8px;
     }
 
     .gaugeGrid {
         grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+        gap: 12px;
     }
 }
 
@@ -508,6 +549,10 @@
     .kpiRow {
         grid-template-columns: repeat(2, 1fr);
     }
+
+    .hBarRow {
+        grid-template-columns: 1fr 90px 65px;
+    }
 }
 
 @media (max-width: 768px) {
@@ -518,10 +563,6 @@
     .topScorecardRow {
         grid-template-columns: 1fr;
         gap: 12px;
-    }
-
-    .kpiRow {
-        grid-template-columns: 1fr;
     }
 
     .barChartItem {
@@ -535,8 +576,12 @@
 }
 
 @media (max-width: 640px) {
+    .kpiRow {
+        grid-template-columns: 1fr;
+    }
+
     .hBarRow {
-        grid-template-columns: 1fr 70px 50px;
+        grid-template-columns: 1fr 70px 55px;
         gap: 6px;
     }
 
@@ -546,5 +591,21 @@
 
     .hBarValue {
         font-size: 0.7rem;
+    }
+
+    .hBarTarget {
+        font-size: 0.6rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .hBarValues {
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 2px;
+    }
+
+    .hBarRow {
+        grid-template-columns: 1fr 60px 50px;
     }
 }
