@@ -719,6 +719,55 @@ export default function AccountLedger({ account, onBack, onJournalPageSelect, to
                         </span>
                       </div>
                     )}
+                    <div
+                        className={styles.descriptionRow}
+                        style={{
+                          display: "flex",
+                          alignItems: "flex-start",
+                          gap: "12px",
+                          marginBottom: "-1px"
+                        }}
+                    >
+                      <span
+                          className={styles.descriptionLabel}
+                          style={{
+                            fontSize: "0.75rem",
+                            fontWeight: 600,
+                            color: "#6b7280",
+                            minWidth: "130px",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.4px",
+                            lineHeight: "1.4",
+                            paddingTop: "2px"
+                          }}
+                      >
+                        Transaction Attachment:
+                      </span>
+                      <span
+                          className={styles.descriptionValue}
+                          style={{
+                            fontSize: "0.875rem",
+                            color: "#374151",
+                            flex: 1,
+                            lineHeight: "1.4",
+                            wordWrap: "break-word",
+                            whiteSpace: "normal",
+                            margin: 0,
+                            padding: 0
+                          }}
+                      >
+                        {parentTransaction.attachmentName ? (
+                            <span
+                                onClick={() => window.open(`http://localhost:8080/api/general-journal/get-attachment/transaction/${parentTransaction.id}`, '_blank')}
+                                style={{ fontSize: 13, color: '#4f46e5', textDecoration: 'underline', cursor: 'pointer' }}
+                            >
+                            {parentTransaction.attachmentName}
+                          </span>
+                        ) : (
+                            <span style={{ color: '#9ca3af', fontSize: 13 }}>—</span>
+                        )}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Accounts Impacted Table - Using getAccountName like General Journal */}
