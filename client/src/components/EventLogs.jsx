@@ -410,6 +410,7 @@ export default function EventLogs() {
             <div style={{ position: "relative" }} ref={datePopupRef}>
               <button
                 onClick={() => setShowDatePopup((prev) => !prev)}
+                title="Select Dates to Filter Event Logs"
                 style={{
                   display: "flex",
                   alignItems: "center",

@@ -845,8 +845,8 @@ export default function DashBoard() {
             <>
               <button className={`${styles.navItem} ${nav === "Financial Ratios" ? styles.activeNav : ""}`} onClick={() => setNav("Financial Ratios")}>Financial Ratios</button>
               <button className={`${styles.navItem} ${nav === "User Management" ? styles.activeNav : ""}`} onClick={() => setNav("User Management")}>User Management</button>
-              <button className={`${styles.navItem} ${nav === "Create User" ? styles.activeNav : ""}`} onClick={() => setNav("Create User")}>Create User</button>
-              <button className={`${styles.navItem} ${nav === "Pending" ? styles.activeNav : ""}`} onClick={() => setNav("Pending")}>Pending</button>
+              <button className={`${styles.navItem} ${nav === "Create User" ? styles.activeNav : ""}`} onClick={() => setNav("Create User")}>Create New Users</button>
+              <button className={`${styles.navItem} ${nav === "Pending" ? styles.activeNav : ""}`} onClick={() => setNav("Pending")}>Pending Access Requests</button>
               <button className={`${styles.navItem} ${nav === "Expired Passwords" ? styles.activeNav : ""}`} onClick={() => setNav("Expired Passwords")}>Expired Passwords</button>
               <button
                 className={`${styles.navItem} ${(nav === "Chart of Accounts" || nav === "Account Ledger") ? styles.activeNav : ""}`}

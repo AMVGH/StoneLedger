@@ -364,7 +364,7 @@ export default function AccountLedger({ account, onBack, onJournalPageSelect, to
       <section className={styles.wrapper}>
         {/* ── Header ── */}
         <div className={styles.header}>
-          <button type="button" className={styles.backBtn} onClick={onBack}>
+          <button type="button" title="Return to Previous Page" className={styles.backBtn} onClick={onBack}>
             ← Back
           </button>
           <div>
@@ -417,6 +417,7 @@ export default function AccountLedger({ account, onBack, onJournalPageSelect, to
           <button
             type="button"
             className={`${styles.filterToggleBtn} ${showFilters ? styles.filterToggleBtnActive : ""}`}
+            title="Filter Transactions by Date"
             onClick={() => setShowFilters((p) => !p)}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
@@ -432,6 +433,7 @@ export default function AccountLedger({ account, onBack, onJournalPageSelect, to
             className={styles.calculatorBtn}
             onClick={() => setShowCalculator(true)}
             aria-label="Calculator"
+            title="Open Calculator"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
               fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -561,6 +563,7 @@ export default function AccountLedger({ account, onBack, onJournalPageSelect, to
                 className={styles.modalCloseBtn}
                 onClick={closeModal}
                 aria-label="Close"
+                title="Close"
               >
                 ×
               </button>
@@ -798,7 +801,7 @@ export default function AccountLedger({ account, onBack, onJournalPageSelect, to
             </div>
 
             <div className={styles.modalFooter}>
-              <button type="button" className={styles.modalCloseFooterBtn} onClick={closeModal}>
+              <button type="button" title="Close Transaction Details" className={styles.modalCloseFooterBtn} onClick={closeModal}>
                 Close
               </button>
             </div>

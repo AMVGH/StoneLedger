@@ -788,8 +788,8 @@ export default function GeneralJournal({ userRole, onAccountSelect }) {
               </div>
             </div>
             <div className={styles.modalFooter}>
-              <button type="button" className={styles.cancelBtn} onClick={resetModal}>Cancel</button>
-              <button type="button" className={styles.submitBtn} onClick={handleAddTransaction}>Create Transaction</button>
+              <button type="button" title="Cancel and Discard Changes" className={styles.cancelBtn} onClick={resetModal}>Cancel</button>
+              <button type="button" title="Create New Journal Transaction" className={styles.submitBtn} onClick={handleAddTransaction}>Create Transaction</button>
             </div>
           </div>
         </div>
@@ -823,6 +823,7 @@ export default function GeneralJournal({ userRole, onAccountSelect }) {
                 type="button"
                 className={`${styles.calendarBtn} ${(startDate || endDate) ? styles.calendarBtnActive : ""}`}
                 onClick={() => setShowDatePopup((prev) => !prev)}
+                title="Filter Transactions by Date"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
@@ -889,6 +890,7 @@ export default function GeneralJournal({ userRole, onAccountSelect }) {
               className={styles.calculatorBtn}
               onClick={() => setShowCalculator(true)}
               aria-label="Calculator"
+              title="Open Calculator"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1072,8 +1074,8 @@ export default function GeneralJournal({ userRole, onAccountSelect }) {
                           <td rowSpan={txn.accountsImpacted.length}>
                             {txn.transactionStatus === "PENDING" ? (
                               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                                <button type="button" className={styles.approveBtn} onClick={() => openActionModal(txn.id, "APPROVE")} disabled={actionLoading}>Accept</button>
-                                <button type="button" className={styles.rejectBtn}  onClick={() => openActionModal(txn.id, "REJECT")}>Reject</button>
+                                <button type="button" title="Approve Journal Transaction" className={styles.approveBtn} onClick={() => openActionModal(txn.id, "APPROVE")} disabled={actionLoading}>Accept</button>
+                                <button type="button" title="Reject Journal Transaction" className={styles.rejectBtn}  onClick={() => openActionModal(txn.id, "REJECT")}>Reject</button>
                               </div>
                             ) : (
                               <span style={{ fontSize: 12, color: "#9ca3af" }}>—</span>

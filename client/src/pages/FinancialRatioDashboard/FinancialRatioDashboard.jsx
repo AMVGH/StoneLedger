@@ -460,7 +460,7 @@ export default function FinancialRatioDashboard() {
             <h1 className={styles.pageTitle}>StoneLedger Financial Dashboard</h1>
             <p className={styles.pageSubtitle}>A Quick Look at Account Finances</p>
           </div>
-          <button className={styles.refreshBtn} onClick={fetchRatios}>
+          <button className={styles.refreshBtn} onClick={fetchRatios} title="Refresh Page">
             ↻ Refresh
           </button>
         </div>

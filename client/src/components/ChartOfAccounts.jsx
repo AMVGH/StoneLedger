@@ -101,93 +101,93 @@ function AddAccountModal({ onClose, onSuccess }) {
   };
 
   return (
-    <div className={styles.modalOverlay} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.modalHeader}>
-          <h3 className={styles.modalTitle}>Add Account</h3>
-          <button type="button" className={styles.modalClose} onClick={onClose}>✕</button>
-        </div>
-        <div className={styles.modalBody}>
-          {formError && <div className={styles.modalError}>{formError}</div>}
-          <div className={styles.formGrid}>
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>Account Category <span className={styles.required}>*</span></label>
-              <select name="accountCategory" className={styles.formSelect} value={form.accountCategory} onChange={handleCategoryChange}>
-                <option value="">Select category</option>
-                {ACCOUNT_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>Account Number</label>
-              <input type="text" className={styles.formInput} value={generating ? "Generating…" : form.accountNumber} readOnly
-                style={{ background: "var(--color-background-secondary,#f9fafb)", color: "var(--color-text-secondary,#6b7280)" }} />
-            </div>
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>Account Name <span className={styles.required}>*</span></label>
-              <input type="text" name="accountName" className={styles.formInput} placeholder="e.g. Cash" value={form.accountName} onChange={handleChange} />
-            </div>
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>Account Description <span className={styles.required}>*</span></label>
-              <input type="text" name="accountDescription" className={styles.formInput} placeholder="Brief description" value={form.accountDescription} onChange={handleChange} />
-            </div>
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>Normal Side</label>
-              <input
-                type="text"
-                className={styles.formInput}
-                value={form.normalSide || "—"}
-                readOnly
-                style={{ background: "var(--color-background-secondary,#f9fafb)", color: "var(--color-text-secondary,#6b7280)" }}
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>Account Subcategory <span className={styles.required}>*</span></label>
-              <select name="accountSubcategory" className={styles.formSelect} value={form.accountSubcategory} onChange={handleChange}>
-                <option value="">Select subcategory</option>
-                {ACCOUNT_SUBCATEGORIES.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>Associated Statement <span className={styles.required}>*</span></label>
-              <select name="associatedStatement" className={styles.formSelect} value={form.associatedStatement} onChange={handleChange}>
-                <option value="">Select statement</option>
-                {ASSOCIATED_STATEMENTS.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>Order <span className={styles.required}>*</span></label>
-              <input type="number" name="order" className={styles.formInput} placeholder="Display order" value={form.order} onChange={handleChange} />
-            </div>
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>Initial Balance <span className={styles.required}>*</span></label>
-              <input type="number" name="initialBalance" className={styles.formInput} placeholder="0.00" step="0.01" value={form.initialBalance} onChange={handleChange} />
-            </div>
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>Debit <span className={styles.required}>*</span></label>
-              <input type="number" name="debit" className={styles.formInput} placeholder="0.00" step="0.01" value={form.debit} onChange={handleChange} />
-            </div>
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>Credit <span className={styles.required}>*</span></label>
-              <input type="number" name="credit" className={styles.formInput} placeholder="0.00" step="0.01" value={form.credit} onChange={handleChange} />
-            </div>
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>Balance <span className={styles.required}>*</span></label>
-              <input type="number" name="balance" className={styles.formInput} placeholder="0.00" step="0.01" value={form.balance} onChange={handleChange} />
-            </div>
-            <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
-              <label className={styles.formLabel}>Comment</label>
-              <input type="text" name="comment" className={styles.formInput} placeholder="Optional comment" value={form.comment} onChange={handleChange} />
+      <div className={styles.modalOverlay} onClick={onClose}>
+        <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+          <div className={styles.modalHeader}>
+            <h3 className={styles.modalTitle}>Add Account</h3>
+            <button type="button" className={styles.modalClose} onClick={onClose}>✕</button>
+          </div>
+          <div className={styles.modalBody}>
+            {formError && <div className={styles.modalError}>{formError}</div>}
+            <div className={styles.formGrid}>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Account Category <span className={styles.required}>*</span></label>
+                <select name="accountCategory" className={styles.formSelect} value={form.accountCategory} onChange={handleCategoryChange}>
+                  <option value="">Select category</option>
+                  {ACCOUNT_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Account Number</label>
+                <input type="text" className={styles.formInput} value={generating ? "Generating…" : form.accountNumber} readOnly
+                       style={{ background: "var(--color-background-secondary,#f9fafb)", color: "var(--color-text-secondary,#6b7280)" }} />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Account Name <span className={styles.required}>*</span></label>
+                <input type="text" name="accountName" className={styles.formInput} placeholder="e.g. Cash" value={form.accountName} onChange={handleChange} />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Account Description <span className={styles.required}>*</span></label>
+                <input type="text" name="accountDescription" className={styles.formInput} placeholder="Brief description" value={form.accountDescription} onChange={handleChange} />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Normal Side</label>
+                <input
+                    type="text"
+                    className={styles.formInput}
+                    value={form.normalSide || "—"}
+                    readOnly
+                    style={{ background: "var(--color-background-secondary,#f9fafb)", color: "var(--color-text-secondary,#6b7280)" }}
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Account Subcategory <span className={styles.required}>*</span></label>
+                <select name="accountSubcategory" className={styles.formSelect} value={form.accountSubcategory} onChange={handleChange}>
+                  <option value="">Select subcategory</option>
+                  {ACCOUNT_SUBCATEGORIES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Associated Statement <span className={styles.required}>*</span></label>
+                <select name="associatedStatement" className={styles.formSelect} value={form.associatedStatement} onChange={handleChange}>
+                  <option value="">Select statement</option>
+                  {ASSOCIATED_STATEMENTS.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Order <span className={styles.required}>*</span></label>
+                <input type="number" name="order" className={styles.formInput} placeholder="Display order" value={form.order} onChange={handleChange} />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Initial Balance <span className={styles.required}>*</span></label>
+                <input type="number" name="initialBalance" className={styles.formInput} placeholder="0.00" step="0.01" value={form.initialBalance} onChange={handleChange} />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Debit <span className={styles.required}>*</span></label>
+                <input type="number" name="debit" className={styles.formInput} placeholder="0.00" step="0.01" value={form.debit} onChange={handleChange} />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Credit <span className={styles.required}>*</span></label>
+                <input type="number" name="credit" className={styles.formInput} placeholder="0.00" step="0.01" value={form.credit} onChange={handleChange} />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>Balance <span className={styles.required}>*</span></label>
+                <input type="number" name="balance" className={styles.formInput} placeholder="0.00" step="0.01" value={form.balance} onChange={handleChange} />
+              </div>
+              <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
+                <label className={styles.formLabel}>Comment</label>
+                <input type="text" name="comment" className={styles.formInput} placeholder="Optional comment" value={form.comment} onChange={handleChange} />
+              </div>
             </div>
           </div>
-        </div>
-        <div className={styles.modalFooter}>
-          <button type="button" className={styles.cancelBtn} onClick={onClose} disabled={submitting}>Cancel</button>
-          <button type="button" className={styles.submitBtn} onClick={handleSubmit} disabled={submitting || generating}>
-            {submitting ? "Creating…" : "Create Account"}
-          </button>
+          <div className={styles.modalFooter}>
+            <button type="button" title="Return to Chart of Account Page and Discard Changes" className={styles.cancelBtn} onClick={onClose} disabled={submitting}>Cancel</button>
+            <button type="button" title="Create New Financial Account" className={styles.submitBtn} onClick={handleSubmit} disabled={submitting || generating}>
+              {submitting ? "Creating…" : "Create Account"}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
   );
 }
 
@@ -263,55 +263,55 @@ export default function ChartOfAccounts({ onAccountSelect, onEditAccount, refres
     return [...new Set(source.map((a) => a.accountSubcategory))];
   }, [accounts, filters.category]);
 
-const filteredAccounts = useMemo(() => {
-  const query = searchTerm.trim().toLowerCase();
-  const minBalance = Number(filters.minBalance);
-  const maxBalance = Number(filters.maxBalance);
+  const filteredAccounts = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+    const minBalance = Number(filters.minBalance);
+    const maxBalance = Number(filters.maxBalance);
 
-  return accounts
-    .filter((acct) => {
-      const dateStr = toDateStr(acct.accountAddDate);
-      // Date range filtering
-      if (startDate && dateStr < startDate) return false;
-      if (endDate && dateStr > endDate) return false;
+    return accounts
+        .filter((acct) => {
+          const dateStr = toDateStr(acct.accountAddDate);
+          // Date range filtering
+          if (startDate && dateStr < startDate) return false;
+          if (endDate && dateStr > endDate) return false;
 
-      if (query) {
-        const match = [
-          acct.accountNumber,
-          acct.accountName,
-          acct.accountDescription,
-          acct.accountCategory,
-          acct.accountSubcategory,
-          acct.associatedStatement,
-        ]
-          .join(" ")
-          .toLowerCase()
-          .includes(query);
-        if (!match) return false;
-      }
+          if (query) {
+            const match = [
+              acct.accountNumber,
+              acct.accountName,
+              acct.accountDescription,
+              acct.accountCategory,
+              acct.accountSubcategory,
+              acct.associatedStatement,
+            ]
+                .join(" ")
+                .toLowerCase()
+                .includes(query);
+            if (!match) return false;
+          }
 
-      if (filters.accountName && !acct.accountName?.toLowerCase().includes(filters.accountName.toLowerCase())) return false;
-      if (filters.accountNumber && !String(acct.accountNumber).includes(filters.accountNumber)) return false;
-      if (filters.category && acct.accountCategory !== filters.category) return false;
-      if (filters.subcategory && acct.accountSubcategory !== filters.subcategory) return false;
+          if (filters.accountName && !acct.accountName?.toLowerCase().includes(filters.accountName.toLowerCase())) return false;
+          if (filters.accountNumber && !String(acct.accountNumber).includes(filters.accountNumber)) return false;
+          if (filters.category && acct.accountCategory !== filters.category) return false;
+          if (filters.subcategory && acct.accountSubcategory !== filters.subcategory) return false;
 
-      const bal = Number(acct.balance);
-      if (!Number.isNaN(minBalance) && filters.minBalance !== "" && bal < minBalance) return false;
-      if (!Number.isNaN(maxBalance) && filters.maxBalance !== "" && bal > maxBalance) return false;
+          const bal = Number(acct.balance);
+          if (!Number.isNaN(minBalance) && filters.minBalance !== "" && bal < minBalance) return false;
+          if (!Number.isNaN(maxBalance) && filters.maxBalance !== "" && bal > maxBalance) return false;
 
-      return true;
-    })
-    .sort((a, b) => {
-      // Handle potential null/undefined values by defaulting to a large number
-      const orderA = a.order ?? Infinity;
-      const orderB = b.order ?? Infinity;
-      // If orders are equal, fallback to accountNumber to keep a deterministic order
-      if (orderA === orderB) {
-        return a.accountNumber - b.accountNumber;
-      }
-      return orderA - orderB;
-    });
-}, [accounts, searchTerm, startDate, endDate, filters]);
+          return true;
+        })
+        .sort((a, b) => {
+          // Handle potential null/undefined values by defaulting to a large number
+          const orderA = a.order ?? Infinity;
+          const orderB = b.order ?? Infinity;
+          // If orders are equal, fallback to accountNumber to keep a deterministic order
+          if (orderA === orderB) {
+            return a.accountNumber - b.accountNumber;
+          }
+          return orderA - orderB;
+        });
+  }, [accounts, searchTerm, startDate, endDate, filters]);
 
   const handleFilterInput = (e) => {
     const { name, value } = e.target;
@@ -333,93 +333,93 @@ const filteredAccounts = useMemo(() => {
   if (error) return <div className={styles.page}><section className={styles.content}><p style={{ padding: "2rem", color: "red" }}>{error}</p><button onClick={fetchAccounts}>Retry</button></section></div>;
 
   return (
-    <div className={styles.page}>
-      {showAddModal && <AddAccountModal onClose={() => setShowAddModal(false)} onSuccess={fetchAccounts} />}
+      <div className={styles.page}>
+        {showAddModal && <AddAccountModal onClose={() => setShowAddModal(false)} onSuccess={fetchAccounts} />}
 
-      <section className={styles.content}>
-        <div className={styles.tableHeader}>
-          <div className={styles.headerLeft}>
-            <div className={styles.datePickerWrapper} ref={popupRef}>
-              <button type="button" className={`${styles.calendarBtn} ${(startDate || endDate) ? styles.calendarBtnActive : ""}`} onClick={() => setShowDatePopup((prev) => !prev)}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+        <section className={styles.content}>
+          <div className={styles.tableHeader}>
+            <div className={styles.headerLeft}>
+              <div className={styles.datePickerWrapper} ref={popupRef}>
+                <button type="button" title="Select Dates to Filter Accounts" className={`${styles.calendarBtn} ${(startDate || endDate) ? styles.calendarBtnActive : ""}`} onClick={() => setShowDatePopup((prev) => !prev)}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
+                  {startDate && endDate ? `${startDate} → ${endDate}` : (startDate || endDate || "Select Date Range")}
+                </button>
+                {showDatePopup && (
+                    <div className={styles.datePopup}>
+                      <div className={styles.dateRangeContainer}>
+                        <div>
+                          <label className={styles.dateRangeLabel}>Start Date</label>
+                          <input
+                              type="date"
+                              className={styles.datePopupInput}
+                              value={startDate}
+                              onChange={(e) => setStartDate(e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <label className={styles.dateRangeLabel}>End Date</label>
+                          <input
+                              type="date"
+                              className={styles.datePopupInput}
+                              value={endDate}
+                              onChange={(e) => setEndDate(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      {(startDate || endDate) && (
+                          <button type="button" className={styles.datePopupClear} onClick={() => { setStartDate(""); setEndDate(""); setShowDatePopup(false); }}>
+                            Clear
+                          </button>
+                      )}
+                    </div>
+                )}
+              </div>
+              <div className={styles.searchBar}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
-                {startDate && endDate ? `${startDate} → ${endDate}` : (startDate || endDate || "Select Date Range")}
+                <input type="text" className={styles.searchInput} placeholder="Search accounts..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              </div>
+            </div>
+            <div className={styles.headerRight}>
+              <button type="button" className={styles.filterBtn} onClick={() => setShowFilters((prev) => !prev)}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                </svg>
+                {showFilters ? "Hide Filters" : "Filter"}
               </button>
-              {showDatePopup && (
-                <div className={styles.datePopup}>
-                  <div className={styles.dateRangeContainer}>
-                    <div>
-                      <label className={styles.dateRangeLabel}>Start Date</label>
-                      <input
-                        type="date"
-                        className={styles.datePopupInput}
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <label className={styles.dateRangeLabel}>End Date</label>
-                      <input
-                        type="date"
-                        className={styles.datePopupInput}
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  {(startDate || endDate) && (
-                    <button type="button" className={styles.datePopupClear} onClick={() => { setStartDate(""); setEndDate(""); setShowDatePopup(false); }}>
-                      Clear
-                    </button>
-                  )}
+              {userRole === "ADMINISTRATOR" && <button type="button" title="Add New Financial Account" className={styles.addAccountBtn} onClick={() => setShowAddModal(true)}>+ Add Account</button>}
+            </div>
+          </div>
+
+          {showFilters && (
+              <div className={styles.filterPanel}>
+                <div className={styles.filterGrid}>
+                  <input type="text" name="accountName" className={styles.filterInput} placeholder="Account Name" value={filters.accountName} onChange={handleFilterInput} />
+                  <input type="text" name="accountNumber" className={styles.filterInput} placeholder="Account Number" value={filters.accountNumber} onChange={handleFilterInput} />
+                  <select name="category" className={styles.filterSelect} value={filters.category} onChange={handleFilterInput}>
+                    <option value="">All Categories</option>
+                    {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                  <select name="subcategory" className={styles.filterSelect} value={filters.subcategory} onChange={handleFilterInput}>
+                    <option value="">All Subcategories</option>
+                    {subcategories.map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                  <input type="number" name="minBalance" className={styles.filterInput} placeholder="Min Balance" value={filters.minBalance} onChange={handleFilterInput} />
+                  <input type="number" name="maxBalance" className={styles.filterInput} placeholder="Max Balance" value={filters.maxBalance} onChange={handleFilterInput} />
                 </div>
-              )}
-            </div>
-            <div className={styles.searchBar}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              <input type="text" className={styles.searchInput} placeholder="Search accounts..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-            </div>
-          </div>
-          <div className={styles.headerRight}>
-            <button type="button" className={styles.filterBtn} onClick={() => setShowFilters((prev) => !prev)}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-              </svg>
-              {showFilters ? "Hide Filters" : "Filter"}
-            </button>
-            {userRole === "ADMINISTRATOR" && <button type="button" className={styles.addAccountBtn} onClick={() => setShowAddModal(true)}>+ Add Account</button>}
-          </div>
-        </div>
+                <div className={styles.filterActions}>
+                  <span className={styles.resultCount}>{filteredAccounts.length} accounts</span>
+                  <button type="button" className={styles.filterBtn} onClick={clearFilters}>Clear Filters</button>
+                </div>
+              </div>
+          )}
 
-        {showFilters && (
-          <div className={styles.filterPanel}>
-            <div className={styles.filterGrid}>
-              <input type="text" name="accountName" className={styles.filterInput} placeholder="Account Name" value={filters.accountName} onChange={handleFilterInput} />
-              <input type="text" name="accountNumber" className={styles.filterInput} placeholder="Account Number" value={filters.accountNumber} onChange={handleFilterInput} />
-              <select name="category" className={styles.filterSelect} value={filters.category} onChange={handleFilterInput}>
-                <option value="">All Categories</option>
-                {categories.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
-              <select name="subcategory" className={styles.filterSelect} value={filters.subcategory} onChange={handleFilterInput}>
-                <option value="">All Subcategories</option>
-                {subcategories.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
-              <input type="number" name="minBalance" className={styles.filterInput} placeholder="Min Balance" value={filters.minBalance} onChange={handleFilterInput} />
-              <input type="number" name="maxBalance" className={styles.filterInput} placeholder="Max Balance" value={filters.maxBalance} onChange={handleFilterInput} />
-            </div>
-            <div className={styles.filterActions}>
-              <span className={styles.resultCount}>{filteredAccounts.length} accounts</span>
-              <button type="button" className={styles.filterBtn} onClick={clearFilters}>Clear Filters</button>
-            </div>
-          </div>
-        )}
-
-        <div className={styles.tableWrapper}>
-          <table className={styles.table}>
-            <thead>
+          <div className={styles.tableWrapper}>
+            <table className={styles.table}>
+              <thead>
               <tr>
                 <th>ID</th><th>Account #</th><th>Account Name</th><th>Account Description</th>
                 <th>Normal Side</th><th>Account Category</th><th>Account Subcategory</th>
@@ -427,65 +427,153 @@ const filteredAccounts = useMemo(() => {
                 <th>Account Add Date</th><th>UserID</th><th>Order</th><th>Statement</th>
                 <th>Active</th><th>Comments</th><th>Actions</th>
               </tr>
-            </thead>
-            <tbody>
+              </thead>
+              <tbody>
               {filteredAccounts.map((acct) => (
-                <tr key={acct.id} className={styles.rowClickable} onClick={() => { if (typeof onAccountSelect === "function") onAccountSelect(acct); }}>
-                  <td>{acct.id}</td>
-                  <td><button type="button" className={styles.linkLikeBtn} onClick={(e) => { e.stopPropagation(); if (typeof onAccountSelect === "function") onAccountSelect(acct); }}>{acct.accountNumber}</button></td>
-                  <td><button type="button" className={styles.linkLikeBtn} onClick={(e) => { e.stopPropagation(); if (typeof onAccountSelect === "function") onAccountSelect(acct); }}>{acct.accountName}</button></td>
-                  <td>{acct.accountDescription}</td>
-                  <td><span className={`${styles.badge} ${acct.normalSide === "LEFT" ? styles.badgeDebit : styles.badgeCredit}`}>{acct.normalSide}</span></td>
-                  <td>{acct.accountCategory}</td>
-                  <td>{acct.accountSubcategory}</td>
-                  <td className={styles.money}>${fmt(acct.initialBalance)}</td>
-                  <td className={styles.money}>${fmt(acct.debit)}</td>
-                  <td className={styles.money}>${fmt(acct.credit)}</td>
-                  <td className={styles.money}>${fmt(acct.balance)}</td>
-                  <td>{formatDateTime(acct.accountAddDate)}</td>
-                  <td>{acct.userId}</td>
-                  <td>{acct.order}</td>
-                  <td>{acct.associatedStatement}</td>
-                  <td><span className={`${styles.badge} ${acct.active ? styles.badgeCredit : styles.badgeDebit}`}>{acct.active ? "Active" : "Inactive"}</span></td>
-                  <td>{acct.comment || "—"}</td>
-                  <td>
-                    {userRole === "ADMINISTRATOR" ? (
-                    <div className={styles.actions}>
-                      <button type="button" className={styles.actionBtn} title="Edit" style={{ color: "#6b7280" }}
-                        onClick={(e) => { e.stopPropagation(); if (typeof onEditAccount === "function") onEditAccount({ ...acct }); }}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                        </svg>
+                  <tr
+                      key={acct.id}
+                      className={styles.rowClickable}
+                      onClick={() => {
+                        // Only allow row click for non-administrators
+                        if (userRole !== "ADMINISTRATOR" && typeof onAccountSelect === "function") {
+                          onAccountSelect(acct);
+                        }
+                      }}
+                  >
+                    <td>{acct.id}</td>
+                    <td>
+                      <button
+                          type="button"
+                          className={`${styles.linkLikeBtn} ${userRole === "ADMINISTRATOR" ? styles.disabledLink : ""}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Only allow click for non-administrators
+                            if (userRole !== "ADMINISTRATOR" && typeof onAccountSelect === "function") {
+                              onAccountSelect(acct);
+                            }
+                          }}
+                          disabled={userRole === "ADMINISTRATOR"}
+                          title={userRole === "ADMINISTRATOR" ? "Administrators Cannot Open the Account Ledger" : "Click to Open Account Ledger"}
+                          style={userRole === "ADMINISTRATOR" ? { cursor: "not-allowed", opacity: 0.6 } : {}}
+                      >
+                        {acct.accountNumber}
                       </button>
-                      <button type="button" className={styles.actionBtn} title="Activate"
-                        style={{ color: acct.active ? "#9ca3af" : "#16a34a", cursor: acct.active ? "not-allowed" : "pointer", opacity: acct.active ? 0.4 : 1 }}
-                        onClick={(e) => { e.stopPropagation(); if (!acct.active) handleActivate(e, acct); }}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
+                    </td>
+                    <td>
+                      <button
+                          type="button"
+                          className={`${styles.linkLikeBtn} ${userRole === "ADMINISTRATOR" ? styles.disabledLink : ""}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Only allow click for non-administrators
+                            if (userRole !== "ADMINISTRATOR" && typeof onAccountSelect === "function") {
+                              onAccountSelect(acct);
+                            }
+                          }}
+                          disabled={userRole === "ADMINISTRATOR"}
+                          title={userRole === "ADMINISTRATOR" ? "Administrators Cannot Open the Account Ledger" : "Click to Open Account Ledger"}
+                          style={userRole === "ADMINISTRATOR" ? { cursor: "not-allowed", opacity: 0.6 } : {}}
+                      >
+                        {acct.accountName}
                       </button>
-                      <button type="button" className={styles.actionBtn} title="Deactivate"
-                        style={{ color: !acct.active ? "#9ca3af" : "#dc2626", cursor: !acct.active ? "not-allowed" : "pointer", opacity: !acct.active ? 0.4 : 1 }}
-                        onClick={(e) => { e.stopPropagation(); if (acct.active) handleDeactivate(e, acct); }}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="12" cy="12" r="10" /><line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
-                        </svg>
-                      </button>
-                    </div>
-                    ) : (
-                      <span style={{ color: "#9ca3af" }}>—</span>
-                    )}
-                   </td>
-                 </tr>
+                    </td>
+                    <td>{acct.accountDescription}</td>
+                    <td>
+                    <span className={`${styles.badge} ${acct.normalSide === "LEFT" ? styles.badgeDebit : styles.badgeCredit}`}>
+                      {acct.normalSide}
+                    </span>
+                    </td>
+                    <td>{acct.accountCategory}</td>
+                    <td>{acct.accountSubcategory}</td>
+                    <td className={styles.money}>${fmt(acct.initialBalance)}</td>
+                    <td className={styles.money}>${fmt(acct.debit)}</td>
+                    <td className={styles.money}>${fmt(acct.credit)}</td>
+                    <td className={styles.money}>${fmt(acct.balance)}</td>
+                    <td>{formatDateTime(acct.accountAddDate)}</td>
+                    <td>{acct.userId}</td>
+                    <td>{acct.order}</td>
+                    <td>{acct.associatedStatement}</td>
+                    <td>
+                    <span className={`${styles.badge} ${acct.active ? styles.badgeCredit : styles.badgeDebit}`}>
+                      {acct.active ? "Active" : "Inactive"}
+                    </span>
+                    </td>
+                    <td>{acct.comment || "—"}</td>
+                    <td>
+                      {userRole === "ADMINISTRATOR" ? (
+                          <div className={styles.actions}>
+                            <button
+                                type="button"
+                                className={styles.actionBtn}
+                                title="Edit Account"
+                                style={{ color: "#6b7280" }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (typeof onEditAccount === "function") onEditAccount({ ...acct });
+                                }}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                              </svg>
+                            </button>
+                            <button
+                                type="button"
+                                className={styles.actionBtn}
+                                title={acct.active ? "Account is already active" : "Activate Account"}
+                                style={{
+                                  color: acct.active ? "#9ca3af" : "#16a34a",
+                                  cursor: acct.active ? "not-allowed" : "pointer",
+                                  opacity: acct.active ? 0.4 : 1
+                                }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (!acct.active) handleActivate(e, acct);
+                                }}
+                                disabled={acct.active}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                            </button>
+                            <button
+                                type="button"
+                                className={styles.actionBtn}
+                                title={!acct.active ? "Account is already inactive" : "Deactivate Account"}
+                                style={{
+                                  color: !acct.active ? "#9ca3af" : "#dc2626",
+                                  cursor: !acct.active ? "not-allowed" : "pointer",
+                                  opacity: !acct.active ? 0.4 : 1
+                                }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (acct.active) handleDeactivate(e, acct);
+                                }}
+                                disabled={!acct.active}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+                              </svg>
+                            </button>
+                          </div>
+                      ) : (
+                          <span style={{ color: "#9ca3af" }}>—</span>
+                      )}
+                    </td>
+                  </tr>
               ))}
               {filteredAccounts.length === 0 && (
-                <tr><td colSpan={18} style={{ textAlign: "center", padding: "2rem", color: "var(--color-text-secondary,#6b7280)" }}>No accounts found.</td></tr>
+                  <tr>
+                    <td colSpan={18} style={{ textAlign: "center", padding: "2rem", color: "var(--color-text-secondary,#6b7280)" }}>
+                      No accounts found.
+                    </td>
+                  </tr>
               )}
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </div>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
   );
 }

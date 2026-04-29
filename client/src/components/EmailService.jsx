@@ -240,6 +240,7 @@ export default function EmailService() {
                 fontSize: "13px",
                 cursor: sending ? "not-allowed" : "pointer",
               }}
+              title="Clear Email Content"
             >
               Clear
             </button>
@@ -256,6 +257,7 @@ export default function EmailService() {
                 fontSize: "13px",
                 cursor: sending ? "not-allowed" : "pointer",
               }}
+              title="Send Inquiry to StoneLedger Administrator"
             >
               {sending ? "Sending..." : "Send Email"}
             </button>

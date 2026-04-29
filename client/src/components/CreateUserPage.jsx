@@ -324,6 +324,7 @@ export default function CreateUserPage({ onClose, onUserCreated, standalone = fa
               type="submit"
               className={styles.createBtn}
               disabled={loading}
+              title="Create New User"
             >
               {loading ? "Creating..." : "Create User"}
             </button>
@@ -343,6 +344,7 @@ export default function CreateUserPage({ onClose, onUserCreated, standalone = fa
                 className={styles.resetBtn}
                 onClick={handleReset}
                 disabled={loading}
+                title="Reset Form Content"
               >
                 Reset Form
               </button>
