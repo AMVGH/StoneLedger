@@ -143,6 +143,22 @@ const useTransactionContext = create((set) => ({
     }
   },
 
+  getAttachment: async (transactionId) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await api.get(`/general-journal/get-attachment/transaction/${transactionId}`, {
+        responseType: 'blob'
+      });
+      const url = URL.createObjectURL(response.data);
+      set({ loading: false });
+      return { url, filename: response.headers['content-disposition'] };
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to fetch attachment';
+      set({ error: errorMsg, loading: false });
+      throw error;
+    }
+  },
+
   clearError: () => set({ error: null })
 }));
 

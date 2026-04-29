@@ -173,7 +173,7 @@ function Calculator({ onClose }) {
 }
 
 export default function AccountLedger({ account, onBack, onJournalPageSelect, totalJournalPages, onAccountSelect }) {
-  const { getApprovedEntriesForLedger, getTotalPages, getParentTransaction } = useTransactionContext();
+  const { getApprovedEntriesForLedger, getTotalPages, getParentTransaction, getAttachment } = useTransactionContext();
   const { getFinancialAccounts } = useUserContext();
 
   const [entries, setEntries] = useState([]);
@@ -358,6 +358,17 @@ export default function AccountLedger({ account, onBack, onJournalPageSelect, to
       </section>
     );
   }
+
+  const downloadAttachment = async (transactionId) => {
+    try {
+      const result = await getAttachment(transactionId);
+      if (result.url) {
+        window.open(result.url, '_blank');
+      }
+    } catch (err) {
+      console.error('Failed to download attachment:', err);
+    }
+  };
 
   return (
     <>
@@ -754,15 +765,24 @@ export default function AccountLedger({ account, onBack, onJournalPageSelect, to
                             whiteSpace: "normal",
                             margin: 0,
                             padding: 0
-                          }}
+                      }}
                       >
                         {parentTransaction.attachmentName ? (
-                            <span
-                                onClick={() => window.open(`http://localhost:8080/api/general-journal/get-attachment/transaction/${parentTransaction.id}`, '_blank')}
-                                style={{ fontSize: 13, color: '#4f46e5', textDecoration: 'underline', cursor: 'pointer' }}
+                            <button
+                                onClick={() => downloadAttachment(parentTransaction.id)}
+                                style={{
+                                  fontSize: 13,
+                                  color: '#4f46e5',
+                                  textDecoration: 'underline',
+                                  cursor: 'pointer',
+                                  background: 'none',
+                                  border: 'none',
+                                  padding: 0,
+                                  fontFamily: 'inherit'
+                                }}
                             >
-                            {parentTransaction.attachmentName}
-                          </span>
+                              {parentTransaction.attachmentName}
+                            </button>
                         ) : (
                             <span style={{ color: '#9ca3af', fontSize: 13 }}>—</span>
                         )}
