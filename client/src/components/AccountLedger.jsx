@@ -630,7 +630,7 @@ export default function AccountLedger({ account, onBack, onJournalPageSelect, to
                         </span>
                       </div>
                       <div className={styles.headerItem}>
-                        <span className={styles.headerLabel}>Created Date:</span>
+                        <span className={styles.headerLabel}>Creation Date:</span>
                         <span className={styles.headerValue}>{formatDateTime(parentTransaction.createdDate)}</span>
                       </div>
                     </div>
