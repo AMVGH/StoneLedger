@@ -11,6 +11,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.antlr.v4.runtime.misc.Pair;
+import org.antlr.v4.runtime.misc.Triple;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
@@ -74,8 +75,7 @@ public class RatioService {
                         currentLiabilityFigure = currentLiabilityFigure.add(financialAccount.getBalance());
                     } else longTermLiabilityFigure = longTermLiabilityFigure.add(financialAccount.getBalance());
                 }
-                // TODO: Add specialized error code for invalid Account Category
-                default -> throw new InvalidRequestException(errorMessageService.getError(100));
+                default -> throw new InvalidRequestException(errorMessageService.getError(140));
             }
         }
 
@@ -93,79 +93,80 @@ public class RatioService {
         ratioInfo.setLiquidityRatios(generateLiquidityRatios(financialFigures));
         ratioInfo.setLeverageRatios(generateLeverageRatios(financialFigures));
         ratioInfo.setActivityRatios(generateActivityRatios(financialFigures));
-        ratioInfo.setOtherRatios(generateOtherRatios(financialFigures));
 
         return ratioInfo;
     }
 
-    public List<Pair<String, BigDecimal>> generateProfitabilityRatios(FigureContainer figureContainer) {
-        List<Pair<String, BigDecimal>> profitabilityRatios = new ArrayList<>();
+    public List<Triple<String, BigDecimal, BigDecimal>> generateProfitabilityRatios(FigureContainer figureContainer) {
+        List<Triple<String, BigDecimal, BigDecimal>> profitabilityRatios = new ArrayList<>();
 
         // Gathering relevant figures for calculations
         BigDecimal sales = figureContainer.getRevenueFigure();
-        BigDecimal costOfGoodsSold = BigDecimal.ZERO; //Service company assumption
+        BigDecimal costOfGoodsSold = BigDecimal.ZERO; //Service based business so COGS is 0.
 
         BigDecimal profitsBeforeTaxesAndInterest = figureContainer.getRevenueFigure()
             .subtract(figureContainer.getExpenseFigure());
         BigDecimal profitsAfterTaxes = profitsBeforeTaxesAndInterest; //No tax figures available
 
-
         BigDecimal totalAssets = figureContainer.getCurrentAssetFigure().add(figureContainer.getLongTermAssetFigure());
         BigDecimal totalEquity = figureContainer.getEquityFigure();
 
         if (sales.compareTo(BigDecimal.ZERO) != 0) {
+            BigDecimal grossProfitMarginTarget = new BigDecimal("0.6");
             BigDecimal grossProfitMargin = sales.subtract(costOfGoodsSold)
-                    .divide(sales, 4, RoundingMode.HALF_UP);
-            profitabilityRatios.add(new Pair<>("Gross Profit Margin", grossProfitMargin));
+                .divide(sales, 4, RoundingMode.HALF_UP);
+            profitabilityRatios.add(new Triple<>("Gross Profit Margin", grossProfitMargin, grossProfitMarginTarget));
 
+            BigDecimal operatingProfitMarginTarget = new BigDecimal("0.3");
             BigDecimal operatingProfitMargin = profitsBeforeTaxesAndInterest
                 .divide(sales, 4, RoundingMode.HALF_UP);
-            profitabilityRatios.add(new Pair<>("Operating Profit Margin", operatingProfitMargin));
+            profitabilityRatios.add(new Triple<>("Operating Profit Margin", operatingProfitMargin, operatingProfitMarginTarget));
 
+            BigDecimal netProfitMarginTarget = new BigDecimal("0.2");
             BigDecimal netProfitMargin = profitsAfterTaxes
                 .divide(sales, 4, RoundingMode.HALF_UP);
-            profitabilityRatios.add(new Pair<>("Net Profit Margin", netProfitMargin));
+            profitabilityRatios.add(new Triple<>("Net Profit Margin", netProfitMargin, netProfitMarginTarget));
         }
 
         if (totalAssets.compareTo(BigDecimal.ZERO) != 0) {
+            BigDecimal returnOnTotalAssetTarget = new BigDecimal("0.20");
             BigDecimal returnOnTotalAssets = profitsAfterTaxes
                 .divide(totalAssets, 4, RoundingMode.HALF_UP);
-            profitabilityRatios.add(new Pair<>("Return On Total Assets", returnOnTotalAssets));
+            profitabilityRatios.add(new Triple<>("Return On Total Assets", returnOnTotalAssets, returnOnTotalAssetTarget));
         }
 
         if (totalEquity.compareTo(BigDecimal.ZERO) != 0) {
+            BigDecimal returnOnStockholderEquityTarget = new BigDecimal("0.2");
             BigDecimal returnOnStockholderEquity = profitsAfterTaxes
                 .divide(totalEquity,4, RoundingMode.HALF_UP);
-            profitabilityRatios.add(new Pair<>("Return on Stockholder Equity", returnOnStockholderEquity));
+            profitabilityRatios.add(new Triple<>("Return on Stockholder Equity", returnOnStockholderEquity, returnOnStockholderEquityTarget));
         }
         return profitabilityRatios;
     }
 
-    public List<Pair<String, BigDecimal>> generateLiquidityRatios(FigureContainer figureContainer) {
-        List<Pair<String, BigDecimal>> liquidityRatios = new ArrayList<>();
+    public List<Triple<String, BigDecimal, BigDecimal>> generateLiquidityRatios(FigureContainer figureContainer) {
+        List<Triple<String, BigDecimal, BigDecimal>> liquidityRatios = new ArrayList<>();
 
         BigDecimal currentAssets = figureContainer.getCurrentAssetFigure();
         BigDecimal currentLiabilities = figureContainer.getCurrentLiabilityFigure();
-        BigDecimal inventory = BigDecimal.ZERO;
+        BigDecimal inventory = BigDecimal.ZERO; // No Inventory Figure
 
         if (currentLiabilities.compareTo(BigDecimal.ZERO) != 0) {
+            BigDecimal currentRatioTarget = new BigDecimal("1.75");
             BigDecimal currentRatio = currentAssets
                 .divide(currentLiabilities, 4, RoundingMode.HALF_UP);
-            liquidityRatios.add(new Pair<>("Current Ratio", currentRatio));
+            liquidityRatios.add(new Triple<>("Current Ratio", currentRatio, currentRatioTarget));
 
+            BigDecimal quickRatioTarget = new BigDecimal("1.75");
             BigDecimal quickRatio = currentAssets.subtract(inventory)
                 .divide(currentLiabilities,4,RoundingMode.HALF_UP);
-            liquidityRatios.add(new Pair<>("Quick Ratio", quickRatio));
-
-            BigDecimal inventoryToNetWorkingCapital = inventory
-                .divide(currentAssets.subtract(currentLiabilities), 4, RoundingMode.HALF_UP);
-            liquidityRatios.add(new Pair<>("Inventory to Net Working Capital", inventoryToNetWorkingCapital));
+            liquidityRatios.add(new Triple<>("Quick Ratio", quickRatio, quickRatioTarget));
         }
         return liquidityRatios;
     }
 
-    public List<Pair<String, BigDecimal>> generateLeverageRatios(FigureContainer figureContainer) {
-        List<Pair<String, BigDecimal>> leverageRatios = new ArrayList<>();
+    public List<Triple<String, BigDecimal, BigDecimal>> generateLeverageRatios(FigureContainer figureContainer) {
+        List<Triple<String, BigDecimal, BigDecimal>> leverageRatios = new ArrayList<>();
 
         BigDecimal totalDebt = figureContainer.getCurrentLiabilityFigure()
             .add(figureContainer.getLongTermLiabilityFigure());
@@ -175,54 +176,47 @@ public class RatioService {
         BigDecimal totalStockholderEquity = figureContainer.getEquityFigure();
 
         if (totalAssets.compareTo(BigDecimal.ZERO) != 0) {
+            BigDecimal debtToAssetRatioTarget = new BigDecimal("0.5");
             BigDecimal debtToAssetsRatio = totalDebt
                 .divide(totalAssets, 4, RoundingMode.HALF_UP);
-            leverageRatios.add(new Pair<>("Debt to Assets Ratio", debtToAssetsRatio));
+            leverageRatios.add(new Triple<>("Debt to Assets Ratio", debtToAssetsRatio, debtToAssetRatioTarget));
         }
 
         if (totalStockholderEquity.compareTo(BigDecimal.ZERO) != 0) {
+            BigDecimal debtToEquityRatioTarget = new BigDecimal("1");
             BigDecimal debtToEquityRatio = totalDebt
                 .divide(totalStockholderEquity, 4, RoundingMode.HALF_UP);
-            leverageRatios.add(new Pair<>("Debt to Equity Ratio", debtToEquityRatio));
+            leverageRatios.add(new Triple<>("Debt to Equity Ratio", debtToEquityRatio, debtToEquityRatioTarget));
 
+            BigDecimal longTermDebtToEquityRatioTarget = new BigDecimal("0.5");
             BigDecimal longTermDebtToEquityRatio = longTermDebt
                 .divide(totalStockholderEquity, 4, RoundingMode.HALF_UP);
-            leverageRatios.add(new Pair<>("Long Term Debt to Equity Ratio", longTermDebtToEquityRatio));
+            leverageRatios.add(new Triple<>("Long Term Debt to Equity Ratio", longTermDebtToEquityRatio, longTermDebtToEquityRatioTarget));
         }
         return leverageRatios;
     }
 
     // TODO: Refine financial figure collection for Accounts Receivable
-    private List<Pair<String, BigDecimal>> generateActivityRatios(FigureContainer financialFigures) {
-        List<Pair<String, BigDecimal>> activityRatios = new ArrayList<>();
+    private List<Triple<String, BigDecimal, BigDecimal>> generateActivityRatios(FigureContainer financialFigures) {
+        List<Triple<String, BigDecimal, BigDecimal>> activityRatios = new ArrayList<>();
 
         BigDecimal sales = financialFigures.getRevenueFigure();
-        BigDecimal inventoryOfFinishedGoods = BigDecimal.ZERO;
         BigDecimal fixedAssets = financialFigures.getLongTermAssetFigure();
         BigDecimal totalAssets = financialFigures.getCurrentAssetFigure().add(financialFigures.getLongTermAssetFigure());
 
-        if (inventoryOfFinishedGoods.compareTo(BigDecimal.ZERO) != 0) {
-            BigDecimal inventoryTurnover = sales
-                .divide(inventoryOfFinishedGoods);
-            activityRatios.add(new Pair<>("Inventory Turnover", inventoryTurnover));
-        }
-
         if (fixedAssets.compareTo(BigDecimal.ZERO) !=  0) {
+            BigDecimal fixedAssetTurnoverTarget = new BigDecimal("5.0");
             BigDecimal fixedAssetsTurnover = sales
                 .divide(fixedAssets, 4, RoundingMode.HALF_UP);
-            activityRatios.add(new Pair<>("Fixed Assets Turnover", fixedAssetsTurnover));
+            activityRatios.add(new Triple<>("Fixed Assets Turnover", fixedAssetsTurnover, fixedAssetTurnoverTarget));
         }
 
         if (totalAssets.compareTo(BigDecimal.ZERO) != 0) {
+            BigDecimal totalAssetTurnoverTarget = new BigDecimal("1.5");
             BigDecimal totalAssetsTurnover = sales
                 .divide(totalAssets, 4, RoundingMode.HALF_UP);
-            activityRatios.add(new Pair<>("Total Assets Turnover", totalAssetsTurnover));
+            activityRatios.add(new Triple<>("Total Assets Turnover", totalAssetsTurnover, totalAssetTurnoverTarget));
         }
-        return activityRatios;
-    }
-
-    private List<Pair<String, BigDecimal>> generateOtherRatios(FigureContainer financialFigures) {
-        List<Pair<String, BigDecimal>> activityRatios = new ArrayList<>();
         return activityRatios;
     }
 }
