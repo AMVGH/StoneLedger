@@ -124,10 +124,10 @@
     border-top: 1px solid #f1f5f9;
 }
 
-/* ── KPI Row - 5 columns ── */
+/* ── KPI Row - 5 columns max ── */
 .kpiRow {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
     gap: 16px;
     margin-bottom: 28px;
 }

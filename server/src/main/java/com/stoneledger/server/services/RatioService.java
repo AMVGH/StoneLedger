@@ -81,13 +81,14 @@ public class RatioService {
 
         FigureContainer financialFigures = new FigureContainer();
 
-        financialFigures.setCurrentAssetFigure(currentAssetFigure);
-        financialFigures.setLongTermAssetFigure(longTermAssetFigure);
-        financialFigures.setEquityFigure(equityFigure);
-        financialFigures.setExpenseFigure(expenseFigure);
-        financialFigures.setRevenueFigure(revenueFigure);
-        financialFigures.setCurrentLiabilityFigure(currentLiabilityFigure);
-        financialFigures.setLongTermLiabilityFigure(longTermLiabilityFigure);
+        // At closing figs are listed - A.V
+        financialFigures.setCurrentAssetFigure(currentAssetFigure); //17995
+        financialFigures.setLongTermAssetFigure(longTermAssetFigure); //8800
+        financialFigures.setEquityFigure(equityFigure); //24775
+        financialFigures.setExpenseFigure(expenseFigure); //0
+        financialFigures.setRevenueFigure(revenueFigure); //0
+        financialFigures.setCurrentLiabilityFigure(currentLiabilityFigure); //1020
+        financialFigures.setLongTermLiabilityFigure(longTermLiabilityFigure); //1000
 
         ratioInfo.setProfitabilityRatios(generateProfitabilityRatios(financialFigures));
         ratioInfo.setLiquidityRatios(generateLiquidityRatios(financialFigures));
@@ -196,7 +197,6 @@ public class RatioService {
         return leverageRatios;
     }
 
-    // TODO: Refine financial figure collection for Accounts Receivable
     private List<Triple<String, BigDecimal, BigDecimal>> generateActivityRatios(FigureContainer financialFigures) {
         List<Triple<String, BigDecimal, BigDecimal>> activityRatios = new ArrayList<>();
 
