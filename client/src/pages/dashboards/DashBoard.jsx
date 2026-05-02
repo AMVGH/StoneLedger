@@ -15,6 +15,7 @@ import EmailService from "../../components/EmailService";
 import { SECURITY_QUESTIONS } from "../../utils/SecurityQuestions";
 import Reports from "../../components/Reports";
 import FinancialRatioDashboard from "../FinancialRatioDashboard/FinancialRatioDashboard";
+import useTransactionContext from "../../API/TransactionControl";
 
 const ACCOUNT_CATEGORIES = ["ASSET", "EXPENSE", "LIABILITY", "EQUITY", "REVENUE"];
 const ACCOUNT_SUBCATEGORIES = ["SHORT_TERM", "LONG_TERM", "NONE"];
@@ -125,76 +126,76 @@ function EditAccountModal({ account, onClose, onSuccess }) {
   const errorStyle = { background: "#fef2f2", border: "0.5px solid #fecaca", color: "#b91c1c", borderRadius: "6px", padding: "8px 12px", fontSize: "13px", marginBottom: "14px" };
 
   return (
-    <div style={overlayStyle} onClick={onClose}>
-      <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
-        <div style={headerStyle}>
-          <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 500 }}>Edit Account</h3>
-          <button style={{ background: "none", border: "none", fontSize: "16px", cursor: "pointer", color: "#6b7280" }} onClick={onClose}>✕</button>
-        </div>
-        <div style={bodyStyle}>
-          {formError && <div style={errorStyle}>{formError}</div>}
-          <div style={gridStyle}>
-            <div style={groupStyle}><label style={labelStyle}>Account Category *</label>
-              <select style={selectStyle} name="accountCategory" value={form.accountCategory} onChange={handleCategoryChange}>
-                <option value="">Select category</option>
-                {ACCOUNT_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-            <div style={groupStyle}><label style={labelStyle}>Account Number</label>
-              <input style={{ ...inputStyle, background: "#f9fafb", color: "#6b7280" }} type="text" value={generating ? "Generating…" : form.accountNumber} readOnly />
-            </div>
-            <div style={groupStyle}><label style={labelStyle}>Account Name *</label>
-              <input style={inputStyle} type="text" name="accountName" value={form.accountName} onChange={handleChange} placeholder="e.g. Cash" />
-            </div>
-            <div style={groupStyle}><label style={labelStyle}>Account Description *</label>
-              <input style={inputStyle} type="text" name="accountDescription" value={form.accountDescription} onChange={handleChange} placeholder="Brief description" />
-            </div>
-            <div style={groupStyle}><label style={labelStyle}>Normal Side *</label>
-              <select style={selectStyle} name="normalSide" value={form.normalSide} onChange={handleChange}>
-                <option value="">Select side</option>
-                {NORMAL_SIDES.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
-            <div style={groupStyle}><label style={labelStyle}>Account Subcategory *</label>
-              <select style={selectStyle} name="accountSubcategory" value={form.accountSubcategory} onChange={handleChange}>
-                <option value="">Select subcategory</option>
-                {ACCOUNT_SUBCATEGORIES.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
-            <div style={groupStyle}><label style={labelStyle}>Associated Statement *</label>
-              <select style={selectStyle} name="associatedStatement" value={form.associatedStatement} onChange={handleChange}>
-                <option value="">Select statement</option>
-                {ASSOCIATED_STATEMENTS.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
-            <div style={groupStyle}><label style={labelStyle}>Order *</label>
-              <input style={inputStyle} type="number" name="order" value={form.order} onChange={handleChange} placeholder="Display order" />
-            </div>
-            <div style={groupStyle}><label style={labelStyle}>Initial Balance *</label>
-              <input style={inputStyle} type="number" name="initialBalance" value={form.initialBalance} onChange={handleChange} placeholder="0.00" step="0.01" />
-            </div>
-            <div style={groupStyle}><label style={labelStyle}>Debit *</label>
-              <input style={inputStyle} type="number" name="debit" value={form.debit} onChange={handleChange} placeholder="0.00" step="0.01" />
-            </div>
-            <div style={groupStyle}><label style={labelStyle}>Credit *</label>
-              <input style={inputStyle} type="number" name="credit" value={form.credit} onChange={handleChange} placeholder="0.00" step="0.01" />
-            </div>
-            <div style={groupStyle}><label style={labelStyle}>Balance *</label>
-              <input style={inputStyle} type="number" name="balance" value={form.balance} onChange={handleChange} placeholder="0.00" step="0.01" />
-            </div>
-            <div style={{ ...groupStyle, gridColumn: "1 / -1" }}><label style={labelStyle}>Comment</label>
-              <input style={inputStyle} type="text" name="comment" value={form.comment} onChange={handleChange} placeholder="Optional comment" />
+      <div style={overlayStyle} onClick={onClose}>
+        <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
+          <div style={headerStyle}>
+            <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 500 }}>Edit Account</h3>
+            <button style={{ background: "none", border: "none", fontSize: "16px", cursor: "pointer", color: "#6b7280" }} onClick={onClose}>✕</button>
+          </div>
+          <div style={bodyStyle}>
+            {formError && <div style={errorStyle}>{formError}</div>}
+            <div style={gridStyle}>
+              <div style={groupStyle}><label style={labelStyle}>Account Category *</label>
+                <select style={selectStyle} name="accountCategory" value={form.accountCategory} onChange={handleCategoryChange}>
+                  <option value="">Select category</option>
+                  {ACCOUNT_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div style={groupStyle}><label style={labelStyle}>Account Number</label>
+                <input style={{ ...inputStyle, background: "#f9fafb", color: "#6b7280" }} type="text" value={generating ? "Generating…" : form.accountNumber} readOnly />
+              </div>
+              <div style={groupStyle}><label style={labelStyle}>Account Name *</label>
+                <input style={inputStyle} type="text" name="accountName" value={form.accountName} onChange={handleChange} placeholder="e.g. Cash" />
+              </div>
+              <div style={groupStyle}><label style={labelStyle}>Account Description *</label>
+                <input style={inputStyle} type="text" name="accountDescription" value={form.accountDescription} onChange={handleChange} placeholder="Brief description" />
+              </div>
+              <div style={groupStyle}><label style={labelStyle}>Normal Side *</label>
+                <select style={selectStyle} name="normalSide" value={form.normalSide} onChange={handleChange}>
+                  <option value="">Select side</option>
+                  {NORMAL_SIDES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div style={groupStyle}><label style={labelStyle}>Account Subcategory *</label>
+                <select style={selectStyle} name="accountSubcategory" value={form.accountSubcategory} onChange={handleChange}>
+                  <option value="">Select subcategory</option>
+                  {ACCOUNT_SUBCATEGORIES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div style={groupStyle}><label style={labelStyle}>Associated Statement *</label>
+                <select style={selectStyle} name="associatedStatement" value={form.associatedStatement} onChange={handleChange}>
+                  <option value="">Select statement</option>
+                  {ASSOCIATED_STATEMENTS.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div style={groupStyle}><label style={labelStyle}>Order *</label>
+                <input style={inputStyle} type="number" name="order" value={form.order} onChange={handleChange} placeholder="Display order" />
+              </div>
+              <div style={groupStyle}><label style={labelStyle}>Initial Balance *</label>
+                <input style={inputStyle} type="number" name="initialBalance" value={form.initialBalance} onChange={handleChange} placeholder="0.00" step="0.01" />
+              </div>
+              <div style={groupStyle}><label style={labelStyle}>Debit *</label>
+                <input style={inputStyle} type="number" name="debit" value={form.debit} onChange={handleChange} placeholder="0.00" step="0.01" />
+              </div>
+              <div style={groupStyle}><label style={labelStyle}>Credit *</label>
+                <input style={inputStyle} type="number" name="credit" value={form.credit} onChange={handleChange} placeholder="0.00" step="0.01" />
+              </div>
+              <div style={groupStyle}><label style={labelStyle}>Balance *</label>
+                <input style={inputStyle} type="number" name="balance" value={form.balance} onChange={handleChange} placeholder="0.00" step="0.01" />
+              </div>
+              <div style={{ ...groupStyle, gridColumn: "1 / -1" }}><label style={labelStyle}>Comment</label>
+                <input style={inputStyle} type="text" name="comment" value={form.comment} onChange={handleChange} placeholder="Optional comment" />
+              </div>
             </div>
           </div>
-        </div>
-        <div style={footerStyle}>
-          <button style={cancelBtnStyle} onClick={onClose} disabled={submitting}>Cancel</button>
-          <button style={submitBtnStyle} onClick={handleSubmit} disabled={submitting || generating}>
-            {submitting ? "Saving…" : "Save Changes"}
-          </button>
+          <div style={footerStyle}>
+            <button style={cancelBtnStyle} onClick={onClose} disabled={submitting}>Cancel</button>
+            <button style={submitBtnStyle} onClick={handleSubmit} disabled={submitting || generating}>
+              {submitting ? "Saving…" : "Save Changes"}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
   );
 }
 
@@ -205,23 +206,20 @@ function NotificationBell({ onNavigateToJournal }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const modalRef = useRef(null);
-  const token = localStorage.getItem("authToken");
+  const { getPendingEntries } = useTransactionContext();
 
   const fetchPending = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("http://localhost:8080/api/transactions/get-pending-entries", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const json = await res.json();
-      setEntries(json?.data || []);
-    } catch {
-      setError("Failed to load pending entries.");
+      const response = await getPendingEntries();
+      setEntries(response?.data || []);
+    } catch (err) {
+      setError(err.message || "Failed to load pending entries.");
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [getPendingEntries]);
 
   // Poll every 30 seconds for badge count
   useEffect(() => {
@@ -254,141 +252,141 @@ function NotificationBell({ onNavigateToJournal }) {
   const count = entries.length;
 
   return (
-    <div style={{ position: "relative" }}>
-      {/* Bell button */}
-      <button
-        title="Pending Transactions"
-        onClick={handleOpen}
-        style={{
-          position: "relative",
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          padding: "4px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: open ? "#4f46e5" : "#6b7280",
-          borderRadius: "6px",
-          transition: "color 0.15s",
-        }}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-          fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-        </svg>
-        {count > 0 && (
-          <span style={{
-            position: "absolute",
-            top: "-2px",
-            right: "-4px",
-            background: "#ef4444",
-            color: "#fff",
-            borderRadius: "999px",
-            fontSize: "10px",
-            fontWeight: 700,
-            minWidth: "16px",
-            height: "16px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "0 4px",
-            lineHeight: 1,
-            boxShadow: "0 0 0 2px #fff",
-            pointerEvents: "none",
-          }}>
+      <div style={{ position: "relative" }}>
+        {/* Bell button */}
+        <button
+            title="Pending Transactions"
+            onClick={handleOpen}
+            style={{
+              position: "relative",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: "4px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: open ? "#4f46e5" : "#6b7280",
+              borderRadius: "6px",
+              transition: "color 0.15s",
+            }}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+          </svg>
+          {count > 0 && (
+              <span style={{
+                position: "absolute",
+                top: "-2px",
+                right: "-4px",
+                background: "#ef4444",
+                color: "#fff",
+                borderRadius: "999px",
+                fontSize: "10px",
+                fontWeight: 700,
+                minWidth: "16px",
+                height: "16px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "0 4px",
+                lineHeight: 1,
+                boxShadow: "0 0 0 2px #fff",
+                pointerEvents: "none",
+              }}>
             {count > 99 ? "99+" : count}
           </span>
-        )}
-      </button>
+          )}
+        </button>
 
-      {/* Dropdown modal */}
-      {open && (
-        <div
-          ref={modalRef}
-          style={{
-            position: "absolute",
-            top: "calc(100% + 10px)",
-            right: 0,
-            width: "380px",
-            maxHeight: "480px",
-            background: "#fff",
-            border: "0.5px solid #e5e7eb",
-            borderRadius: "12px",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
-            zIndex: 1000,
-            display: "flex",
-            flexDirection: "column",
-            overflow: "hidden",
-          }}
-        >
-          {/* Header */}
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "14px 16px 12px",
-            borderBottom: "0.5px solid #f3f4f6",
-            flexShrink: 0,
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
-                fill="none" stroke="#4f46e5" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-              </svg>
-              <span style={{ fontSize: "14px", fontWeight: 600, color: "#111827" }}>Pending Transactions</span>
-              {count > 0 && (
-                <span style={{
-                  background: "#fef2f2",
-                  color: "#ef4444",
-                  border: "0.5px solid #fecaca",
-                  borderRadius: "999px",
-                  fontSize: "11px",
-                  fontWeight: 600,
-                  padding: "1px 7px",
-                }}>
+        {/* Dropdown modal */}
+        {open && (
+            <div
+                ref={modalRef}
+                style={{
+                  position: "absolute",
+                  top: "calc(100% + 10px)",
+                  right: 0,
+                  width: "380px",
+                  maxHeight: "480px",
+                  background: "#fff",
+                  border: "0.5px solid #e5e7eb",
+                  borderRadius: "12px",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
+                  zIndex: 1000,
+                  display: "flex",
+                  flexDirection: "column",
+                  overflow: "hidden",
+                }}
+            >
+              {/* Header */}
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "14px 16px 12px",
+                borderBottom: "0.5px solid #f3f4f6",
+                flexShrink: 0,
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                       fill="none" stroke="#4f46e5" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                  </svg>
+                  <span style={{ fontSize: "14px", fontWeight: 600, color: "#111827" }}>Pending Transactions</span>
+                  {count > 0 && (
+                      <span style={{
+                        background: "#fef2f2",
+                        color: "#ef4444",
+                        border: "0.5px solid #fecaca",
+                        borderRadius: "999px",
+                        fontSize: "11px",
+                        fontWeight: 600,
+                        padding: "1px 7px",
+                      }}>
                   {count} pending
                 </span>
-              )}
-            </div>
-            <button
-              onClick={() => setOpen(false)}
-              style={{ background: "none", border: "none", cursor: "pointer", color: "#9ca3af", fontSize: "16px", lineHeight: 1, padding: "0 2px" }}
-            >✕</button>
-          </div>
+                  )}
+                </div>
+                <button
+                    onClick={() => setOpen(false)}
+                    style={{ background: "none", border: "none", cursor: "pointer", color: "#9ca3af", fontSize: "16px", lineHeight: 1, padding: "0 2px" }}
+                >✕</button>
+              </div>
 
-          {/* Body */}
-          <div style={{ overflowY: "auto", flex: 1 }}>
-            {loading ? (
-              <div style={{ padding: "32px 16px", textAlign: "center", color: "#6b7280", fontSize: "13px" }}>
-                Loading…
-              </div>
-            ) : error ? (
-              <div style={{ padding: "24px 16px", textAlign: "center", color: "#ef4444", fontSize: "13px" }}>{error}</div>
-            ) : entries.length === 0 ? (
-              <div style={{ padding: "40px 16px", textAlign: "center" }}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"
-                  fill="none" stroke="#d1d5db" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
-                  style={{ display: "block", margin: "0 auto 10px" }}>
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                  <polyline points="22 4 12 14.01 9 11.01" />
-                </svg>
-                <p style={{ fontSize: "13px", color: "#9ca3af", margin: 0 }}>No pending transactions</p>
-              </div>
-            ) : (
-              <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
-                {entries.map((entry, idx) => (
-                  <li
-                    key={entry.transactionId ?? idx}
-                    style={{
-                      padding: "12px 16px",
-                      borderBottom: idx < entries.length - 1 ? "0.5px solid #f3f4f6" : "none",
-                    }}
-                  >
-                    {/* Row: ID + date */}
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
+              {/* Body */}
+              <div style={{ overflowY: "auto", flex: 1 }}>
+                {loading ? (
+                    <div style={{ padding: "32px 16px", textAlign: "center", color: "#6b7280", fontSize: "13px" }}>
+                      Loading…
+                    </div>
+                ) : error ? (
+                    <div style={{ padding: "24px 16px", textAlign: "center", color: "#ef4444", fontSize: "13px" }}>{error}</div>
+                ) : entries.length === 0 ? (
+                    <div style={{ padding: "40px 16px", textAlign: "center" }}>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"
+                           fill="none" stroke="#d1d5db" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+                           style={{ display: "block", margin: "0 auto 10px" }}>
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                        <polyline points="22 4 12 14.01 9 11.01" />
+                      </svg>
+                      <p style={{ fontSize: "13px", color: "#9ca3af", margin: 0 }}>No pending transactions</p>
+                    </div>
+                ) : (
+                    <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+                      {entries.map((entry, idx) => (
+                          <li
+                              key={entry.transactionId ?? idx}
+                              style={{
+                                padding: "12px 16px",
+                                borderBottom: idx < entries.length - 1 ? "0.5px solid #f3f4f6" : "none",
+                              }}
+                          >
+                            {/* Row: ID + date */}
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
                       <span style={{
                         fontSize: "12px",
                         fontWeight: 600,
@@ -399,66 +397,66 @@ function NotificationBell({ onNavigateToJournal }) {
                       }}>
                         TXN #{entry.transactionId}
                       </span>
-                      <span style={{ fontSize: "11px", color: "#9ca3af" }}>
+                              <span style={{ fontSize: "11px", color: "#9ca3af" }}>
                         {formatDate(entry.transactionAddDate)}
                       </span>
-                    </div>
+                            </div>
 
-                    {/* Accounts */}
-                    {entry.accountsImpacted && entry.accountsImpacted.length > 0 ? (
-                      <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "4px" }}>
-                        {entry.accountsImpacted.map((acct, ai) => (
-                          <li key={ai} style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            fontSize: "12px",
-                            color: "#374151",
-                            background: "#f9fafb",
-                            borderRadius: "5px",
-                            padding: "4px 8px",
-                          }}>
+                            {/* Accounts */}
+                            {entry.accountsImpacted && entry.accountsImpacted.length > 0 ? (
+                                <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "4px" }}>
+                                  {entry.accountsImpacted.map((acct, ai) => (
+                                      <li key={ai} style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "space-between",
+                                        fontSize: "12px",
+                                        color: "#374151",
+                                        background: "#f9fafb",
+                                        borderRadius: "5px",
+                                        padding: "4px 8px",
+                                      }}>
                             <span style={{ fontWeight: 500 }}>
                               {acct.accountNumber ? `${acct.accountNumber} — ` : ""}{acct.accountName || `Account #${acct.accountId ?? acct.id ?? "?"}`}
                             </span>
-                            <div style={{ display: "flex", gap: "8px", flexShrink: 0, marginLeft: "8px" }}>
-                              {acct.debit != null && Number(acct.debit) !== 0 && (
-                                <span style={{ color: "#059669", fontWeight: 600 }}>
+                                        <div style={{ display: "flex", gap: "8px", flexShrink: 0, marginLeft: "8px" }}>
+                                          {acct.debit != null && Number(acct.debit) !== 0 && (
+                                              <span style={{ color: "#059669", fontWeight: 600 }}>
                                   Dr ${Number(acct.debit).toLocaleString("en-US", { minimumFractionDigits: 2 })}
                                 </span>
-                              )}
-                              {acct.credit != null && Number(acct.credit) !== 0 && (
-                                <span style={{ color: "#dc2626", fontWeight: 600 }}>
+                                          )}
+                                          {acct.credit != null && Number(acct.credit) !== 0 && (
+                                              <span style={{ color: "#dc2626", fontWeight: 600 }}>
                                   Cr ${Number(acct.credit).toLocaleString("en-US", { minimumFractionDigits: 2 })}
                                 </span>
-                              )}
-                            </div>
+                                          )}
+                                        </div>
+                                      </li>
+                                  ))}
+                                </ul>
+                            ) : (
+                                <p style={{ fontSize: "12px", color: "#9ca3af", margin: 0 }}>No accounts listed.</p>
+                            )}
                           </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p style={{ fontSize: "12px", color: "#9ca3af", margin: 0 }}>No accounts listed.</p>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+                      ))}
+                    </ul>
+                )}
+              </div>
 
-          {/* Footer */}
-          {entries.length > 0 && (
-            <div style={{
-              padding: "10px 16px",
-              borderTop: "0.5px solid #f3f4f6",
-              flexShrink: 0,
-              display: "flex",
-              justifyContent: "flex-end",
-            }}>
+              {/* Footer */}
+              {entries.length > 0 && (
+                  <div style={{
+                    padding: "10px 16px",
+                    borderTop: "0.5px solid #f3f4f6",
+                    flexShrink: 0,
+                    display: "flex",
+                    justifyContent: "flex-end",
+                  }}>
+                  </div>
+              )}
             </div>
-          )}
-        </div>
-      )}
-    </div>
+        )}
+      </div>
   );
 }
 
@@ -829,16 +827,16 @@ export default function DashBoard() {
   })();
 
   const loggedInUser = storedUser
-    ? {
+      ? {
         username: storedUser.username,
         name: `${storedUser.firstName} ${storedUser.lastName}`,
         role: storedUser.userRole,
         id: storedUser.id,
         email: storedUser.email,
         profilePicture: storedUser.profilePictureUrl ||
-          "https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTAxL3JtNjA5LXNvbGlkaWNvbi13LTAwMi1wLnBuZw.png",
+            "https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTAxL3JtNjA5LXNvbGlkaWNvbi13LTAwMi1wLnBuZw.png",
       }
-    : {
+      : {
         username: "—", name: "—", role: "—", id: "—", email: "",
         profilePicture: "https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTAxL3JtNjA5LXNvbGlkaWNvbi13LTAwMi1wLnBuZw.png",
       };
@@ -876,20 +874,23 @@ export default function DashBoard() {
     }
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch("http://localhost:8080/api/passwords/validate-security-question", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          id: Number(resetData.userId),
-          securityQuestion: resetData.securityQuestion,
-          securityQuestionAnswer: resetData.securityAnswer.trim(),
-        }),
-      });
-      const data = await response.json();
-      if (!response.ok || !data.data) { setModalError(data?.message || "Security question or answer did not match."); return; }
+      const { validateSecurityQuestion } = useUserContext.getState();
+
+      const isValid = await validateSecurityQuestion({
+        id: Number(resetData.userId),
+        securityQuestion: resetData.securityQuestion,
+        securityQuestionAnswer: resetData.securityAnswer.trim(),
+      }, token);
+
+      if (!isValid) {
+        setModalError("Security question or answer did not match.");
+        return;
+      }
       setModalError("");
       setResetStep(3);
-    } catch { setModalError("Something went wrong. Please try again."); }
+    } catch (err) {
+      setModalError(err.message || "Something went wrong. Please try again.");
+    }
   };
 
   const handleResetPassword = async () => {
@@ -897,17 +898,19 @@ export default function DashBoard() {
     if (resetData.newPassword !== resetData.confirmPassword) { setModalError("Passwords do not match."); return; }
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch("http://localhost:8080/api/passwords/update-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ id: Number(resetData.userId), updatedPassword: resetData.newPassword }),
-      });
-      const data = await response.json();
-      if (!response.ok) { setModalError(data?.message || "Failed to reset password."); return; }
+      const { updatePassword } = useUserContext.getState();
+
+      const result = await updatePassword({
+        id: Number(resetData.userId),
+        updatedPassword: resetData.newPassword,
+      }, token);
+
       notify("success", "Password has been reset successfully!");
       setShowResetModal(false);
       handleCancelReset();
-    } catch { setModalError("Something went wrong. Please try again."); }
+    } catch (err) {
+      setModalError(err.message || "Something went wrong. Please try again.");
+    }
   };
 
   const handleCancelReset = () => {
@@ -925,278 +928,278 @@ export default function DashBoard() {
   };
 
   return (
-    <div className={styles.page}>
-      {editingAccount && (
-        <EditAccountModal
-          account={editingAccount}
-          onClose={() => setEditingAccount(null)}
-          onSuccess={() => {
-            setEditingAccount(null);
-            setRefreshAccounts((prev) => prev + 1);
-          }}
-        />
-      )}
+      <div className={styles.page}>
+        {editingAccount && (
+            <EditAccountModal
+                account={editingAccount}
+                onClose={() => setEditingAccount(null)}
+                onSuccess={() => {
+                  setEditingAccount(null);
+                  setRefreshAccounts((prev) => prev + 1);
+                }}
+            />
+        )}
 
-      <aside className={styles.sidebar}>
-        <div className={styles.brand}><Logo size={225} /></div>
-        <nav className={styles.nav}>
-          {loggedInUser.role === "ADMINISTRATOR" && (
-            <>
-              <button className={`${styles.navItem} ${nav === "Financial Ratios" ? styles.activeNav : ""}`} onClick={() => setNav("Financial Ratios")}>Financial Ratios</button>
-              <button className={`${styles.navItem} ${nav === "User Management" ? styles.activeNav : ""}`} onClick={() => setNav("User Management")}>User Management</button>
-              <button className={`${styles.navItem} ${nav === "Create User" ? styles.activeNav : ""}`} onClick={() => setNav("Create User")}>Create New Users</button>
-              <button className={`${styles.navItem} ${nav === "Pending" ? styles.activeNav : ""}`} onClick={() => setNav("Pending")}>Pending Access Requests</button>
-              <button className={`${styles.navItem} ${nav === "Expired Passwords" ? styles.activeNav : ""}`} onClick={() => setNav("Expired Passwords")}>Expired Passwords</button>
-              <button
-                className={`${styles.navItem} ${(nav === "Chart of Accounts" || nav === "Account Ledger") ? styles.activeNav : ""}`}
-                onClick={() => { setNav("Chart of Accounts"); setSelectedAccount(null); }}
-              >Chart of Accounts</button>
-              <button className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`} onClick={() => setNav("Event Logs")}>Event Logs</button>
-            </>
-          )}
-          {(loggedInUser.role === "MANAGER") && (
-            <>
-              <button className={`${styles.navItem} ${nav === "Financial Ratios" ? styles.activeNav : ""}`} onClick={() => setNav("Financial Ratios")}>Financial Ratios</button>
-              <button
-                className={`${styles.navItem} ${(nav === "Chart of Accounts" || nav === "Account Ledger") ? styles.activeNav : ""}`}
-                onClick={() => { setNav("Chart of Accounts"); setSelectedAccount(null); }}
-              >Chart of Accounts</button>
-              <button className={`${styles.navItem} ${nav === "General Journal" ? styles.activeNav : ""}`} onClick={() => setNav("General Journal")}>General Journal</button>
-              <button className={`${styles.navItem} ${nav === "Reports" ? styles.activeNav : ""}`} onClick={() => setNav("Reports")}>Financial Reports</button>
-              <button className={`${styles.navItem} ${nav === "Email Service" ? styles.activeNav : ""}`} onClick={() => setNav("Email Service")}>Email Service</button>
-              <button className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`} onClick={() => setNav("Event Logs")}>Event Logs</button>
-            </>
-          )}
-          {loggedInUser.role === "USER" && (
-            <>
-              <button className={`${styles.navItem} ${nav === "Financial Ratios" ? styles.activeNav : ""}`} onClick={() => setNav("Financial Ratios")}>Financial Ratios</button>
-              <button
-                className={`${styles.navItem} ${(nav === "Chart of Accounts" || nav === "Account Ledger") ? styles.activeNav : ""}`}
-                onClick={() => { setNav("Chart of Accounts"); setSelectedAccount(null); }}
-              >Chart of Accounts</button>
-              <button className={`${styles.navItem} ${nav === "General Journal" ? styles.activeNav : ""}`} onClick={() => setNav("General Journal")}>General Journal</button>
-              <button className={`${styles.navItem} ${nav === "Email Service" ? styles.activeNav : ""}`} onClick={() => setNav("Email Service")}>Email Service</button>
-              <button className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`} onClick={() => setNav("Event Logs")}>Event Logs</button>
-            </>
-          )}
-        </nav>
-        <div className={styles.navSpacer}></div>
-        <nav className={styles.navBottom}>
-          <button className={styles.navItem} onClick={handleLogout}>Logout</button>
-        </nav>
-      </aside>
+        <aside className={styles.sidebar}>
+          <div className={styles.brand}><Logo size={225} /></div>
+          <nav className={styles.nav}>
+            {loggedInUser.role === "ADMINISTRATOR" && (
+                <>
+                  <button className={`${styles.navItem} ${nav === "Financial Ratios" ? styles.activeNav : ""}`} onClick={() => setNav("Financial Ratios")}>Financial Ratios</button>
+                  <button className={`${styles.navItem} ${nav === "User Management" ? styles.activeNav : ""}`} onClick={() => setNav("User Management")}>User Management</button>
+                  <button className={`${styles.navItem} ${nav === "Create User" ? styles.activeNav : ""}`} onClick={() => setNav("Create User")}>Create New Users</button>
+                  <button className={`${styles.navItem} ${nav === "Pending" ? styles.activeNav : ""}`} onClick={() => setNav("Pending")}>Pending Access Requests</button>
+                  <button className={`${styles.navItem} ${nav === "Expired Passwords" ? styles.activeNav : ""}`} onClick={() => setNav("Expired Passwords")}>Expired Passwords</button>
+                  <button
+                      className={`${styles.navItem} ${(nav === "Chart of Accounts" || nav === "Account Ledger") ? styles.activeNav : ""}`}
+                      onClick={() => { setNav("Chart of Accounts"); setSelectedAccount(null); }}
+                  >Chart of Accounts</button>
+                  <button className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`} onClick={() => setNav("Event Logs")}>Event Logs</button>
+                </>
+            )}
+            {(loggedInUser.role === "MANAGER") && (
+                <>
+                  <button className={`${styles.navItem} ${nav === "Financial Ratios" ? styles.activeNav : ""}`} onClick={() => setNav("Financial Ratios")}>Financial Ratios</button>
+                  <button
+                      className={`${styles.navItem} ${(nav === "Chart of Accounts" || nav === "Account Ledger") ? styles.activeNav : ""}`}
+                      onClick={() => { setNav("Chart of Accounts"); setSelectedAccount(null); }}
+                  >Chart of Accounts</button>
+                  <button className={`${styles.navItem} ${nav === "General Journal" ? styles.activeNav : ""}`} onClick={() => setNav("General Journal")}>General Journal</button>
+                  <button className={`${styles.navItem} ${nav === "Reports" ? styles.activeNav : ""}`} onClick={() => setNav("Reports")}>Financial Reports</button>
+                  <button className={`${styles.navItem} ${nav === "Email Service" ? styles.activeNav : ""}`} onClick={() => setNav("Email Service")}>Email Service</button>
+                  <button className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`} onClick={() => setNav("Event Logs")}>Event Logs</button>
+                </>
+            )}
+            {loggedInUser.role === "USER" && (
+                <>
+                  <button className={`${styles.navItem} ${nav === "Financial Ratios" ? styles.activeNav : ""}`} onClick={() => setNav("Financial Ratios")}>Financial Ratios</button>
+                  <button
+                      className={`${styles.navItem} ${(nav === "Chart of Accounts" || nav === "Account Ledger") ? styles.activeNav : ""}`}
+                      onClick={() => { setNav("Chart of Accounts"); setSelectedAccount(null); }}
+                  >Chart of Accounts</button>
+                  <button className={`${styles.navItem} ${nav === "General Journal" ? styles.activeNav : ""}`} onClick={() => setNav("General Journal")}>General Journal</button>
+                  <button className={`${styles.navItem} ${nav === "Email Service" ? styles.activeNav : ""}`} onClick={() => setNav("Email Service")}>Email Service</button>
+                  <button className={`${styles.navItem} ${nav === "Event Logs" ? styles.activeNav : ""}`} onClick={() => setNav("Event Logs")}>Event Logs</button>
+                </>
+            )}
+          </nav>
+          <div className={styles.navSpacer}></div>
+          <nav className={styles.navBottom}>
+            <button className={styles.navItem} onClick={handleLogout}>Logout</button>
+          </nav>
+        </aside>
 
-      <main className={styles.main}>
-        <header className={styles.topbar}>
-          <div className={styles.topbarContent}>
-            <div className={styles.spacer}></div>
-            <div className={styles.rightSection}>
+        <main className={styles.main}>
+          <header className={styles.topbar}>
+            <div className={styles.topbarContent}>
+              <div className={styles.spacer}></div>
+              <div className={styles.rightSection}>
 
-              {/* Notification Bell — managers only */}
-              {loggedInUser.role === "MANAGER" && (
-                <NotificationBell
-                  onNavigateToJournal={() => setNav("General Journal")}
-                />
-              )}
+                {/* Notification Bell — managers only */}
+                {loggedInUser.role === "MANAGER" && (
+                    <NotificationBell
+                        onNavigateToJournal={() => setNav("General Journal")}
+                    />
+                )}
 
-              <div className={styles.settingsWrap}>
-                <button className={styles.iconBtn} title="Settings" onClick={() => setShowSettings((prev) => !prev)}>
+                <div className={styles.settingsWrap}>
+                  <button className={styles.iconBtn} title="Settings" onClick={() => setShowSettings((prev) => !prev)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="3" />
+                      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                    </svg>
+                  </button>
+                  {showSettings && (
+                      <div className={styles.settingsDropdown}>
+                        <button className={styles.settingsItem} onClick={() => { setShowResetModal(true); setResetStep(1); setShowSettings(false); }}>Reset Password</button>
+                      </div>
+                  )}
+                </div>
+                <button className={styles.iconBtn} title="Help" onClick={() => setShowHelp(true)}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="3" />
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
                   </svg>
                 </button>
-                {showSettings && (
-                  <div className={styles.settingsDropdown}>
-                    <button className={styles.settingsItem} onClick={() => { setShowResetModal(true); setResetStep(1); setShowSettings(false); }}>Reset Password</button>
+                <div className={styles.profile}>
+                  <div className={styles.userInfo}>
+                    <span className={styles.username}>{loggedInUser.username}</span>
+                    <span className={styles.userRole}>ID: {loggedInUser.id} | {loggedInUser.role}</span>
                   </div>
-                )}
-              </div>
-              <button className={styles.iconBtn} title="Help" onClick={() => setShowHelp(true)}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-                  <line x1="12" y1="17" x2="12.01" y2="17" />
-                </svg>
-              </button>
-              <div className={styles.profile}>
-                <div className={styles.userInfo}>
-                  <span className={styles.username}>{loggedInUser.username}</span>
-                  <span className={styles.userRole}>ID: {loggedInUser.id} | {loggedInUser.role}</span>
-                </div>
-                <div className={styles.avatar}>
-                  <img src={loggedInUser.profilePicture} alt={loggedInUser.name} className={styles.avatarImg} />
+                  <div className={styles.avatar}>
+                    <img src={loggedInUser.profilePicture} alt={loggedInUser.name} className={styles.avatarImg} />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </header>
+          </header>
 
-        {notification && (
-          <div className={`${styles.notification} ${styles[notification.type]}`}>{notification.message}</div>
-        )}
+          {notification && (
+              <div className={`${styles.notification} ${styles[notification.type]}`}>{notification.message}</div>
+          )}
 
-        {nav === "User Management" && ["ADMINISTRATOR"].includes(loggedInUser.role) && (
-          <section className={styles.content}><h2>User Management</h2><p>Manage users, roles, and permissions.</p><UsersTable /></section>
-        )}
-        {nav === "Financial Ratios" && ["ADMINISTRATOR", "MANAGER", "USER", "ACCOUNTANT"].includes(loggedInUser.role) && (
-          <section className={styles.content}>
-            <FinancialRatioDashboard/>
-          </section>
-        )}
-        {nav === "Create User" && loggedInUser.role === "ADMINISTRATOR" && (
-          <section className={styles.content}><CreateUserPage onUserCreated={handleUserCreated} standalone={true} /></section>
-        )}
-        {nav === "Pending" && loggedInUser.role === "ADMINISTRATOR" && (
-          <section className={styles.content}><h2>Pending Requests</h2><p>Approve or deny pending user access requests.</p><PendingTable onApprove={handleApprove} onDeny={handleDeny} /></section>
-        )}
-        {nav === "Expired Passwords" && ["ADMINISTRATOR"].includes(loggedInUser.role) && (
-          <section className={styles.content}><h2>Expired Passwords</h2><p>View and manage users with expired passwords.</p><ExpiredPasswords /></section>
-        )}
+          {nav === "User Management" && ["ADMINISTRATOR"].includes(loggedInUser.role) && (
+              <section className={styles.content}><h2>User Management</h2><p>Manage users, roles, and permissions.</p><UsersTable /></section>
+          )}
+          {nav === "Financial Ratios" && ["ADMINISTRATOR", "MANAGER", "USER", "ACCOUNTANT"].includes(loggedInUser.role) && (
+              <section className={styles.content}>
+                <FinancialRatioDashboard/>
+              </section>
+          )}
+          {nav === "Create User" && loggedInUser.role === "ADMINISTRATOR" && (
+              <section className={styles.content}><CreateUserPage onUserCreated={handleUserCreated} standalone={true} /></section>
+          )}
+          {nav === "Pending" && loggedInUser.role === "ADMINISTRATOR" && (
+              <section className={styles.content}><h2>Pending Requests</h2><p>Approve or deny pending user access requests.</p><PendingTable onApprove={handleApprove} onDeny={handleDeny} /></section>
+          )}
+          {nav === "Expired Passwords" && ["ADMINISTRATOR"].includes(loggedInUser.role) && (
+              <section className={styles.content}><h2>Expired Passwords</h2><p>View and manage users with expired passwords.</p><ExpiredPasswords /></section>
+          )}
 
-        {nav === "Chart of Accounts" && ["ADMINISTRATOR", "MANAGER", "USER"].includes(loggedInUser.role) && (
-          <section className={styles.content}>
-            <h2>Chart of Accounts</h2>
-            <p>View and manage the chart of accounts.</p>
-            <ChartOfAccounts
-              onAccountSelect={(account) => {
-                setSelectedAccount(account);
-                setPrevNav("Chart of Accounts");
-                setNav("Account Ledger");
-              }}
-              onEditAccount={loggedInUser.role === "ADMINISTRATOR" ? (account) => setEditingAccount(account) : undefined}
-              refreshTrigger={refreshAccounts}
-              userRole={loggedInUser.role}
-            />
-          </section>
-        )}
+          {nav === "Chart of Accounts" && ["ADMINISTRATOR", "MANAGER", "USER"].includes(loggedInUser.role) && (
+              <section className={styles.content}>
+                <h2>Chart of Accounts</h2>
+                <p>View and manage the chart of accounts.</p>
+                <ChartOfAccounts
+                    onAccountSelect={(account) => {
+                      setSelectedAccount(account);
+                      setPrevNav("Chart of Accounts");
+                      setNav("Account Ledger");
+                    }}
+                    onEditAccount={loggedInUser.role === "ADMINISTRATOR" ? (account) => setEditingAccount(account) : undefined}
+                    refreshTrigger={refreshAccounts}
+                    userRole={loggedInUser.role}
+                />
+              </section>
+          )}
 
-        {nav === "Account Ledger" && ["ADMINISTRATOR", "MANAGER", "USER"].includes(loggedInUser.role) && (
-          <section className={styles.content}>
-            <AccountLedger account={selectedAccount} onBack={() => setNav(prevNav)} />
-          </section>
-        )}
+          {nav === "Account Ledger" && ["ADMINISTRATOR", "MANAGER", "USER"].includes(loggedInUser.role) && (
+              <section className={styles.content}>
+                <AccountLedger account={selectedAccount} onBack={() => setNav(prevNav)} />
+              </section>
+          )}
 
-        {nav === "Event Logs" && ["ADMINISTRATOR", "MANAGER", "USER"].includes(loggedInUser.role) && (
-          <section className={styles.content}><h2>Event Logs</h2><p>View system event logs for auditing and monitoring.</p><EventLogs /></section>
-        )}
+          {nav === "Event Logs" && ["ADMINISTRATOR", "MANAGER", "USER"].includes(loggedInUser.role) && (
+              <section className={styles.content}><h2>Event Logs</h2><p>View system event logs for auditing and monitoring.</p><EventLogs /></section>
+          )}
 
-        {nav === "General Journal" && ["MANAGER", "USER"].includes(loggedInUser.role) && (
-          <section className={styles.content}>
-            <h2>General Journal</h2>
-            <p>View and manage journal entries.</p>
-            <GeneralJournal
-              userRole={loggedInUser?.role}
-              onAccountSelect={(account) => {
-                setSelectedAccount(account);
-                setPrevNav("General Journal");
-                setNav("Account Ledger");
-              }}
-            />
-          </section>
-        )}
+          {nav === "General Journal" && ["MANAGER", "USER"].includes(loggedInUser.role) && (
+              <section className={styles.content}>
+                <h2>General Journal</h2>
+                <p>View and manage journal entries.</p>
+                <GeneralJournal
+                    userRole={loggedInUser?.role}
+                    onAccountSelect={(account) => {
+                      setSelectedAccount(account);
+                      setPrevNav("General Journal");
+                      setNav("Account Ledger");
+                    }}
+                />
+              </section>
+          )}
 
-        {nav === "Reports" && ["MANAGER", "USER"].includes(loggedInUser.role) && (
-          <section className={styles.content}>
-            <h2>Reports</h2>
-            <p>Generate financial reports including Trial Balance, Income Statement, Balance Sheet, and Retained Earnings Statement.</p>
-            <Reports onAccountSelect={handleAccountSelect} />
-          </section>
-        )}
+          {nav === "Reports" && ["MANAGER", "USER"].includes(loggedInUser.role) && (
+              <section className={styles.content}>
+                <h2>Reports</h2>
+                <p>Generate financial reports including Trial Balance, Income Statement, Balance Sheet, and Retained Earnings Statement.</p>
+                <Reports onAccountSelect={handleAccountSelect} />
+              </section>
+          )}
 
-        {nav === "Email Service" && ["ADMINISTRATOR", "MANAGER", "USER"].includes(loggedInUser.role) && (
-          <section className={styles.content}>
-            <h2>Email Service</h2>
-            <p>Configure and manage email service features.</p>
-            <EmailService />
-          </section>
-        )}
+          {nav === "Email Service" && ["ADMINISTRATOR", "MANAGER", "USER"].includes(loggedInUser.role) && (
+              <section className={styles.content}>
+                <h2>Email Service</h2>
+                <p>Configure and manage email service features.</p>
+                <EmailService />
+              </section>
+          )}
 
-        {/* Updated Help Modal with Accordion */}
-        {showHelp && (
-          <div className={styles.modalOverlay} onClick={() => setShowHelp(false)}>
-            <div
-              className={styles.resetModal}
-              onClick={(e) => e.stopPropagation()}
-              style={{ maxWidth: "700px", maxHeight: "85vh", display: "flex", flexDirection: "column", overflow: "hidden" }}
-            >
-              <div className={styles.resetModalHeader}>
-                <h2>Official StoneLedger User Manual</h2>
-                <button className={styles.modalCloseBtn} onClick={() => setShowHelp(false)}>✕</button>
-              </div>
-              <div style={{ padding: "0 4px", overflowY: "auto", flex: 1 }}>
-                <div style={{ padding: "20px 20px 24px 20px" }}>
-                  <p style={{ fontSize: "14px", lineHeight: "1.6", color: "#4b5563", marginBottom: "20px" }}>
-                    Welcome to StoneLedger, a comprehensive online accounting platform designed for financial administrators,
-                    managers, and accountants alike. StoneLedger offers tailored dashboards providing only the exact tools you need,
-                    right when you need them. This manual is designed to guide you through effectively navigating and utilizing the StoneLedger platform.
-                  </p>
-                  <HelpAccordion />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {showResetModal && ["ADMINISTRATOR", "MANAGER", "USER"].includes(loggedInUser.role) && (
-          <div className={styles.modalOverlay} onClick={() => { setShowResetModal(false); handleCancelReset(); }}>
-            <div className={styles.resetModal} onClick={(e) => e.stopPropagation()}>
-              <div className={styles.resetModalHeader}>
-                <h2>Reset User Password</h2>
-                <button className={styles.modalCloseBtn} onClick={() => { setShowResetModal(false); handleCancelReset(); }}>✕</button>
-              </div>
-              <p>Help users reset their password by verifying their identity.</p>
-              <div className={styles.stepIndicator}>
-                <div className={`${styles.step} ${resetStep >= 1 ? styles.active : ""}`}>1. Verify Identity</div>
-                <div className={`${styles.step} ${resetStep >= 2 ? styles.active : ""}`}>2. Security Question</div>
-                <div className={`${styles.step} ${resetStep >= 3 ? styles.active : ""}`}>3. New Password</div>
-              </div>
-              {resetStep === 1 && (
-                <div className={styles.resetCard}>
-                  <h3>Step 1: Verify Identity</h3>
-                  <p>Enter the email address and user ID of the account to reset.</p>
-                  <div className={styles.resetFormGroup}><label>Email Address</label><input type="email" name="email" value={resetData.email} onChange={handleResetChange} placeholder="Enter user's email address" /></div>
-                  <div className={styles.resetFormGroup}><label>User ID</label><input type="text" name="userId" value={resetData.userId} onChange={handleResetChange} placeholder="Enter user ID" /></div>
-                  {modalError && <div className={styles.modalError}>{modalError}</div>}
-                  <div className={styles.resetActions}><button className={styles.primaryBtn} onClick={handleVerifyIdentity}>Continue</button></div>
-                </div>
-              )}
-              {resetStep === 2 && (
-                <div className={styles.resetCard}>
-                  <h3>Step 2: Security Question</h3>
-                  <p>Select and answer the security question associated with this account.</p>
-                  <div className={styles.resetFormGroup}>
-                    <label>Security Question</label>
-                    <select name="securityQuestion" value={resetData.securityQuestion} onChange={handleResetChange}>
-                      <option value="">Select A Question</option>
-                      {SECURITY_QUESTIONS.map((q) => <option key={q} value={q}>{q}</option>)}
-                    </select>
+          {/* Updated Help Modal with Accordion */}
+          {showHelp && (
+              <div className={styles.modalOverlay} onClick={() => setShowHelp(false)}>
+                <div
+                    className={styles.resetModal}
+                    onClick={(e) => e.stopPropagation()}
+                    style={{ maxWidth: "700px", maxHeight: "85vh", display: "flex", flexDirection: "column", overflow: "hidden" }}
+                >
+                  <div className={styles.resetModalHeader}>
+                    <h2>Official StoneLedger User Manual</h2>
+                    <button className={styles.modalCloseBtn} onClick={() => setShowHelp(false)}>✕</button>
                   </div>
-                  <div className={styles.resetFormGroup}><label>Answer</label><input type="text" name="securityAnswer" value={resetData.securityAnswer} onChange={handleResetChange} placeholder="Enter your answer" /></div>
-                  {modalError && <div className={styles.modalError}>{modalError}</div>}
-                  <div className={styles.resetActions}>
-                    <button className={styles.secondaryBtn} onClick={() => { setModalError(""); setResetStep(1); }}>Back</button>
-                    <button className={styles.primaryBtn} onClick={handleVerifySecurityQuestion}>Continue</button>
+                  <div style={{ padding: "0 4px", overflowY: "auto", flex: 1 }}>
+                    <div style={{ padding: "20px 20px 24px 20px" }}>
+                      <p style={{ fontSize: "14px", lineHeight: "1.6", color: "#4b5563", marginBottom: "20px" }}>
+                        Welcome to StoneLedger, a comprehensive online accounting platform designed for financial administrators,
+                        managers, and accountants alike. StoneLedger offers tailored dashboards providing only the exact tools you need,
+                        right when you need them. This manual is designed to guide you through effectively navigating and utilizing the StoneLedger platform.
+                      </p>
+                      <HelpAccordion />
+                    </div>
                   </div>
                 </div>
-              )}
-              {resetStep === 3 && (
-                <div className={styles.resetCard}>
-                  <h3>Step 3: Set New Password</h3>
-                  <p>Create a new password for the user.</p>
-                  <div className={styles.resetFormGroup}><label>New Password</label><input type="password" name="newPassword" value={resetData.newPassword} onChange={handleResetChange} placeholder="Enter new password" /></div>
-                  <div className={styles.resetFormGroup}><label>Confirm Password</label><input type="password" name="confirmPassword" value={resetData.confirmPassword} onChange={handleResetChange} placeholder="Confirm new password" /></div>
-                  {modalError && <div className={styles.modalError}>{modalError}</div>}
-                  <div className={styles.resetActions}>
-                    <button className={styles.secondaryBtn} onClick={() => { setModalError(""); setResetStep(2); }}>Back</button>
-                    <button className={styles.primaryBtn} onClick={handleResetPassword}>Reset Password</button>
+              </div>
+          )}
+
+          {showResetModal && ["ADMINISTRATOR", "MANAGER", "USER"].includes(loggedInUser.role) && (
+              <div className={styles.modalOverlay} onClick={() => { setShowResetModal(false); handleCancelReset(); }}>
+                <div className={styles.resetModal} onClick={(e) => e.stopPropagation()}>
+                  <div className={styles.resetModalHeader}>
+                    <h2>Reset User Password</h2>
+                    <button className={styles.modalCloseBtn} onClick={() => { setShowResetModal(false); handleCancelReset(); }}>✕</button>
                   </div>
+                  <p>Help users reset their password by verifying their identity.</p>
+                  <div className={styles.stepIndicator}>
+                    <div className={`${styles.step} ${resetStep >= 1 ? styles.active : ""}`}>1. Verify Identity</div>
+                    <div className={`${styles.step} ${resetStep >= 2 ? styles.active : ""}`}>2. Security Question</div>
+                    <div className={`${styles.step} ${resetStep >= 3 ? styles.active : ""}`}>3. New Password</div>
+                  </div>
+                  {resetStep === 1 && (
+                      <div className={styles.resetCard}>
+                        <h3>Step 1: Verify Identity</h3>
+                        <p>Enter the email address and user ID of the account to reset.</p>
+                        <div className={styles.resetFormGroup}><label>Email Address</label><input type="email" name="email" value={resetData.email} onChange={handleResetChange} placeholder="Enter user's email address" /></div>
+                        <div className={styles.resetFormGroup}><label>User ID</label><input type="text" name="userId" value={resetData.userId} onChange={handleResetChange} placeholder="Enter user ID" /></div>
+                        {modalError && <div className={styles.modalError}>{modalError}</div>}
+                        <div className={styles.resetActions}><button className={styles.primaryBtn} onClick={handleVerifyIdentity}>Continue</button></div>
+                      </div>
+                  )}
+                  {resetStep === 2 && (
+                      <div className={styles.resetCard}>
+                        <h3>Step 2: Security Question</h3>
+                        <p>Select and answer the security question associated with this account.</p>
+                        <div className={styles.resetFormGroup}>
+                          <label>Security Question</label>
+                          <select name="securityQuestion" value={resetData.securityQuestion} onChange={handleResetChange}>
+                            <option value="">Select A Question</option>
+                            {SECURITY_QUESTIONS.map((q) => <option key={q} value={q}>{q}</option>)}
+                          </select>
+                        </div>
+                        <div className={styles.resetFormGroup}><label>Answer</label><input type="text" name="securityAnswer" value={resetData.securityAnswer} onChange={handleResetChange} placeholder="Enter your answer" /></div>
+                        {modalError && <div className={styles.modalError}>{modalError}</div>}
+                        <div className={styles.resetActions}>
+                          <button className={styles.secondaryBtn} onClick={() => { setModalError(""); setResetStep(1); }}>Back</button>
+                          <button className={styles.primaryBtn} onClick={handleVerifySecurityQuestion}>Continue</button>
+                        </div>
+                      </div>
+                  )}
+                  {resetStep === 3 && (
+                      <div className={styles.resetCard}>
+                        <h3>Step 3: Set New Password</h3>
+                        <p>Create a new password for the user.</p>
+                        <div className={styles.resetFormGroup}><label>New Password</label><input type="password" name="newPassword" value={resetData.newPassword} onChange={handleResetChange} placeholder="Enter new password" /></div>
+                        <div className={styles.resetFormGroup}><label>Confirm Password</label><input type="password" name="confirmPassword" value={resetData.confirmPassword} onChange={handleResetChange} placeholder="Confirm new password" /></div>
+                        {modalError && <div className={styles.modalError}>{modalError}</div>}
+                        <div className={styles.resetActions}>
+                          <button className={styles.secondaryBtn} onClick={() => { setModalError(""); setResetStep(2); }}>Back</button>
+                          <button className={styles.primaryBtn} onClick={handleResetPassword}>Reset Password</button>
+                        </div>
+                      </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
-        )}
-      </main>
-    </div>
+              </div>
+          )}
+        </main>
+      </div>
   );
 }
