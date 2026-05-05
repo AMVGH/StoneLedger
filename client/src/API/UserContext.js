@@ -1,8 +1,6 @@
 import { create } from 'zustand';
 import api from './api';
 
-
-
 //Note -Update error messages to match the Error responses in the error database for better user feedback and debugging. Also consider adding more specific error handling based on status codes or error types returned by the API.
 
 const useUserContext = create((set) => ({
@@ -14,6 +12,50 @@ const useUserContext = create((set) => ({
     setUser: (user) => set({ user, isLoggedIn: true }),
     logout: () => set({ user: null, isLoggedIn: false }),
     // base URL is now handled by the shared `api` instance
+
+    // Login user
+    login: async (username, password) => {
+        set({ loading: true, error: null });
+        try {
+            const response = await api.post('/auth/login', {
+                username,
+                password
+            });
+            const loginData = response.data.data;
+            set({ user: loginData, isLoggedIn: true, loading: false });
+            return loginData;
+        } catch (error) {
+            const errorMsg = error.response?.data?.message || error.message || 'Failed to login';
+            console.error('Error logging in:', errorMsg);
+            set({ error: errorMsg, loading: false });
+            throw error;
+        }
+    },
+
+    // Request access (create new user registration)
+    requestAccess: async (userData) => {
+        set({ loading: true, error: null });
+        try {
+            const response = await api.post('/auth/request-access', {
+                firstName: userData.firstName,
+                lastName: userData.lastName,
+                userAddress: userData.userAddress,
+                dateOfBirth: userData.dateOfBirth,
+                email: userData.email,
+                password: userData.password,
+                userRole: userData.userRole,
+                securityQuestion: userData.securityQuestion,
+                securityQuestionAnswer: userData.securityQuestionAnswer
+            });
+            set({ loading: false });
+            return response.data.data;
+        } catch (error) {
+            const errorMsg = error.response?.data?.message || error.message || 'Failed to submit access request';
+            console.error('Error requesting access:', errorMsg);
+            set({ error: errorMsg, loading: false });
+            throw error;
+        }
+    },
 
     // Get all users from the system
     getAllUsers: async (token = null) => {
@@ -27,6 +69,47 @@ const useUserContext = create((set) => ({
         } catch (error) {
             const errorMsg = error.response?.data?.message || error.message || 'Failed to fetch users';
             console.error('Error fetching all users:', errorMsg);
+            set({ error: errorMsg, loading: false });
+            throw error;
+        }
+    },
+
+    // Validate security question for password reset
+    validateSecurityQuestion: async (data, token = null) => {
+        set({ loading: true, error: null });
+        try {
+            const response = await api.post('/passwords/validate-security-question', {
+                id: data.id,
+                securityQuestion: data.securityQuestion,
+                securityQuestionAnswer: data.securityQuestionAnswer
+            }, {
+                headers: token ? { Authorization: token } : {}
+            });
+            set({ loading: false });
+            return response.data.data;
+        } catch (error) {
+            const errorMsg = error.response?.data?.message || error.message || 'Failed to validate security question';
+            console.error('Error validating security question:', errorMsg);
+            set({ error: errorMsg, loading: false });
+            throw error;
+        }
+    },
+
+    // Update password
+    updatePassword: async (data, token = null) => {
+        set({ loading: true, error: null });
+        try {
+            const response = await api.post('/passwords/update-password', {
+                id: data.id,
+                updatedPassword: data.updatedPassword
+            }, {
+                headers: token ? { Authorization: token } : {}
+            });
+            set({ loading: false });
+            return response.data.data;
+        } catch (error) {
+            const errorMsg = error.response?.data?.message || error.message || 'Failed to update password';
+            console.error('Error updating password:', errorMsg);
             set({ error: errorMsg, loading: false });
             throw error;
         }
@@ -102,7 +185,7 @@ const useUserContext = create((set) => ({
         }
     },
 
-    // Create a new user
+    // Create a new user (admin only)
     createUser: async (userData, token = null) => {
         set({ loading: true, error: null });
         try {

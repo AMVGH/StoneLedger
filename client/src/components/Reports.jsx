@@ -963,7 +963,11 @@ export default function Reports({ onAccountSelect }) {
 
                           <tr>
                             <td style={reLabel}>Add: Net Income</td>
-                            <td style={reAmt}>{fmtNum(netIncome)}</td>
+                            <td style={reAmt}>
+                              <span style={{ borderBottom: "1px solid #111", display: "inline-block", fontWeight: 700 }}>
+                                {fmtNum(netIncome)}
+                              </span>
+                            </td>
                           </tr>
 
                           <tr>
@@ -977,7 +981,11 @@ export default function Reports({ onAccountSelect }) {
 
                           <tr>
                             <td style={reLabel}>Less: Dividends</td>
-                            <td style={reAmt}>{fmtNum(dividends)}</td>
+                            <td style={reAmt}>
+                              <span style={{ borderBottom: "1px solid #111", display: "inline-block", fontWeight: 700 }}>
+                                {fmtNum(dividends)}
+                              </span>
+                            </td>
                           </tr>
 
                           <tr>
